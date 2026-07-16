@@ -1,0 +1,103 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Set up minimum Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version: 1.25.x
+          cache: false
+      - name: Validate tag, changelog, and ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          [[ "$tag" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$ ]]
+          test "$(git rev-parse "${tag}^{commit}")" = "$(git rev-parse HEAD)"
+          version="${tag#v}"
+          grep -Eq "^## \[${version//./\.}\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" CHANGELOG.md
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: Run local release gates
+        run: |
+          go mod tidy -diff
+          make format-check vet race coverage docs
+          make fuzz FUZZ_TIME=10s
+          make benchmark BENCH_TIME=1x
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@d583c34f0599d37dbac4a198b9c83201be380893 # v9.3.0
+        with:
+          version: v2.12.2
+          args: --timeout=5m
+      - name: Run govulncheck
+        uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
+        with:
+          repo-checkout: false
+          go-version-input: 1.25.x
+          go-package: ./...
+
+  postgres:
+    name: PostgreSQL ${{ matrix.postgres }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: [14, 15, 16, 17, 18]
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Set up minimum Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version: 1.25.x
+          cache: false
+      - name: Run integration suite
+        run: make integration POSTGRES_VERSION=${{ matrix.postgres }}
+
+  publish:
+    needs: [verify, postgres]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Build deterministic source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          mkdir -p dist
+          git archive --format=tar --prefix="go-postgres-${tag}/" "$tag" |
+            gzip -n > "dist/go-postgres-${tag}.tar.gz"
+          sha256sum "dist/go-postgres-${tag}.tar.gz" > "dist/go-postgres-${tag}.checksums.txt"
+      - name: Extract release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          bash scripts/extract-release-notes.sh "$version" > release-notes.md
+          test -s release-notes.md
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --verify-tag \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file release-notes.md
