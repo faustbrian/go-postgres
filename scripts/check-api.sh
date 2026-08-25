@@ -24,5 +24,5 @@ fi
 
 cd "${root}"
 GOWORK=off run_apidiff -m -w "${current}" \
-	"github.com/faustbrian/go-postgresql"
+	"github.com/faustbrian/go-postgres"
 GOWORK=off run_apidiff -m -incompatible "${baseline}" "${current}"

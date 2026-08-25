@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/faustbrian/go-postgresql"
-	"github.com/faustbrian/go-postgresql/postgresservice"
+	"github.com/faustbrian/go-postgres"
+	"github.com/faustbrian/go-postgres/postgresservice"
 )
 
 var _ postgresservice.Resource = (*postgres.Pool)(nil)

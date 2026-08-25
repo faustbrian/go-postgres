@@ -5,13 +5,13 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-08-25
+## [1.0.1] - 2026-08-25
 
 ### Documentation
 
 - Replace obsolete standalone-repository links and workflow claims with
   monorepo-canonical targets and current release guidance.
-- Document the package's initial stable `v1.0.0` scope, security policy,
+- Document the package's initial stable `v1.0.1` scope, security policy,
   roadmap, and hardening guidance.
 
 - Link the package README to the repository-wide Golib documentation portal.
@@ -28,7 +28,7 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ### Changed
 
-- Publish the module from its standalone `github.com/faustbrian/go-postgresql` identity while preserving its documented API and behavior.
+- Publish the module from its standalone `github.com/faustbrian/go-postgres` identity while preserving its documented API and behavior.
 - Replace obsolete owned-module pseudo-version pins with the monorepo's local
   `v0.0.0` source-proxy coordinates; release tooling continues to emit exact
   `v1.0.0` dependency versions.
@@ -78,9 +78,9 @@ Versioning and keeps an Unreleased section until a release is tagged.
 - `golang.org/x/text` now uses the latest fixed release, removing
   `GO-2026-5970` from reachable pgx pool construction paths
 
-### v1.0.0 scope
+### v1.0.1 scope
 
-The following initial scope is included in `v1.0.0`.
+The following initial scope is included in `v1.0.1`.
 
 #### Added
 
@@ -101,5 +101,5 @@ The following initial scope is included in `v1.0.0`.
 - exact production coverage, race, leak, fuzz, benchmark, safety, lint,
   vulnerability, documentation, compatibility, and release automation
 
-[Unreleased]: https://github.com/faustbrian/go-postgresql/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/faustbrian/go-postgresql/releases/tag/v1.0.0
+[Unreleased]: https://github.com/faustbrian/go-postgres/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/faustbrian/go-postgres/releases/tag/v1.0.1

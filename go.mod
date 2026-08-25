@@ -1,4 +1,4 @@
-module github.com/faustbrian/go-postgresql
+module github.com/faustbrian/go-postgres
 
 go 1.26.6
 

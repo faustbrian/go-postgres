@@ -6,7 +6,7 @@ import (
 	"context"
 	"testing"
 
-	postgres "github.com/faustbrian/go-postgresql"
+	postgres "github.com/faustbrian/go-postgres"
 	"github.com/jackc/pgx/v5"
 )
 

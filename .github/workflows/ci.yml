@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       release_dry_run:
-        description: Run the v1.0.0 dry-run for every releasable module
+        description: Run the stable v1 dry-run for every releasable module
         required: false
         default: false
         type: boolean
@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: go-postgresql-${{ github.event.pull_request.number || github.ref }}
+  group: go-postgres-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:

@@ -57,7 +57,7 @@ enable_local_proxy() {
         GOLIB_LOCAL_PROXY="$(mktemp -d "${TMPDIR:-/tmp}/golib-proxy.XXXXXX")"
         local_proxy_owned=1
         "${root}/.golib/scripts/build-local-proxy.sh" \
-            "${GOLIB_LOCAL_PROXY}" v1.0.0 "${module}"
+            "${GOLIB_LOCAL_PROXY}" v1.0.1 "${module}"
     fi
     export GOLIB_LOCAL_PROXY
 
@@ -406,8 +406,8 @@ run_gate() {
             applicable security || { skip_not_applicable security; return; }
             test -s "${root}/LICENSE"
             module_path="$(go mod edit -json | jq -er '.Module.Path')"
-            if [[ "${module_path}" != "github.com/faustbrian/go-postgresql" &&
-                "${module_path}" != github.com/faustbrian/go-postgresql/* ]]; then
+            if [[ "${module_path}" != "github.com/faustbrian/go-postgres" &&
+                "${module_path}" != github.com/faustbrian/go-postgres/* ]]; then
                 printf '[%s] refusing to ignore non-owned module license: %s\n' \
                     "${module}" "${module_path}" >&2
                 exit 1
@@ -416,7 +416,7 @@ run_gate() {
                 "github.com/google/go-licenses/v2@${GO_LICENSES_VERSION}" \
                 go-licenses \
                 check ./... \
-                --ignore "github.com/faustbrian/go-postgresql"
+                --ignore "github.com/faustbrian/go-postgres"
             ;;
         sbom)
             applicable security || { skip_not_applicable security; return; }

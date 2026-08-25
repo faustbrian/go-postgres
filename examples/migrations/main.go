@@ -14,7 +14,7 @@ import (
 
 	migrations "github.com/faustbrian/go-migrations"
 	migrationpostgres "github.com/faustbrian/go-migrations/postgres"
-	postgres "github.com/faustbrian/go-postgresql"
+	postgres "github.com/faustbrian/go-postgres"
 	"github.com/jackc/pgx/v5/stdlib"
 )
 

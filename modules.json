@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "repository": "github.com/faustbrian/go-postgresql",
+  "repository": "github.com/faustbrian/go-postgres",
   "go_version": "1.26.6",
   "modules": [
     {
       "directory": ".",
-      "module_path": "github.com/faustbrian/go-postgresql",
+      "module_path": "github.com/faustbrian/go-postgres",
       "go_version": "1.26.6",
       "packages": [
         {
           "module_directory": ".",
           "directory": ".",
           "name": "postgres",
-          "import_path": "github.com/faustbrian/go-postgresql",
+          "import_path": "github.com/faustbrian/go-postgres",
           "kind": "public",
           "production": true,
           "executable": true,
@@ -24,7 +24,7 @@
           "module_directory": ".",
           "directory": "examples/service",
           "name": "main",
-          "import_path": "github.com/faustbrian/go-postgresql/examples/service",
+          "import_path": "github.com/faustbrian/go-postgres/examples/service",
           "kind": "example",
           "production": false,
           "executable": true,
@@ -36,7 +36,7 @@
           "module_directory": ".",
           "directory": "examples/sqlc",
           "name": "main",
-          "import_path": "github.com/faustbrian/go-postgresql/examples/sqlc",
+          "import_path": "github.com/faustbrian/go-postgres/examples/sqlc",
           "kind": "example",
           "production": false,
           "executable": true,
@@ -48,7 +48,7 @@
           "module_directory": ".",
           "directory": "examples/worker",
           "name": "main",
-          "import_path": "github.com/faustbrian/go-postgresql/examples/worker",
+          "import_path": "github.com/faustbrian/go-postgres/examples/worker",
           "kind": "example",
           "production": false,
           "executable": true,
@@ -60,7 +60,7 @@
           "module_directory": ".",
           "directory": "otelpostgres",
           "name": "otelpostgres",
-          "import_path": "github.com/faustbrian/go-postgresql/otelpostgres",
+          "import_path": "github.com/faustbrian/go-postgres/otelpostgres",
           "kind": "public",
           "production": true,
           "executable": true,
@@ -72,7 +72,7 @@
           "module_directory": ".",
           "directory": "postgresservice",
           "name": "postgresservice",
-          "import_path": "github.com/faustbrian/go-postgresql/postgresservice",
+          "import_path": "github.com/faustbrian/go-postgres/postgresservice",
           "kind": "public",
           "production": true,
           "executable": true,
@@ -84,7 +84,7 @@
           "module_directory": ".",
           "directory": "postgrestest",
           "name": "postgrestest",
-          "import_path": "github.com/faustbrian/go-postgresql/postgrestest",
+          "import_path": "github.com/faustbrian/go-postgres/postgrestest",
           "kind": "test support",
           "production": false,
           "executable": true,
@@ -101,7 +101,7 @@
       "family_label": "Persistence And Durability",
       "family_description": "Durable state, delivery, coordination, recovery, and operational lifecycle.",
       "family_order": 4,
-      "version": "v1.0.0",
+      "version": "1.0.1",
       "tag_prefix": "v",
       "owned_dependencies": [
         "github.com/faustbrian/go-cli",
@@ -111,7 +111,7 @@
       ],
       "reverse_owned_dependencies": [
         "github.com/faustbrian/go-audit/postgres",
-        "github.com/faustbrian/go-postgresql/examples/migrations",
+        "github.com/faustbrian/go-postgres/examples/migrations",
         "github.com/faustbrian/go-queue-control-plane",
         "github.com/faustbrian/go-service/integration/adoption",
         "github.com/faustbrian/go-service/integration/reference-durability"
@@ -238,14 +238,14 @@
     },
     {
       "directory": "examples/migrations",
-      "module_path": "github.com/faustbrian/go-postgresql/examples/migrations",
+      "module_path": "github.com/faustbrian/go-postgres/examples/migrations",
       "go_version": "1.26.6",
       "packages": [
         {
           "module_directory": "examples/migrations",
           "directory": ".",
           "name": "main",
-          "import_path": "github.com/faustbrian/go-postgresql/examples/migrations",
+          "import_path": "github.com/faustbrian/go-postgres/examples/migrations",
           "kind": "command",
           "production": false,
           "executable": true,
@@ -262,7 +262,7 @@
       "tag_prefix": "examples/migrations/v",
       "owned_dependencies": [
         "github.com/faustbrian/go-migrations",
-        "github.com/faustbrian/go-postgresql"
+        "github.com/faustbrian/go-postgres"
       ],
       "reverse_owned_dependencies": [],
       "external_runtime_dependencies": [

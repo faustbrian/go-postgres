@@ -3,7 +3,7 @@
 Install the module and create one application-owned pool:
 
 ```sh
-go get github.com/faustbrian/go-postgresql
+go get github.com/faustbrian/go-postgres
 ```
 
 ```go

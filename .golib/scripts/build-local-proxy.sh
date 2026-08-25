@@ -9,7 +9,7 @@ fi
 
 root="$(git rev-parse --show-toplevel)"
 output="$1"
-version="${2:-v1.0.0}"
+version="${2:-v1.0.1}"
 selected="${3:-}"
 
 if [[ ! "${version}" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then

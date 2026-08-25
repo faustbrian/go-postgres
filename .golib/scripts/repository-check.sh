@@ -2,7 +2,7 @@
 set -euo pipefail
 
 root="$(git rev-parse --show-toplevel)"
-repository="github.com/faustbrian/go-postgresql"
+repository="github.com/faustbrian/go-postgres"
 
 jq -e --arg repository "${repository}" '
     .repository == $repository and
