@@ -5,6 +5,8 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-08-25
+
 ### Fixed
 
 - Reconcile the migration example with the final standalone root archive
@@ -35,8 +37,6 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 - Correct stale package, standalone, and authoritative-source links in public
   documentation.
-
-## [1.0.1] - 2026-08-25
 
 ### Documentation
 
