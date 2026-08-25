@@ -33,9 +33,9 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/ebitengine/purego v0.10.0 h1:QIw4xfpWT6GWTzaW5XEKy3HXoqrJGx1ijYHzTF0/ISU=
 github.com/ebitengine/purego v0.10.0/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
-github.com/faustbrian/go-migrations v1.0.0 h1:W8WXDb0ReiL1G03TBLBDUHpFp4n1AC3OFvB7WqTVRBA=
+github.com/faustbrian/go-migrations v1.0.0 h1:MEFMheHuhqPSJk5l8rFCQlN8RL3PUojdvwKiIlvD194=
 github.com/faustbrian/go-migrations v1.0.0/go.mod h1:ruXWnP6IfkNr6dXeffW5bFouIr0WwBucvvMYTbhEh+I=
-github.com/faustbrian/go-postgres v1.0.1 h1:DqdDHmXWB59EgG1MWQLcSWWeoCzyHE0SZbLJTi/bIf0=
+github.com/faustbrian/go-postgres v1.0.1 h1:0G6LlIMV2buJDUcN/hEy4uIUA2bEco2ojgozATSeGf0=
 github.com/faustbrian/go-postgres v1.0.1/go.mod h1:sqcw3nP/8IEz5z4MgrREwfKGm+cSna52TwVEzayyBcs=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
