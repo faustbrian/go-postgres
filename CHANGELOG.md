@@ -5,6 +5,11 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+### Fixed
+
+- Reconcile the migration example with the final standalone root archive
+  after documentation generation changed its module checksum.
+
 ### Changed
 
 - Exclude intentional nested modules from root local-proxy archives so local,
