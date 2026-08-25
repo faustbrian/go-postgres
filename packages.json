@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "repository": "github.com/faustbrian/go-postgresql",
+  "packages": [
+    {
+      "module_directory": ".",
+      "directory": ".",
+      "name": "postgres",
+      "import_path": "github.com/faustbrian/go-postgresql",
+      "kind": "public",
+      "production": true,
+      "executable": true,
+      "coverage_required": true,
+      "build_required": true,
+      "build_tags": []
+    },
+    {
+      "module_directory": "examples/migrations",
+      "directory": ".",
+      "name": "main",
+      "import_path": "github.com/faustbrian/go-postgresql/examples/migrations",
+      "kind": "command",
+      "production": false,
+      "executable": true,
+      "coverage_required": false,
+      "build_required": true,
+      "build_tags": []
+    },
+    {
+      "module_directory": ".",
+      "directory": "examples/service",
+      "name": "main",
+      "import_path": "github.com/faustbrian/go-postgresql/examples/service",
+      "kind": "example",
+      "production": false,
+      "executable": true,
+      "coverage_required": false,
+      "build_required": true,
+      "build_tags": []
+    },
+    {
+      "module_directory": ".",
+      "directory": "examples/sqlc",
+      "name": "main",
+      "import_path": "github.com/faustbrian/go-postgresql/examples/sqlc",
+      "kind": "example",
+      "production": false,
+      "executable": true,
+      "coverage_required": false,
+      "build_required": true,
+      "build_tags": []
+    },
+    {
+      "module_directory": ".",
+      "directory": "examples/worker",
+      "name": "main",
+      "import_path": "github.com/faustbrian/go-postgresql/examples/worker",
+      "kind": "example",
+      "production": false,
+      "executable": true,
+      "coverage_required": false,
+      "build_required": true,
+      "build_tags": []
+    },
+    {
+      "module_directory": ".",
+      "directory": "otelpostgres",
+      "name": "otelpostgres",
+      "import_path": "github.com/faustbrian/go-postgresql/otelpostgres",
+      "kind": "public",
+      "production": true,
+      "executable": true,
+      "coverage_required": true,
+      "build_required": true,
+      "build_tags": []
+    },
+    {
+      "module_directory": ".",
+      "directory": "postgresservice",
+      "name": "postgresservice",
+      "import_path": "github.com/faustbrian/go-postgresql/postgresservice",
+      "kind": "public",
+      "production": true,
+      "executable": true,
+      "coverage_required": true,
+      "build_required": true,
+      "build_tags": []
+    },
+    {
+      "module_directory": ".",
+      "directory": "postgrestest",
+      "name": "postgrestest",
+      "import_path": "github.com/faustbrian/go-postgresql/postgrestest",
+      "kind": "test support",
+      "production": false,
+      "executable": true,
+      "coverage_required": false,
+      "build_required": true,
+      "build_tags": []
+    }
+  ]
+}

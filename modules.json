@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "repository": "github.com/faustbrian/go-postgresql",
+  "go_version": "1.26.6",
+  "modules": [
+    {
+      "directory": ".",
+      "module_path": "github.com/faustbrian/go-postgresql",
+      "go_version": "1.26.6",
+      "packages": [
+        {
+          "module_directory": ".",
+          "directory": ".",
+          "name": "postgres",
+          "import_path": "github.com/faustbrian/go-postgresql",
+          "kind": "public",
+          "production": true,
+          "executable": true,
+          "coverage_required": true,
+          "build_required": true,
+          "build_tags": []
+        },
+        {
+          "module_directory": ".",
+          "directory": "examples/service",
+          "name": "main",
+          "import_path": "github.com/faustbrian/go-postgresql/examples/service",
+          "kind": "example",
+          "production": false,
+          "executable": true,
+          "coverage_required": false,
+          "build_required": true,
+          "build_tags": []
+        },
+        {
+          "module_directory": ".",
+          "directory": "examples/sqlc",
+          "name": "main",
+          "import_path": "github.com/faustbrian/go-postgresql/examples/sqlc",
+          "kind": "example",
+          "production": false,
+          "executable": true,
+          "coverage_required": false,
+          "build_required": true,
+          "build_tags": []
+        },
+        {
+          "module_directory": ".",
+          "directory": "examples/worker",
+          "name": "main",
+          "import_path": "github.com/faustbrian/go-postgresql/examples/worker",
+          "kind": "example",
+          "production": false,
+          "executable": true,
+          "coverage_required": false,
+          "build_required": true,
+          "build_tags": []
+        },
+        {
+          "module_directory": ".",
+          "directory": "otelpostgres",
+          "name": "otelpostgres",
+          "import_path": "github.com/faustbrian/go-postgresql/otelpostgres",
+          "kind": "public",
+          "production": true,
+          "executable": true,
+          "coverage_required": true,
+          "build_required": true,
+          "build_tags": []
+        },
+        {
+          "module_directory": ".",
+          "directory": "postgresservice",
+          "name": "postgresservice",
+          "import_path": "github.com/faustbrian/go-postgresql/postgresservice",
+          "kind": "public",
+          "production": true,
+          "executable": true,
+          "coverage_required": true,
+          "build_required": true,
+          "build_tags": []
+        },
+        {
+          "module_directory": ".",
+          "directory": "postgrestest",
+          "name": "postgrestest",
+          "import_path": "github.com/faustbrian/go-postgresql/postgrestest",
+          "kind": "test support",
+          "production": false,
+          "executable": true,
+          "coverage_required": false,
+          "build_required": true,
+          "build_tags": []
+        }
+      ],
+      "purpose": "`postgres` is focused production infrastructure for PostgreSQL applications built directly on [`pgx/v5`](https://github.com/jackc/pgx). It standardizes finite pool configuration, bounded lifecycle operations, transaction cleanup, SQLSTATE classification, health, safe telemetry, and real PostgreSQL testing without hiding native pgx types.",
+      "lifecycle": "stable",
+      "kind": "public library",
+      "releasable": true,
+      "family": "persistence-and-durability",
+      "family_label": "Persistence And Durability",
+      "family_description": "Durable state, delivery, coordination, recovery, and operational lifecycle.",
+      "family_order": 4,
+      "version": "v1.0.0",
+      "tag_prefix": "v",
+      "owned_dependencies": [
+        "github.com/faustbrian/go-cli",
+        "github.com/faustbrian/go-correlation",
+        "github.com/faustbrian/go-identifier",
+        "github.com/faustbrian/go-service"
+      ],
+      "reverse_owned_dependencies": [
+        "github.com/faustbrian/go-audit/postgres",
+        "github.com/faustbrian/go-postgresql/examples/migrations",
+        "github.com/faustbrian/go-queue-control-plane",
+        "github.com/faustbrian/go-service/integration/adoption",
+        "github.com/faustbrian/go-service/integration/reference-durability"
+      ],
+      "external_runtime_dependencies": [
+        "github.com/jackc/pgx/v5",
+        "github.com/moby/moby/api",
+        "github.com/testcontainers/testcontainers-go",
+        "github.com/testcontainers/testcontainers-go/modules/postgres",
+        "go.opentelemetry.io/otel",
+        "go.opentelemetry.io/otel/metric",
+        "go.opentelemetry.io/otel/sdk/metric",
+        "go.uber.org/goleak"
+      ],
+      "required_services": [
+        "postgresql"
+      ],
+      "build_tags": [],
+      "test_tags": [
+        "integration"
+      ],
+      "interoperability_tools": [],
+      "specifications": [],
+      "conformance_corpora": [],
+      "provenance": [],
+      "goal_files": [
+        ".ai/GOAL.md",
+        ".ai/GOAL_HARDEN.md"
+      ],
+      "goal_status": "implementation-evidence-inventoried",
+      "goal_evidence": [
+        {
+          "file": ".ai/GOAL.md",
+          "requirements_sha256": "446dcc6ee85bd8d0126e6c70f830c9ec7c775d9eb6dc4549c4dac41a3e0e75dd",
+          "implementation_evidence": [
+            "CHANGELOG.md",
+            "README.md",
+            "docs/README.md",
+            "docs/api.md",
+            "docs/architecture.md",
+            "docs/compatibility.md",
+            "docs/hardening.md",
+            "docs/performance.md",
+            "docs/security.md"
+          ],
+          "verification_gates": [
+            "format-check",
+            "tidy-check",
+            "safety",
+            "vet",
+            "test",
+            "race",
+            "coverage",
+            "lint",
+            "staticcheck",
+            "vulnerability",
+            "secrets",
+            "licenses",
+            "sbom",
+            "fuzz",
+            "mutation",
+            "nilaway",
+            "docs",
+            "api",
+            "conformance",
+            "interoperability",
+            "benchmark"
+          ],
+          "implementation_status": "implemented-requires-fresh-verification"
+        },
+        {
+          "file": ".ai/GOAL_HARDEN.md",
+          "requirements_sha256": "e2ce9a990f67f7c9c7e6e2692f9815975f3ae47a10c02e4251acf487b15e7fd1",
+          "implementation_evidence": [
+            "CHANGELOG.md",
+            "README.md",
+            "docs/README.md",
+            "docs/api.md",
+            "docs/architecture.md",
+            "docs/compatibility.md",
+            "docs/hardening.md",
+            "docs/performance.md",
+            "docs/security.md"
+          ],
+          "verification_gates": [
+            "format-check",
+            "tidy-check",
+            "safety",
+            "vet",
+            "test",
+            "race",
+            "coverage",
+            "lint",
+            "staticcheck",
+            "vulnerability",
+            "secrets",
+            "licenses",
+            "sbom",
+            "fuzz",
+            "mutation",
+            "nilaway",
+            "docs",
+            "api",
+            "conformance",
+            "interoperability",
+            "benchmark"
+          ],
+          "implementation_status": "implemented-requires-fresh-verification"
+        }
+      ],
+      "gates": {
+        "api_compatibility": true,
+        "benchmarks": true,
+        "conformance": false,
+        "coverage": true,
+        "documentation": true,
+        "fuzz": true,
+        "lint": true,
+        "mutation": true,
+        "race": true,
+        "security": true,
+        "tests": true
+      }
+    },
+    {
+      "directory": "examples/migrations",
+      "module_path": "github.com/faustbrian/go-postgresql/examples/migrations",
+      "go_version": "1.26.6",
+      "packages": [
+        {
+          "module_directory": "examples/migrations",
+          "directory": ".",
+          "name": "main",
+          "import_path": "github.com/faustbrian/go-postgresql/examples/migrations",
+          "kind": "command",
+          "production": false,
+          "executable": true,
+          "coverage_required": false,
+          "build_required": true,
+          "build_tags": []
+        }
+      ],
+      "purpose": "This executable combines `postgres`, pgx's `database/sql` bridge, and `migrations`. It plans and applies embedded migrations once as a dedicated deployment job:",
+      "lifecycle": "internal",
+      "kind": "example",
+      "releasable": false,
+      "version": "unreleased",
+      "tag_prefix": "examples/migrations/v",
+      "owned_dependencies": [
+        "github.com/faustbrian/go-migrations",
+        "github.com/faustbrian/go-postgresql"
+      ],
+      "reverse_owned_dependencies": [],
+      "external_runtime_dependencies": [
+        "github.com/jackc/pgx/v5"
+      ],
+      "required_services": [
+        "postgresql"
+      ],
+      "build_tags": [],
+      "test_tags": [],
+      "interoperability_tools": [],
+      "specifications": [],
+      "conformance_corpora": [],
+      "provenance": [],
+      "goal_files": [],
+      "goal_status": "not-applicable",
+      "goal_evidence": [],
+      "gates": {
+        "api_compatibility": false,
+        "benchmarks": false,
+        "conformance": false,
+        "coverage": false,
+        "documentation": true,
+        "fuzz": false,
+        "lint": true,
+        "mutation": false,
+        "race": false,
+        "security": true,
+        "tests": true
+      }
+    }
+  ]
+}

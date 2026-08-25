@@ -19,8 +19,8 @@ import (
 	"testing"
 	"time"
 
-	postgres "github.com/faustbrian/golib/pkg/postgres"
-	"github.com/faustbrian/golib/pkg/postgres/postgrestest"
+	postgres "github.com/faustbrian/go-postgresql"
+	"github.com/faustbrian/go-postgresql/postgrestest"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )

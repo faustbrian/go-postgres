@@ -5,13 +5,13 @@ package otelpostgres
 import (
 	"context"
 
-	postgres "github.com/faustbrian/golib/pkg/postgres"
+	postgres "github.com/faustbrian/go-postgresql"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	metricnoop "go.opentelemetry.io/otel/metric/noop"
 )
 
-const scopeName = "github.com/faustbrian/golib/pkg/postgres/otelpostgres"
+const scopeName = "github.com/faustbrian/go-postgresql/otelpostgres"
 
 // Config selects the standard OpenTelemetry meter provider.
 type Config struct {

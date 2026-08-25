@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	migrations "github.com/faustbrian/golib/pkg/migrations"
-	migrationpostgres "github.com/faustbrian/golib/pkg/migrations/postgres"
-	postgres "github.com/faustbrian/golib/pkg/postgres"
+	migrations "github.com/faustbrian/go-migrations"
+	migrationpostgres "github.com/faustbrian/go-migrations/postgres"
+	postgres "github.com/faustbrian/go-postgresql"
 	"github.com/jackc/pgx/v5/stdlib"
 )
 

@@ -1,4 +1,1 @@
-* text=auto eol=lf
-*.go text eol=lf
-*.md text eol=lf
-*.sh text eol=lf
+pkg/merkle-patricia-trie/testdata/ethereum-tests/TrieTests/*.json whitespace=-trailing-space

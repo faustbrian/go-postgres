@@ -1,0 +1,96 @@
+{
+  "schema_version": 3,
+  "reason": "Exact mutation checkpoints retained across history rewrites only when the approved old and replacement package input fingerprints, tool version, and report digest match.",
+  "verifier_migration_review": {
+    "gremlins_verifier_sha256": "9a9499ff68a8dfd49a0be7995590297a8ee563a1aa226bfd8b9361dc53058108",
+    "reason": "Each listed checkpoint was executed with the complete current Gremlins semantic patch set introduced by ac300cf3; the four omitted checkpoints require fresh campaigns.",
+    "reviewed_at": "2026-08-20"
+  },
+  "verifier_migrations": [
+    {
+      "execution_revision": "c09c5268b1facb88317f933913b2e7cf4377948b",
+      "gate_input_digest": "c16d99d7a0f0e44d83f7cec7e7e01a687709f4307195201ac50083d3a4c4eeb4",
+      "gremlins_verifier_sha256": "9a9499ff68a8dfd49a0be7995590297a8ee563a1aa226bfd8b9361dc53058108",
+      "gremlins_version": "v0.6.0",
+      "module": ".",
+      "package": ".",
+      "report_sha256": "2aee5ebe71c11f8bc6ab4bd32be8fd528e3515e0b7ae47cc0278152daeb30103"
+    },
+    {
+      "execution_revision": "c09c5268b1facb88317f933913b2e7cf4377948b",
+      "gate_input_digest": "c1cf77e792118d6ab93a77c7d7476c42798af890c6efa40a1e21e56feb1f10ce",
+      "gremlins_verifier_sha256": "9a9499ff68a8dfd49a0be7995590297a8ee563a1aa226bfd8b9361dc53058108",
+      "gremlins_version": "v0.6.0",
+      "module": ".",
+      "package": "otelpostgres",
+      "report_sha256": "24373a1db4fbca60f6566ea1dbbe13f8aaeaf8856bb20a697cc5fd8ac92872c1"
+    },
+    {
+      "execution_revision": "c09c5268b1facb88317f933913b2e7cf4377948b",
+      "gate_input_digest": "b212cae1501b9425d97dacc9b8b1237de63d9de5f6455384004b8ca15cae4a51",
+      "gremlins_verifier_sha256": "9a9499ff68a8dfd49a0be7995590297a8ee563a1aa226bfd8b9361dc53058108",
+      "gremlins_version": "v0.6.0",
+      "module": ".",
+      "package": "postgresservice",
+      "report_sha256": "b98c5750eaa45a9a728fa17189ba7cac8166d0da32b97e67cd2df0cb997b3b88"
+    }
+  ],
+  "entries": [
+    {
+      "execution_revision": "34723d66df96a79a02ef212ee9ab4b9a1e86ccaf",
+      "gate_input_digest": "86f91efaf2453c679f32db1b9e75b7d9334e08d7267290479e8018d31ba0a598",
+      "gremlins_version": "v0.6.0",
+      "module": ".",
+      "package": ".",
+      "report_sha256": "f7cfcd3501ddd529443160008ec4bb1045aa0adcfa84904d232499b4ef6bb381"
+    },
+    {
+      "execution_revision": "34723d66df96a79a02ef212ee9ab4b9a1e86ccaf",
+      "gate_input_digest": "e581bf3461e161a89b1f0f4d3cb17b1069b802f80a1db3b99c48faf1c0589b57",
+      "gremlins_version": "v0.6.0",
+      "module": ".",
+      "package": "otelpostgres",
+      "report_sha256": "3e41613f317aa25babcb8c8a3e656730267806be740a4af5df9e08c529e46b8a"
+    },
+    {
+      "execution_revision": "c09c5268b1facb88317f933913b2e7cf4377948b",
+      "gate_input_digest": "e833d5bb22a66763ea6b45c85dc4a72a3fbba3bc361e1beddd685cf88911b263",
+      "gremlins_version": "v0.6.0",
+      "migration_reason": "owned-module-version-locator-canonicalization",
+      "module": ".",
+      "package": "postgresservice",
+      "replacement_gate_input_digest": "b212cae1501b9425d97dacc9b8b1237de63d9de5f6455384004b8ca15cae4a51",
+      "report_sha256": "b98c5750eaa45a9a728fa17189ba7cac8166d0da32b97e67cd2df0cb997b3b88"
+    },
+    {
+      "module": ".",
+      "package": ".",
+      "execution_revision": "c09c5268b1facb88317f933913b2e7cf4377948b",
+      "gate_input_digest": "c16d99d7a0f0e44d83f7cec7e7e01a687709f4307195201ac50083d3a4c4eeb4",
+      "replacement_gate_input_digest": "63eba50b75c5412179f4e1f2e315f2a9a845e1d07bb000cdab58412865ef64b7",
+      "gremlins_version": "v0.6.0",
+      "gremlins_verifier_sha256": "9a9499ff68a8dfd49a0be7995590297a8ee563a1aa226bfd8b9361dc53058108",
+      "report_sha256": "2aee5ebe71c11f8bc6ab4bd32be8fd528e3515e0b7ae47cc0278152daeb30103"
+    },
+    {
+      "module": ".",
+      "package": "otelpostgres",
+      "execution_revision": "c09c5268b1facb88317f933913b2e7cf4377948b",
+      "gate_input_digest": "c1cf77e792118d6ab93a77c7d7476c42798af890c6efa40a1e21e56feb1f10ce",
+      "replacement_gate_input_digest": "52839dcd3760d0ab8686c738cf549becc09bb82285012b38af3b9fb60d68d38d",
+      "gremlins_version": "v0.6.0",
+      "gremlins_verifier_sha256": "9a9499ff68a8dfd49a0be7995590297a8ee563a1aa226bfd8b9361dc53058108",
+      "report_sha256": "24373a1db4fbca60f6566ea1dbbe13f8aaeaf8856bb20a697cc5fd8ac92872c1"
+    },
+    {
+      "module": ".",
+      "package": "postgresservice",
+      "execution_revision": "c09c5268b1facb88317f933913b2e7cf4377948b",
+      "gate_input_digest": "b212cae1501b9425d97dacc9b8b1237de63d9de5f6455384004b8ca15cae4a51",
+      "replacement_gate_input_digest": "0a53fb992d40a661a926137df6f8e5f86479fab455fea770342206bf5457e5eb",
+      "gremlins_version": "v0.6.0",
+      "gremlins_verifier_sha256": "9a9499ff68a8dfd49a0be7995590297a8ee563a1aa226bfd8b9361dc53058108",
+      "report_sha256": "b98c5750eaa45a9a728fa17189ba7cac8166d0da32b97e67cd2df0cb997b3b88"
+    }
+  ]
+}

@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	postgres "github.com/faustbrian/golib/pkg/postgres"
+	postgres "github.com/faustbrian/go-postgresql"
 	"github.com/jackc/pgx/v5"
 )
 

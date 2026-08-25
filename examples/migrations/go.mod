@@ -1,10 +1,10 @@
-module github.com/faustbrian/golib/pkg/postgres/examples/migrations
+module github.com/faustbrian/go-postgresql/examples/migrations
 
 go 1.26.6
 
 require (
-	github.com/faustbrian/golib/pkg/migrations v0.0.0
-	github.com/faustbrian/golib/pkg/postgres v0.0.0
+	github.com/faustbrian/go-migrations v1.0.0
+	github.com/faustbrian/go-postgresql v1.0.0
 	github.com/jackc/pgx/v5 v5.10.0
 )
 

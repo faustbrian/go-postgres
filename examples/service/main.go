@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	postgres "github.com/faustbrian/golib/pkg/postgres"
+	postgres "github.com/faustbrian/go-postgresql"
 )
 
 func main() {

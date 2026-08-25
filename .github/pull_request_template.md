@@ -1,16 +1,21 @@
-## Summary
+## Result
 
-Describe the production or maintenance reason for this change.
+Describe the resulting behavior and why it is needed.
 
-## Evidence
+## Compatibility And Delivery
 
-- [ ] focused red-green regression where behavior changed
-- [ ] real PostgreSQL evidence for database semantics
-- [ ] `make safety`
-- [ ] `make integration`
-- [ ] `make check`
+Describe material compatibility, migration, rollout, or risk consequences.
+Omit topics that do not apply.
 
-## Compatibility and operations
+## Specification Decisions
 
-Document public API, pgx, PostgreSQL, migration, security, telemetry,
-performance, or rollout effects. State explicitly when none apply.
+For parsing, validation, serialization, resolution, canonicalization,
+transport, or protocol changes, list:
+
+- affected decision identifiers;
+- changed normative sources, registries, fixtures, or errata;
+- selected observable behavior and alternatives considered;
+- compatibility and wire consequences;
+- executable conformance and interoperability evidence.
+
+State `Not applicable` only when no specification-backed behavior can change.

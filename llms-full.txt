@@ -155,7 +155,7 @@ to choose companion packages, supported stacks, recipes, and operations guidance
 Install the module and create one application-owned pool:
 
 ```sh
-go get github.com/faustbrian/golib/pkg/postgres
+go get github.com/faustbrian/go-postgresql
 ```
 
 ```go
@@ -1268,4 +1268,4 @@ The following initial scope is implemented but remains unreleased.
 - exact production coverage, race, leak, fuzz, benchmark, safety, lint,
   vulnerability, documentation, compatibility, and release automation
 
-[Unreleased]: https://github.com/faustbrian/golib/commits/main/pkg/postgres
+[Unreleased]: https://github.com/faustbrian/go-postgresql/commits/main
