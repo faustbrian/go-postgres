@@ -50,7 +50,7 @@ Versioning and keeps an Unreleased section until a release is tagged.
 - Document the package's initial stable `v1.0.1` scope, security policy,
   roadmap, and hardening guidance.
 
-- Link the package README to the repository-wide Golib documentation portal.
+- Link the package README to package-owned documentation.
 
 ### Added
 
