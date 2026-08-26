@@ -1,11 +1,11 @@
 # Roadmap
 
-## Planned v1.0.0 scope
+## Stable v1 scope
 
 - PostgreSQL 14-18 hosted integration evidence
 - exact meaningful production coverage and green release gates
 - API, security, operational, adoption, and compatibility review
-- stable API publication after hosted CI confirms the tagged commit
+- stable API compatibility and documented release automation
 
 ## After v1
 

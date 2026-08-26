@@ -7,6 +7,6 @@
 - Behavioral changes use red-green-refactor; database semantic claims use
   integration tests.
 - Fuzz regressions remain checked into `testdata/fuzz`.
-- Documentation, generated `llms.txt` bundles, changelog, compatibility, and
-  security evidence change with public behavior.
+- Documentation, changelog, compatibility, and security contracts change with
+  public behavior.
 - Commits are Conventional Commits with an explanatory body.

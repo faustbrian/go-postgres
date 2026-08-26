@@ -28,4 +28,5 @@ network policy, PostgreSQL roles, row-level security, statement policy,
 migrations, backups, authentication, authorization, and workload deadlines.
 
 See [docs/security.md](docs/security.md) and
-[docs/hardening.md](docs/hardening.md) for the threat model and evidence.
+[docs/pool-and-lifecycle.md](docs/pool-and-lifecycle.md) for the threat model
+and operational boundaries.
