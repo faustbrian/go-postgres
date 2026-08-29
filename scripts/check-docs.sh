@@ -11,8 +11,6 @@ required=(
   ROADMAP.md
   SECURITY.md
   THIRD_PARTY_NOTICES.md
-  llms.txt
-  llms-full.txt
   docs/README.md
   docs/quickstart.md
   docs/api.md
@@ -30,15 +28,14 @@ required=(
   docs/compatibility.md
   docs/migration.md
   docs/security.md
-  docs/hardening.md
   docs/performance.md
   docs/releasing.md
   docs/repository-standards.md
   examples/kubernetes/migration-job.yaml
 	examples/migrations/README.md
 	examples/migrations/main.go
-	examples/migrations/migrations/000001_create_widgets.sql
-	examples/migrations/migrations/000002_index_widgets.sql
+	examples/migrations/schema/000001_create_widgets.sql
+	examples/migrations/schema/000002_index_widgets.sql
 )
 
 for file in "${required[@]}"; do
@@ -73,7 +70,6 @@ for document in Path(".").rglob("*.md"):
 print("all required files exist and relative Markdown links resolve")
 PY
 
-python3 scripts/generate-llms.py --check
 bash scripts/extract-release-notes.sh Unreleased > "${TMPDIR:-/tmp}/postgres-release-notes.md"
 test -s "${TMPDIR:-/tmp}/postgres-release-notes.md"
 ! grep -q '^\[[^]]*\]:' "${TMPDIR:-/tmp}/postgres-release-notes.md"

@@ -5,6 +5,21 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+### Changed
+
+- Adopt the versioned shared repository contract while retaining package-owned
+  verification evidence and PostgreSQL-backed quality gates.
+
+### Fixed
+
+- Keep embedded SQL fixtures outside the migration binary's default output
+  path so standard module builds complete without a filesystem collision.
+
+### Documentation
+
+- Replace archived monorepo links and completed execution artifacts with a
+  standalone, human-oriented documentation structure.
+
 ## [1.0.1] - 2026-08-25
 
 ### Fixed
@@ -45,7 +60,7 @@ Versioning and keeps an Unreleased section until a release is tagged.
 - Document the package's initial stable `v1.0.1` scope, security policy,
   roadmap, and hardening guidance.
 
-- Link the package README to the repository-wide Golib documentation portal.
+- Link the package README to package-owned documentation.
 
 ### Added
 

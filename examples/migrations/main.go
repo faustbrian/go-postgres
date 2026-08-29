@@ -18,7 +18,7 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 )
 
-//go:embed migrations/*.sql
+//go:embed schema/*.sql
 var migrationFiles embed.FS
 
 func main() {
@@ -57,7 +57,7 @@ func run(ctx context.Context) error {
 
 	database := stdlib.OpenDBFromPool(pool.Raw())
 	defer func() { _ = database.Close() }()
-	source, err := migrations.NewFSSource(migrationFiles, "migrations")
+	source, err := migrations.NewFSSource(migrationFiles, "schema")
 	if err != nil {
 		return fmt.Errorf("create migration source: %w", err)
 	}
