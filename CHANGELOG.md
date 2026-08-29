@@ -5,6 +5,11 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+### Changed
+
+- Adopt the versioned shared repository contract while retaining package-owned
+  verification evidence and PostgreSQL-backed quality gates.
+
 ### Documentation
 
 - Replace archived monorepo links and completed execution artifacts with a
