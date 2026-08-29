@@ -34,8 +34,8 @@ required=(
   examples/kubernetes/migration-job.yaml
 	examples/migrations/README.md
 	examples/migrations/main.go
-	examples/migrations/migrations/000001_create_widgets.sql
-	examples/migrations/migrations/000002_index_widgets.sql
+	examples/migrations/schema/000001_create_widgets.sql
+	examples/migrations/schema/000002_index_widgets.sql
 )
 
 for file in "${required[@]}"; do

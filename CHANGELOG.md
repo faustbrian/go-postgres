@@ -10,6 +10,11 @@ Versioning and keeps an Unreleased section until a release is tagged.
 - Adopt the versioned shared repository contract while retaining package-owned
   verification evidence and PostgreSQL-backed quality gates.
 
+### Fixed
+
+- Keep embedded SQL fixtures outside the migration binary's default output
+  path so standard module builds complete without a filesystem collision.
+
 ### Documentation
 
 - Replace archived monorepo links and completed execution artifacts with a
