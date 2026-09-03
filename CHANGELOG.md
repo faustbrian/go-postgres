@@ -32,6 +32,9 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ### Documentation
 
+- Link the README to the immutable v1.4.0 Persistence and durability family
+  guidance.
+
 - Replace archived monorepo links and completed execution artifacts with a
   standalone, human-oriented documentation structure.
 

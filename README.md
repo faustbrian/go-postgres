@@ -109,7 +109,8 @@ and [API reference](docs/api.md). Operators should read the
 [pool and lifecycle guide](docs/pool-and-lifecycle.md), [TLS guide](docs/tls.md),
 [Kubernetes guide](docs/kubernetes.md), and [operational FAQ](docs/faq.md).
 Shared construction, ownership, lifecycle, and composition expectations are in
-the versioned [Golib ecosystem index](https://github.com/faustbrian/go-library-tools/blob/v1.4.0/docs/ecosystem/README.md).
+the versioned [Golib ecosystem index](https://github.com/faustbrian/go-library-tools/blob/v1.4.0/docs/ecosystem/README.md)
+and its [Persistence and durability family](https://github.com/faustbrian/go-library-tools/blob/v1.4.0/docs/ecosystem/design-language.md#package-families-and-selection).
 
 ## Development
 
