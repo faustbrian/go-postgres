@@ -11,9 +11,12 @@ Versioning and keeps an Unreleased section until a release is tagged.
   for the PostgreSQL module, its lifecycle and telemetry adapters, and its test
   companion.
 
-- Adopt the checksum-verified `go-library-tools` v1.3.0 CLI, add the local
+- Adopt the checksum-verified `go-library-tools` v1.4.0 CLI, add the local
   `make cohesion` validation entry point, and pin reusable-workflow cohesion
-  enforcement to its immutable revision.
+  enforcement and public-first module resolution to its immutable revision.
+
+- Resolve Golib dependencies from their public immutable releases instead of
+  bootstrap-shadowed module archives.
 
 - Adopt the versioned shared repository contract while retaining package-owned
   verification evidence and PostgreSQL-backed quality gates.
