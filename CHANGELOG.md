@@ -7,10 +7,25 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ### Changed
 
+- Publish schema-v2 cohesion metadata and versioned Golib ecosystem navigation
+  for the PostgreSQL module, its lifecycle and telemetry adapters, and its test
+  companion.
+
+- Adopt the checksum-verified `go-library-tools` v1.4.0 CLI, add the local
+  `make cohesion` validation entry point, and pin reusable-workflow cohesion
+  enforcement and public-first module resolution to its immutable revision.
+
+- Resolve Golib dependencies from their public immutable releases instead of
+  bootstrap-shadowed module archives.
+
 - Adopt the versioned shared repository contract while retaining package-owned
   verification evidence and PostgreSQL-backed quality gates.
 
 ### Fixed
+
+- Upgrade `golang.org/x/crypto` to v0.56.0 so PostgreSQL test-container
+  shutdown paths are not exposed to the SSH channel deadlocks described by
+  GO-2026-6354 and GO-2026-6355.
 
 - Keep embedded SQL fixtures outside the migration binary's default output
   path so standard module builds complete without a filesystem collision.
