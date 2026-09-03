@@ -20,6 +20,10 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ### Fixed
 
+- Upgrade `golang.org/x/crypto` to v0.56.0 so PostgreSQL test-container
+  shutdown paths are not exposed to the SSH channel deadlocks described by
+  GO-2026-6354 and GO-2026-6355.
+
 - Keep embedded SQL fixtures outside the migration binary's default output
   path so standard module builds complete without a filesystem collision.
 
