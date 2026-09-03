@@ -21,7 +21,7 @@ multi-database abstraction.
 
 ## Requirements
 
-- Go 1.25 or 1.26
+- Go 1.26.6 or newer
 - pgx 5.10.x
 - PostgreSQL 14, 15, 16, 17, or 18
 - Docker-compatible container runtime only for `postgrestest` and integration
@@ -108,10 +108,13 @@ Start with the [documentation index](docs/README.md), [quickstart](docs/quicksta
 and [API reference](docs/api.md). Operators should read the
 [pool and lifecycle guide](docs/pool-and-lifecycle.md), [TLS guide](docs/tls.md),
 [Kubernetes guide](docs/kubernetes.md), and [operational FAQ](docs/faq.md).
+Shared construction, ownership, lifecycle, and composition expectations are in
+the versioned [Golib ecosystem index](https://github.com/faustbrian/go-library-tools/blob/v1.3.0/docs/ecosystem/README.md).
 
 ## Development
 
 ```sh
+make cohesion
 make safety
 make integration
 make check

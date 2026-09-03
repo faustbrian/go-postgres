@@ -7,6 +7,14 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ### Changed
 
+- Publish schema-v2 cohesion metadata and versioned Golib ecosystem navigation
+  for the PostgreSQL module, its lifecycle and telemetry adapters, and its test
+  companion.
+
+- Adopt the checksum-verified `go-library-tools` v1.3.0 CLI, add the local
+  `make cohesion` validation entry point, and pin reusable-workflow cohesion
+  enforcement to its immutable revision.
+
 - Adopt the versioned shared repository contract while retaining package-owned
   verification evidence and PostgreSQL-backed quality gates.
 

@@ -2,7 +2,7 @@
 
 | Component | Supported | Verification |
 | --- | --- | --- |
-| Go | 1.25, 1.26 | unit matrix on Linux, macOS, Windows; race on Linux |
+| Go | 1.26.6 | repository, race, and clean-consumer gates |
 | pgx | 5.10.x | pinned module build, tests, API review |
 | PostgreSQL | 14, 15, 16, 17, 18 | Testcontainers matrix covering failure semantics and every transaction-mode combination |
 | OpenTelemetry Go | 1.44.x | `otelpostgres` unit tests |
