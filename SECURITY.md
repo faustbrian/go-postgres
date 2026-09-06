@@ -4,11 +4,10 @@
 
 | Release line | Status | End of support |
 | --- | --- | --- |
-| `main` (pre-v1) | Supported development line | First `v1.0.0` release |
+| Latest `v1` release | Supported | Not scheduled |
 
-No release has been published. Security fixes are applied to `main` until the
-first `v1.0.0` tag. An advisory will identify affected revisions and the
-supported release lines after publication.
+Security fixes are applied to the latest published `v1` release. An advisory
+will identify affected versions and any change to the supported release lines.
 
 ## Reporting a vulnerability
 
