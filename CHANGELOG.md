@@ -32,6 +32,9 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ### Documentation
 
+- Replace pre-v1 security guidance with the supported `v1` release line and
+  correct the migration example's Go version requirements.
+
 - Link the README to the immutable v1.4.0 Persistence and durability family
   guidance.
 
