@@ -3,8 +3,19 @@
 Install the module and create one application-owned pool:
 
 ```sh
-go get github.com/faustbrian/go-postgres
+go get github.com/faustbrian/go-postgres@v1
 ```
+
+For a complete compiler-built program, use the
+[`examples/service`](../examples/service/main.go) entry point. From a repository
+checkout with a development PostgreSQL instance available:
+
+```sh
+DATABASE_URL='postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable' \
+  go run ./examples/service
+```
+
+The package-level construction flow is:
 
 ```go
 pool, err := postgres.New(ctx, postgres.Config{
@@ -48,4 +59,7 @@ err := postgres.RunTransaction(ctx, pool.Raw(), postgres.TransactionOptions{},
 ```
 
 Read [TLS](tls.md), [pool lifecycle](pool-and-lifecycle.md), and
-[transactions](transactions.md) before production deployment.
+[transactions](transactions.md) before production deployment. Additional
+compiler-built examples cover [workers](../examples/worker/main.go),
+[sqlc](../examples/sqlc/main.go), and a dedicated
+[migration job](../examples/migrations/README.md).

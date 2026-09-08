@@ -19,6 +19,9 @@ without hiding native pgx types.
 It is not a driver, ORM, query builder, migration engine, repository layer, or
 multi-database abstraction.
 
+The module is stable at `v1`. Its exported API and documented behavior follow
+the [compatibility policy](COMPATIBILITY.md).
+
 ## Requirements
 
 - Go 1.26.6 or newer
@@ -27,7 +30,24 @@ multi-database abstraction.
 - Docker-compatible container runtime only for `postgrestest` and integration
   tests
 
+## Installation
+
+```sh
+go get github.com/faustbrian/go-postgres@v1
+```
+
 ## Quick start
+
+The complete [`examples/service`](examples/service/main.go) program is the
+compiler-built five-minute starting point. In a repository checkout, run it
+against a development database with:
+
+```sh
+DATABASE_URL='postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable' \
+  go run ./examples/service
+```
+
+The core construction and transaction flow is:
 
 ```go
 ctx := context.Background()
@@ -77,12 +97,16 @@ the server when `InsecureSkipVerify` is enabled.
 
 ## Packages
 
-- root: configuration, pool lifecycle, transactions, health, classification,
+- [`postgres`](https://pkg.go.dev/github.com/faustbrian/go-postgres):
+  configuration, pool lifecycle, transactions, health, classification,
   bounded observations, and safe `slog` integration
-- `postgresservice`: service lifecycle, optional startup validation and
+- [`postgresservice`](https://pkg.go.dev/github.com/faustbrian/go-postgres/postgresservice):
+  service lifecycle, optional startup validation and
   readiness, and explicit shared or transferred pool ownership
-- `otelpostgres`: optional standard OpenTelemetry metrics adapter
-- `postgrestest`: optional Testcontainers lifecycle and always-rollback
+- [`otelpostgres`](https://pkg.go.dev/github.com/faustbrian/go-postgres/otelpostgres):
+  optional standard OpenTelemetry metrics adapter
+- [`postgrestest`](https://pkg.go.dev/github.com/faustbrian/go-postgres/postgrestest):
+  optional Testcontainers lifecycle and always-rollback
   transaction helpers for real PostgreSQL
 
 Query tracing is provided by
@@ -108,6 +132,10 @@ Start with the [documentation index](docs/README.md), [quickstart](docs/quicksta
 and [API reference](docs/api.md). Operators should read the
 [pool and lifecycle guide](docs/pool-and-lifecycle.md), [TLS guide](docs/tls.md),
 [Kubernetes guide](docs/kubernetes.md), and [operational FAQ](docs/faq.md).
+Adoption and maintenance references include [migration](docs/migration.md),
+[compatibility](COMPATIBILITY.md), [performance](docs/performance.md),
+[testing helpers](docs/testing.md), [release history](CHANGELOG.md),
+[support](SUPPORT.md), and [private security reporting](SECURITY.md).
 Shared construction, ownership, lifecycle, and composition expectations are in
 the versioned [Golib ecosystem index](https://github.com/faustbrian/go-library-tools/blob/v1.4.0/docs/ecosystem/README.md)
 and its [Persistence and durability family](https://github.com/faustbrian/go-library-tools/blob/v1.4.0/docs/ecosystem/design-language.md#package-families-and-selection).
@@ -115,15 +143,17 @@ and its [Persistence and durability family](https://github.com/faustbrian/go-lib
 ## Development
 
 ```sh
+make inventory
 make cohesion
-make safety
-make integration
+make repository-check
 make check
+make ci
 ```
 
-`make coverage` proves exact 100% production statement coverage with a real
-PostgreSQL container. CI runs the integration suite on every supported
-PostgreSQL major version.
+`make check` runs the complete package contract, including exact production
+coverage and integration evidence against a real PostgreSQL container. `make
+ci` also validates the standalone repository and cohesion contracts. CI runs
+the integration suite on every supported PostgreSQL major version.
 
 ## License
 

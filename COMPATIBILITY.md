@@ -1,7 +1,9 @@
 # Compatibility Policy
 
-Each releasable directory is an independent Go module and follows semantic
-versioning. Tags use `<module-directory>/v<version>`.
+The root module follows semantic versioning and publishes root tags such as
+`v1.0.1`. A nested releasable module would publish a
+`<module-directory>/v<version>` tag. The nested `examples/migrations` module is
+an internal, non-releasable example and does not publish tags.
 
 Before `v1`, minor releases MAY contain reviewed breaking changes, but every
 break MUST be documented with migration guidance. Patch releases MUST remain

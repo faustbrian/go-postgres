@@ -11,9 +11,10 @@ will identify affected versions and any change to the supported release lines.
 
 ## Reporting a vulnerability
 
-Use GitHub private vulnerability reporting for this repository. Include a
-minimal reproducer, affected version, impact, and mitigation. Do not include
-production DSNs, credentials, query arguments, customer data, or certificates.
+Use [GitHub private vulnerability reporting](https://github.com/faustbrian/go-postgres/security/advisories/new)
+for this repository. Include a minimal reproducer, affected version, impact,
+and mitigation. Do not include production DSNs, credentials, query arguments,
+customer data, or certificates.
 
 ## Security boundary
 
