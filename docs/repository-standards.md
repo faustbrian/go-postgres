@@ -1,6 +1,7 @@
 # Repository standards
 
-- `make safety`, `make integration`, and `make check` match maintained CI gates.
+- `make inventory`, `make cohesion`, `make repository-check`, `make check`, and
+  `make ci` are the maintained local and CI entry points.
 - Production Go source satisfies GO-SAFETY-1: no `unsafe`, cgo, or
   `go:linkname`.
 - Exact coverage instruments every module package and includes real PostgreSQL.

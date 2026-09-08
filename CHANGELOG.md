@@ -32,6 +32,10 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ### Documentation
 
+- Complete the stable-v1 entry path with canonical installation, executable
+  examples, package and policy navigation, root-tag guidance, and live support
+  and private security-reporting routes.
+
 - Replace pre-v1 security guidance with the supported `v1` release line and
   correct the migration example's Go version requirements.
 
