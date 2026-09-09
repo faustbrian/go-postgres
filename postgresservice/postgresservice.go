@@ -1,48 +1,45 @@
-// Package postgresservice adapts PostgreSQL pools to the service lifecycle.
-//
-// Constructor results are owned by the adapter. Existing pools remain shared
-// unless ownership is explicitly transferred. Startup validation, readiness,
-// and shutdown use caller and service contexts plus the pool's own bounds. The
-// adapter performs no retries, closes owned pools exactly once, and never
-// closes shared pools.
+// Package postgresservice preserves the released service-adapter path. New
+// code should import github.com/faustbrian/go-postgres/adapters/service.
 package postgresservice
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
 
+	canonical "github.com/faustbrian/go-postgres/adapters/service"
 	"github.com/faustbrian/go-service"
 )
 
 var (
 	// ErrInvalidOptions identifies invalid adapter construction.
+	// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
 	ErrInvalidOptions = errors.New("invalid postgres service options")
 	// ErrUnavailable identifies a pool that has not started or is stopping.
+	// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
 	ErrUnavailable = errors.New("postgres service pool unavailable")
 )
 
-// Resource is the lifecycle surface required from a PostgreSQL pool.
+// Resource is the released adapter resource contract.
+// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
 type Resource interface {
 	Ping(context.Context) error
 	Close(context.Context) error
 }
 
-// Constructor acquires a pool whose ownership transfers to the adapter only
-// after a successful return.
+// Constructor acquires a pool whose ownership transfers after a successful
+// return.
+// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
 type Constructor func(context.Context) (Resource, error)
 
 // Options configure one PostgreSQL lifecycle adapter.
+// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
 type Options struct {
 	// Name is the secret-safe component and readiness-check name.
 	Name string
 	// Construct acquires an adapter-owned pool during component startup.
 	Construct Constructor
-	// Pool supplies an existing pool. The caller retains ownership unless
-	// TransferOwnership is true.
+	// Pool supplies an existing pool.
 	Pool Resource
 	// TransferOwnership closes Pool during shutdown and failed startup.
 	TransferOwnership bool
@@ -50,7 +47,8 @@ type Options struct {
 	StartupPing bool
 }
 
-// OptionsError identifies one rejected option.
+// OptionsError identifies a rejected option.
+// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
 type OptionsError struct {
 	Field  string
 	Reason string
@@ -64,8 +62,8 @@ func (err *OptionsError) Error() string {
 // Unwrap exposes the stable option classification.
 func (err *OptionsError) Unwrap() error { return ErrInvalidOptions }
 
-// StartupError preserves validation and partial-cleanup failures without
-// formatting either potentially sensitive cause.
+// StartupError preserves validation and cleanup failures.
+// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
 type StartupError struct {
 	Validation error
 	Cleanup    error
@@ -90,125 +88,86 @@ func (err *StartupError) Unwrap() []error {
 	return causes
 }
 
-// Adapter owns the lifecycle state for one PostgreSQL pool.
+// Adapter preserves released type identity while delegating behavior to the
+// canonical service adapter.
+// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
 type Adapter struct {
-	name      string
-	construct Constructor
-	existing  Resource
-	owned     bool
-	ping      bool
-
-	mu       sync.RWMutex
-	resource Resource
-	active   bool
-	stopOnce sync.Once
-	stopErr  error
+	delegate *canonical.Adapter
 }
 
-// New validates and constructs an inert adapter.
+// New delegates to the canonical service adapter.
+//
+// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
 func New(options Options) (*Adapter, error) {
-	if strings.TrimSpace(options.Name) == "" {
-		return nil, &OptionsError{Field: "Name", Reason: "must not be blank"}
-	}
-	hasPool := !nilResource(options.Pool)
-	hasConstructor := options.Construct != nil
-	if hasConstructor == hasPool {
-		return nil, &OptionsError{
-			Field: "Pool", Reason: "configure exactly one pool or constructor",
+	return newAdapter(options, canonical.New)
+}
+
+type adapterFactory func(canonical.Options) (*canonical.Adapter, error)
+
+func newAdapter(options Options, factory adapterFactory) (*Adapter, error) {
+	var construct canonical.Constructor
+	if options.Construct != nil {
+		construct = func(ctx context.Context) (canonical.Resource, error) {
+			return options.Construct(ctx)
 		}
 	}
+	delegate, err := factory(canonical.Options{
+		Name:              options.Name,
+		Construct:         construct,
+		Pool:              options.Pool,
+		TransferOwnership: options.TransferOwnership,
+		StartupPing:       options.StartupPing,
+	})
+	if err != nil {
+		if optionsErr, ok := err.(*canonical.OptionsError); ok {
+			return nil, &OptionsError{Field: optionsErr.Field, Reason: optionsErr.Reason}
+		}
 
-	return &Adapter{
-		name: options.Name, construct: options.Construct, existing: options.Pool,
-		owned: options.Construct != nil || options.TransferOwnership,
-		ping:  options.StartupPing,
-	}, nil
+		return nil, err
+	}
+
+	return &Adapter{delegate: delegate}, nil
 }
 
 // Component returns the ordered service lifecycle component.
 func (adapter *Adapter) Component() service.Component {
-	return service.Component{
-		Name:  adapter.name,
-		Start: adapter.start,
-		Stop:  adapter.stop,
+	component := adapter.delegate.Component()
+	start := component.Start
+	component.Start = func(ctx context.Context) error {
+		return compatibilityError(start(ctx))
 	}
+
+	return component
 }
 
 // Pool returns the current pool after successful component startup.
 func (adapter *Adapter) Pool() (Resource, bool) {
-	adapter.mu.RLock()
-	defer adapter.mu.RUnlock()
+	resource, active := adapter.delegate.Pool()
 
-	return adapter.resource, adapter.active
+	return resource, active
 }
 
-// Readiness returns an opt-in dependency check for the active pool. Callers
-// decide whether to include it in service.Plan.Readiness.
+// Readiness returns an opt-in dependency check for the active pool.
 func (adapter *Adapter) Readiness() service.ReadinessCheck {
-	return service.ReadinessCheck{
-		Name: adapter.name,
-		Run: func(ctx context.Context) error {
-			resource, ok := adapter.Pool()
-			if !ok {
-				return ErrUnavailable
-			}
-
-			return resource.Ping(ctx)
-		},
+	check := adapter.delegate.Readiness()
+	run := check.Run
+	check.Run = func(ctx context.Context) error {
+		return compatibilityError(run(ctx))
 	}
+
+	return check
 }
 
-func (adapter *Adapter) start(ctx context.Context) error {
-	resource := adapter.existing
-	if adapter.construct != nil {
-		var err error
-		resource, err = adapter.construct(ctx)
-		if err != nil {
-			return err
-		}
-	}
-	if nilResource(resource) {
+func compatibilityError(err error) error {
+	if err == canonical.ErrUnavailable {
 		return ErrUnavailable
 	}
-	if adapter.ping {
-		if err := resource.Ping(ctx); err != nil {
-			var cleanup error
-			if adapter.owned {
-				cleanup = resource.Close(ctx)
-			}
-
-			return &StartupError{Validation: err, Cleanup: cleanup}
+	if startupErr, ok := err.(*canonical.StartupError); ok {
+		return &StartupError{
+			Validation: startupErr.Validation,
+			Cleanup:    startupErr.Cleanup,
 		}
 	}
 
-	adapter.mu.Lock()
-	adapter.resource = resource
-	adapter.active = true
-	adapter.mu.Unlock()
-
-	return nil
-}
-
-func (adapter *Adapter) stop(ctx context.Context) error {
-	adapter.stopOnce.Do(func() {
-		adapter.mu.Lock()
-		resource := adapter.resource
-		active := adapter.active
-		adapter.active = false
-		adapter.mu.Unlock()
-		if active && adapter.owned {
-			adapter.stopErr = resource.Close(ctx)
-		}
-	})
-
-	return adapter.stopErr
-}
-
-func nilResource(resource Resource) bool {
-	if resource == nil {
-		return true
-	}
-	value := reflect.ValueOf(resource)
-
-	return value.Kind() == reflect.Pointer && value.IsNil()
+	return err
 }

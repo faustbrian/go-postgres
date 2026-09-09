@@ -11,6 +11,8 @@ import (
 )
 
 var (
+	// ErrContextRequired identifies an operation that received a nil context.
+	ErrContextRequired = errors.New("postgres: context required")
 	// ErrAcquireTimeout identifies the configured acquisition deadline.
 	ErrAcquireTimeout = errors.New("postgres: acquire timeout")
 	// ErrPoolExhausted identifies an acquisition timeout observed while all
@@ -85,22 +87,51 @@ type Health struct {
 	Stats Stats
 }
 
-// New constructs a native pgxpool and, by default, proves connectivity with a
-// bounded ping. StartupLazy skips that initial network operation.
+// New constructs a native pgxpool.
+//
+// Deprecated: use Connect to make resource acquisition explicit.
 func New(ctx context.Context, input Config) (*Pool, error) {
+	return Connect(ctx, input)
+}
+
+// Connect constructs a native pgxpool and, by default, proves connectivity
+// with a bounded ping. StartupLazy skips that initial network operation. A nil
+// or already-canceled context is rejected before configuration or I/O.
+func Connect(ctx context.Context, input Config) (*Pool, error) {
+	return connect(ctx, input, openNativePool)
+}
+
+type poolFactory func(context.Context, *pgxpool.Config) (*pgxpool.Pool, poolBackend, error)
+
+func openNativePool(ctx context.Context, config *pgxpool.Config) (*pgxpool.Pool, poolBackend, error) {
+	raw, err := pgxpool.NewWithConfig(ctx, config)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return raw, &nativePoolBackend{pool: raw}, nil
+}
+
+func connect(ctx context.Context, input Config, factory poolFactory) (*Pool, error) {
+	if ctx == nil {
+		return nil, ErrContextRequired
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, context.Cause(ctx)
+	}
 	config, err := ParseConfig(input)
 	if err != nil {
 		return nil, err
 	}
 
-	raw, err := pgxpool.NewWithConfig(ctx, config)
+	raw, backend, err := factory(ctx, config)
 	if err != nil {
 		return nil, &startupError{cause: err}
 	}
 
 	pool := newPool(
 		raw,
-		&nativePoolBackend{pool: raw},
+		backend,
 		valueOrDefault(input.AcquireTimeout, DefaultAcquireTimeout),
 		valueOrDefault(input.PingTimeout, DefaultPingTimeout),
 		valueOrDefault(input.ShutdownTimeout, DefaultShutdownTimeout),
@@ -111,7 +142,7 @@ func New(ctx context.Context, input Config) (*Pool, error) {
 	}
 
 	if err := pool.Ping(ctx); err != nil {
-		raw.Close()
+		backend.Close()
 
 		return nil, &startupError{cause: err}
 	}
@@ -152,6 +183,15 @@ func (p *Pool) Raw() *pgxpool.Pool {
 // deadline and the configured acquisition timeout.
 func (p *Pool) Acquire(ctx context.Context) (*pgxpool.Conn, error) {
 	started := time.Now()
+	if p.closed.Load() {
+		err := ErrPoolClosed
+		observation := observationFor(OperationAcquire, started, err)
+		observation.Pool = p.Stats()
+		observation.HasPoolStats = true
+		safeObserve(ctx, p.observer, observation)
+
+		return nil, err
+	}
 	ctx, cancel := boundedContextWithCause(ctx, p.acquireTimeout, ErrAcquireTimeout)
 	defer cancel()
 
@@ -174,6 +214,15 @@ func (p *Pool) Acquire(ctx context.Context) (*pgxpool.Conn, error) {
 // Ping checks PostgreSQL connectivity with a strict configured deadline.
 func (p *Pool) Ping(ctx context.Context) error {
 	started := time.Now()
+	if p.closed.Load() {
+		err := ErrPoolClosed
+		observation := observationFor(OperationPing, started, err)
+		observation.Pool = p.Stats()
+		observation.HasPoolStats = true
+		safeObserve(ctx, p.observer, observation)
+
+		return err
+	}
 	ctx, cancel := boundedContext(ctx, p.pingTimeout)
 	defer cancel()
 
@@ -235,10 +284,21 @@ func snapshotStats(stats *pgxpool.Stat) Stats {
 	}
 }
 
-// Close begins native pool shutdown exactly once and waits only until the
-// earlier of the caller deadline or configured shutdown timeout. A timed-out
-// close continues in the background until borrowed connections are returned.
+// Close delegates to Shutdown.
+//
+// Deprecated: use Shutdown for complete bounded owned shutdown.
 func (p *Pool) Close(ctx context.Context) error {
+	return p.Shutdown(ctx)
+}
+
+// Shutdown closes admission and starts native pool shutdown exactly once. Each
+// caller waits independently until its own or the configured shutdown bound.
+// Native cleanup continues after an individual caller stops waiting.
+func (p *Pool) Shutdown(ctx context.Context) error {
+	if ctx == nil {
+		return ErrContextRequired
+	}
+
 	started := time.Now()
 	p.closed.Store(true)
 	p.closeOnce.Do(func() {

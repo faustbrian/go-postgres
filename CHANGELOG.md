@@ -5,7 +5,19 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-09
+
+### Added
+
+- Add context-first `Connect` and `postgrestest.Open` acquisition APIs,
+  caller-independent `Pool.Shutdown` and `Database.Shutdown` lifecycle APIs,
+  and canonical `adapters/otel` and `adapters/service` integration paths.
+
 ### Changed
+
+- Preserve `New`, `Pool.Close`, `postgrestest.Start`, `Database.Close`,
+  `otelpostgres`, and `postgresservice` as compatibility delegates while new
+  code adopts explicit acquisition, shutdown, and target-oriented adapters.
 
 - Publish schema-v2 cohesion metadata and versioned Golib ecosystem navigation
   for the PostgreSQL module, its lifecycle and telemetry adapters, and its test
@@ -172,5 +184,6 @@ The following initial scope is included in `v1.0.1`.
 - exact production coverage, race, leak, fuzz, benchmark, safety, lint,
   vulnerability, documentation, compatibility, and release automation
 
-[Unreleased]: https://github.com/faustbrian/go-postgres/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/faustbrian/go-postgres/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/faustbrian/go-postgres/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/faustbrian/go-postgres/releases/tag/v1.0.1

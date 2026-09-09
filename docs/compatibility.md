@@ -5,7 +5,7 @@
 | Go | 1.26.6 | repository, race, and clean-consumer gates |
 | pgx | 5.10.x | pinned module build, tests, API review |
 | PostgreSQL | 14, 15, 16, 17, 18 | Testcontainers matrix covering failure semantics and every transaction-mode combination |
-| OpenTelemetry Go | 1.44.x | `otelpostgres` unit tests |
+| OpenTelemetry Go | 1.44.x | `adapters/otel` and `otelpostgres` compatibility tests |
 | Testcontainers Go | 0.43.x | integration and lifecycle tests |
 | telemetry `gopostgres` | aligned pgx 5.10.x / OTel 1.44.x | independent query-tracer package test |
 

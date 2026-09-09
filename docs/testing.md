@@ -8,7 +8,7 @@ A fake is not equivalent evidence.
 ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 defer cancel()
 
-database, err := postgrestest.Start(ctx, postgrestest.Config{
+database, err := postgrestest.Open(ctx, postgrestest.Config{
     Image: "postgres:18-alpine",
     Setup: func(ctx context.Context, dsn string) error {
         pool, err := pgxpool.New(ctx, dsn)
@@ -23,7 +23,7 @@ database, err := postgrestest.Start(ctx, postgrestest.Config{
 if err != nil {
     t.Fatal(err)
 }
-t.Cleanup(func() { _ = database.Close(context.Background()) })
+t.Cleanup(func() { _ = database.Shutdown(context.Background()) })
 ```
 
 The repository integration suite selects its image with `POSTGRES_VERSION` and
@@ -39,7 +39,8 @@ redaction, commit-panic cleanup, and stop/restart recovery.
 `CleanupTimeout` bounds container termination even after the setup context is
 canceled. Setup errors, panics, and `testing.T.FailNow` clean up the owned
 container; the original setup error or panic is preserved even if termination
-also panics. A failed `Close` may be retried; successful cleanup is idempotent. Set
+also panics. `Shutdown` starts termination once, continues after an individual
+caller stops waiting, and shares the terminal result with later callers. Set
 `HostPort` only when a stop/start test requires a stable loopback endpoint, and
 ensure the selected port is isolated from concurrent jobs.
 

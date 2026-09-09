@@ -17,7 +17,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	pool, err := postgres.New(ctx, postgres.Config{
+	pool, err := postgres.Connect(ctx, postgres.Config{
 		DSN:             os.Getenv("DATABASE_URL"),
 		MaxConns:        20,
 		AcquireTimeout:  2 * time.Second,
@@ -59,7 +59,7 @@ func main() {
 	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		slog.Error("HTTP server failed", "error", err)
 	}
-	if err := pool.Close(context.Background()); err != nil {
+	if err := pool.Shutdown(context.Background()); err != nil {
 		slog.Error("database shutdown failed", "error", err)
 	}
 }

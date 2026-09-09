@@ -26,6 +26,11 @@ request or job context.
 
 ## Startup
 
+Use `Connect(ctx, config)` for resource acquisition. A nil context returns
+`ErrContextRequired`, and an already-canceled context returns its cause before
+configuration callbacks or pool construction. `New` remains a compatibility
+delegate.
+
 `StartupPing` is the default and proves DNS, transport, TLS, authentication,
 server acceptance, session initialization, and one pool acquisition before the
 application announces startup. `StartupLazy` defers all of that and should be
@@ -82,8 +87,10 @@ inherits pgxpool scheduling and does not promise waiter ordering or fairness.
 
 ## Shutdown
 
-`Close` starts native shutdown exactly once. pgxpool must wait for borrowed
-connections, but the wrapper stops waiting at the caller or configured
-deadline and returns `ErrShutdownTimeout`. Native shutdown continues in one
-background goroutine. Stop accepting work, cancel workers, wait for handlers,
-then close the pool. Returning borrowed connections is mandatory.
+`Shutdown` closes admission and starts native shutdown exactly once. pgxpool
+must wait for borrowed connections, but each caller stops waiting at its own or
+the configured deadline and returns `ErrShutdownTimeout`. Native shutdown
+continues in one background goroutine, and later callers observe the same
+terminal result. `Close` delegates to `Shutdown`. Stop accepting work, cancel
+workers, wait for handlers, then shut down the pool. Returning borrowed
+connections is mandatory.

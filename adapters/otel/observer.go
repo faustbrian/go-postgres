@@ -1,6 +1,6 @@
-// Package otelpostgres preserves the released OpenTelemetry adapter path.
-// New code should import github.com/faustbrian/go-postgres/adapters/otel.
-package otelpostgres
+// Package postgresotel adapts postgres observations to standard OpenTelemetry
+// metrics without recording SQL, arguments, DSNs, or raw errors.
+package postgresotel
 
 import (
 	"context"
@@ -10,26 +10,20 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
-const scopeName = "github.com/faustbrian/go-postgres/otelpostgres"
+const scopeName = "github.com/faustbrian/go-postgres/adapters/otel"
 
 // Config selects the standard OpenTelemetry meter provider.
-//
-// Deprecated: import github.com/faustbrian/go-postgres/adapters/otel.
 type Config struct {
 	MeterProvider metric.MeterProvider
 }
 
 // Observer records bounded lifecycle and transaction metrics.
-//
-// Deprecated: import github.com/faustbrian/go-postgres/adapters/otel.
 type Observer struct {
 	delegate *oteladapter.Observer
 }
 
-// New constructs an OpenTelemetry observer with the released instrumentation
-// scope and standard database metric names.
-//
-// Deprecated: import github.com/faustbrian/go-postgres/adapters/otel.
+// New constructs an OpenTelemetry observer with standard database metric
+// names and a no-op provider when none is supplied.
 func New(config Config) (*Observer, error) {
 	delegate, err := oteladapter.New(scopeName, config.MeterProvider)
 	if err != nil {

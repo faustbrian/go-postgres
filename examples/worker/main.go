@@ -16,7 +16,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	pool, err := postgres.New(ctx, postgres.Config{
+	pool, err := postgres.Connect(ctx, postgres.Config{
 		DSN:             os.Getenv("DATABASE_URL"),
 		MaxConns:        8,
 		AcquireTimeout:  time.Second,
@@ -32,7 +32,7 @@ func main() {
 	for {
 		select {
 		case <-ctx.Done():
-			if err := pool.Close(context.Background()); err != nil {
+			if err := pool.Shutdown(context.Background()); err != nil {
 				slog.Error("database shutdown failed", "error", err)
 			}
 			return

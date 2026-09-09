@@ -41,7 +41,7 @@ func TestMain(m *testing.M) {
 		version = "18"
 	}
 
-	database, err := postgrestest.Start(ctx, postgrestest.Config{
+	database, err := postgrestest.Open(ctx, postgrestest.Config{
 		Image: "postgres:" + version + "-alpine",
 	})
 	if err != nil {
@@ -50,14 +50,14 @@ func TestMain(m *testing.M) {
 	integrationDatabase = database
 
 	code := m.Run()
-	if err := database.Close(context.Background()); err != nil && code == 0 {
+	if err := database.Shutdown(context.Background()); err != nil && code == 0 {
 		code = 1
 	}
 	os.Exit(code)
 }
 
 func TestPoolLifecycleAgainstPostgreSQL(t *testing.T) {
-	pool, err := postgres.New(context.Background(), postgres.Config{
+	pool, err := postgres.Connect(context.Background(), postgres.Config{
 		DSN:             integrationDatabase.DSN(),
 		MaxConns:        1,
 		AcquireTimeout:  50 * time.Millisecond,
@@ -96,11 +96,11 @@ func TestPoolLifecycleAgainstPostgreSQL(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	if err := pool.Close(ctx); !errors.Is(err, postgres.ErrShutdownTimeout) {
+	if err := pool.Shutdown(ctx); !errors.Is(err, postgres.ErrShutdownTimeout) {
 		t.Fatalf("Close(canceled) error = %v, want shutdown timeout", err)
 	}
 	conn.Release()
-	if err := pool.Close(context.Background()); err != nil {
+	if err := pool.Shutdown(context.Background()); err != nil {
 		t.Fatalf("Close() error = %v", err)
 	}
 }

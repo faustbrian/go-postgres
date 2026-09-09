@@ -10,10 +10,11 @@ import (
 	"sync"
 	"time"
 
+	gopostgres "github.com/faustbrian/go-postgres"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/network"
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	testcontainerspostgres "github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
 const (
@@ -48,19 +49,37 @@ type Config struct {
 // Database owns a PostgreSQL test container and its connection string.
 type Database struct {
 	container      testDatabase
-	native         *postgres.PostgresContainer
+	native         *testcontainerspostgres.PostgresContainer
 	dsn            string
 	cleanupTimeout time.Duration
-	closeMu        sync.Mutex
-	closed         bool
+	shutdownOnce   sync.Once
+	shutdownDone   chan struct{}
+	shutdownErr    error
 }
 
-// Start creates a PostgreSQL container, waits for readiness, obtains a DSN,
-// and invokes the optional deterministic setup hook.
+// Start delegates to Open.
+//
+// Deprecated: use Open to make resource acquisition explicit.
 func Start(ctx context.Context, config Config) (*Database, error) {
+	return Open(ctx, config)
+}
+
+// Open creates a PostgreSQL container, waits for readiness, obtains a DSN,
+// and invokes the optional deterministic setup hook.
+func Open(ctx context.Context, config Config) (*Database, error) {
+	return openDatabase(ctx, config, startPostgreSQL)
+}
+
+func openDatabase(ctx context.Context, config Config, starter databaseStarter) (*Database, error) {
+	if ctx == nil {
+		return nil, gopostgres.ErrContextRequired
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, context.Cause(ctx)
+	}
 	config = withDefaults(config)
 
-	return startDatabase(ctx, config, startPostgreSQL)
+	return startDatabase(ctx, config, starter)
 }
 
 type testDatabase interface {
@@ -70,17 +89,17 @@ type testDatabase interface {
 
 type startedDatabase struct {
 	container testDatabase
-	native    *postgres.PostgresContainer
+	native    *testcontainerspostgres.PostgresContainer
 }
 
 type databaseStarter func(context.Context, Config) (startedDatabase, error)
 
 func startPostgreSQL(ctx context.Context, config Config) (startedDatabase, error) {
 	options := []testcontainers.ContainerCustomizer{
-		postgres.WithDatabase(config.Database),
-		postgres.WithUsername(config.Username),
-		postgres.WithPassword(config.Password),
-		postgres.BasicWaitStrategies(),
+		testcontainerspostgres.WithDatabase(config.Database),
+		testcontainerspostgres.WithUsername(config.Username),
+		testcontainerspostgres.WithPassword(config.Password),
+		testcontainerspostgres.BasicWaitStrategies(),
 	}
 	if config.HostPort != "" {
 		options = append(options, testcontainers.WithHostConfigModifier(func(hostConfig *container.HostConfig) {
@@ -91,7 +110,7 @@ func startPostgreSQL(ctx context.Context, config Config) (startedDatabase, error
 			}
 		}))
 	}
-	container, err := postgres.Run(
+	container, err := testcontainerspostgres.Run(
 		ctx,
 		config.Image,
 		options...,
@@ -101,6 +120,7 @@ func startPostgreSQL(ctx context.Context, config Config) (startedDatabase, error
 }
 
 func startDatabase(ctx context.Context, config Config, starter databaseStarter) (*Database, error) {
+	config = withDefaults(config)
 	started, err := starter(ctx, config)
 	if err != nil {
 		return nil, fmt.Errorf("postgrestest: start PostgreSQL: %w", err)
@@ -120,6 +140,7 @@ func startDatabase(ctx context.Context, config Config, starter databaseStarter) 
 	database := &Database{
 		container: started.container, native: started.native, dsn: dsn,
 		cleanupTimeout: config.CleanupTimeout,
+		shutdownDone:   make(chan struct{}),
 	}
 	if config.Setup != nil {
 		if err := setupDatabase(ctx, database, config.Setup); err != nil {
@@ -175,13 +196,7 @@ func setupDatabase(
 	return nil
 }
 
-func closeAfterSetupError(ctx context.Context, database *Database) (err error) {
-	defer func() {
-		if recover() != nil {
-			err = nil
-		}
-	}()
-
+func closeAfterSetupError(ctx context.Context, database *Database) error {
 	return database.Close(ctx)
 }
 
@@ -199,27 +214,50 @@ func (d *Database) DSN() string {
 }
 
 // Container exposes the native testcontainers PostgreSQL container.
-func (d *Database) Container() *postgres.PostgresContainer {
+func (d *Database) Container() *testcontainerspostgres.PostgresContainer {
 	return d.native
 }
 
-// Close terminates the container. Failed termination may be retried; after a
-// successful termination, later calls return nil without repeating it.
+// Close delegates to Shutdown.
+//
+// Deprecated: use Shutdown for complete bounded owned shutdown.
 func (d *Database) Close(ctx context.Context) error {
-	d.closeMu.Lock()
-	defer d.closeMu.Unlock()
-	if d.closed {
-		return nil
+	return d.Shutdown(ctx)
+}
+
+// Shutdown starts one caller-independent, bounded container termination and
+// lets each caller wait with its own context. Repeated calls return the shared
+// terminal termination result.
+func (d *Database) Shutdown(ctx context.Context) error {
+	if ctx == nil {
+		return gopostgres.ErrContextRequired
 	}
 
-	cleanupCtx, cancel := context.WithTimeout(ctx, d.cleanupTimeout)
-	defer cancel()
-	if err := d.container.Terminate(cleanupCtx); err != nil {
-		return err
-	}
-	d.closed = true
+	d.shutdownOnce.Do(func() {
+		go func() {
+			cleanupCtx, cancel := cleanupContext(ctx, d.cleanupTimeout)
+			defer cancel()
+			d.shutdownErr = terminate(cleanupCtx, d.container)
+			close(d.shutdownDone)
+		}()
+	})
 
-	return nil
+	select {
+	case <-d.shutdownDone:
+		return d.shutdownErr
+	case <-ctx.Done():
+		return context.Cause(ctx)
+	}
+}
+
+func terminate(ctx context.Context, database testDatabase) (err error) {
+	defer func() {
+		if recover() != nil {
+			err = errors.New("postgrestest: container termination panicked")
+		}
+	}()
+
+	return database.Terminate(ctx)
 }
 
 func withDefaults(config Config) Config {
