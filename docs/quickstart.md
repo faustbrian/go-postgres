@@ -18,7 +18,7 @@ DATABASE_URL='postgres://postgres:postgres@localhost:5432/postgres?sslmode=disab
 The package-level construction flow is:
 
 ```go
-pool, err := postgres.New(ctx, postgres.Config{
+pool, err := postgres.Connect(ctx, postgres.Config{
     DSN:             os.Getenv("DATABASE_URL"),
     MaxConns:        20,
     MinIdleConns:    2,
@@ -33,10 +33,10 @@ pool, err := postgres.New(ctx, postgres.Config{
 if err != nil {
     return err
 }
-defer pool.Close(context.Background())
+defer pool.Shutdown(context.Background())
 ```
 
-`New` parses and validates the DSN without returning it in validation errors,
+`Connect` parses and validates the DSN without returning it in validation errors,
 constructs the native pool, then performs a bounded startup ping. Use
 `StartupLazy` only when startup must succeed while PostgreSQL is unavailable.
 

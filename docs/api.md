@@ -19,11 +19,13 @@ stability and behavior of each public surface.
 
 ## Pool and health
 
-- `New` returns `*Pool`; startup ping is the default.
+- `Connect` returns `*Pool`; startup ping is the default. `New` delegates to it
+  for compatibility.
 - `Raw` returns the exact native `*pgxpool.Pool`.
-- `Acquire`, `Ping`, and `Close` honor the earlier caller or configured
-  deadline. `Close` starts native shutdown once and may return while shutdown
-  continues until borrowed connections are returned.
+- `Acquire`, `Ping`, and `Shutdown` honor the earlier caller or configured
+  deadline. `Shutdown` closes admission once, lets callers wait independently,
+  and may return while shared native shutdown continues. `Close` delegates to
+  `Shutdown` for compatibility.
 - `Readiness` contacts PostgreSQL. `Liveness` only reports whether shutdown has
   begun. `Stats` copies native pgxpool counters and gauges.
 
@@ -54,19 +56,20 @@ stability and behavior of each public surface.
 - `Observer`, `ObserverFunc`, and `Observation` carry fixed operation, outcome,
   duration, SQLSTATE, classification, and optional pool gauges only.
 - `NewSlogObserver` emits those bounded fields through standard `slog`.
-- `otelpostgres.New` builds standard OpenTelemetry duration, count, and pool
+- `adapters/otel.New` builds standard OpenTelemetry duration, count, and pool
   connection instruments.
 
 ## Testing
 
-- `postgrestest.Start` owns a real PostgreSQL container, waits for readiness,
+- `postgrestest.Open` owns a real PostgreSQL container, waits for readiness,
   runs an optional setup hook once, and exposes the DSN and native container.
   Setup error, panic, and goroutine-termination paths perform bounded cleanup,
   preserving the original error or panic even if cleanup itself panics.
   `HostPort` supports stable-endpoint
   stop/restart tests.
-- `Database.Close` bounds termination, permits retry after a failed attempt,
-  and becomes idempotent after successful termination.
+- `Database.Shutdown` starts one caller-independent bounded termination and
+  returns its shared result to concurrent and repeated callers. `Start` and
+  `Close` delegate to `Open` and `Shutdown` for compatibility.
 - `RunIsolated` executes a test callback once in a real pgx transaction that
   always rolls back with bounded cleanup. Callback and rollback errors remain
   inspectable, panic values are preserved, and `testing.T.FailNow` cannot skip
@@ -76,7 +79,7 @@ stability and behavior of each public surface.
 
 ## Service lifecycle adapter
 
-`postgresservice.New` adapts either a constructor-created or existing pool to a
+`adapters/service.New` adapts either a constructor-created or existing pool to a
 `service.Component`. Constructor results are adapter-owned. Existing resources
 remain shared unless ownership is explicitly transferred. Startup ping is
 optional, readiness is opt-in through `Adapter.Readiness`, partial startup
@@ -86,3 +89,6 @@ resource once.
 The adapter adds no retry policy and does not change PostgreSQL error
 classification. Caller and service contexts remain observable, while the
 resource retains its own ping and shutdown bounds.
+
+The `postgresservice` and `otelpostgres` paths remain deprecated compatibility
+facades for `adapters/service` and `adapters/otel`.

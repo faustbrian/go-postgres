@@ -3,27 +3,10 @@ package postgresservice_test
 import (
 	"context"
 	"errors"
-	"reflect"
 	"testing"
 
-	"github.com/faustbrian/go-postgres/postgresservice"
+	postgresservice "github.com/faustbrian/go-postgres/adapters/service"
 )
-
-func TestCompatibilityTypesPreserveLegacyPackageIdentity(t *testing.T) {
-	t.Parallel()
-
-	const legacyPath = "github.com/faustbrian/go-postgres/postgresservice"
-	for name, typ := range map[string]reflect.Type{
-		"Options":      reflect.TypeOf(postgresservice.Options{}),
-		"OptionsError": reflect.TypeOf(postgresservice.OptionsError{}),
-		"StartupError": reflect.TypeOf(postgresservice.StartupError{}),
-		"Adapter":      reflect.TypeOf(postgresservice.Adapter{}),
-	} {
-		if typ.PkgPath() != legacyPath {
-			t.Fatalf("%s package path = %q, want %q", name, typ.PkgPath(), legacyPath)
-		}
-	}
-}
 
 type resource struct {
 	pings    int

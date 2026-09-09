@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"runtime"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	gopostgres "github.com/faustbrian/go-postgres"
 	"github.com/testcontainers/testcontainers-go"
 )
 
@@ -66,6 +68,108 @@ func TestStartDatabasePreservesStartupFailure(t *testing.T) {
 	}
 }
 
+func TestOpenRejectsNilAndCanceledContextsBeforeStarting(t *testing.T) {
+	t.Parallel()
+
+	var starts atomic.Int32
+	starter := func(context.Context, Config) (startedDatabase, error) {
+		starts.Add(1)
+		return startedDatabase{}, nil
+	}
+	var nilContext context.Context
+	if _, err := openDatabase(nilContext, Config{}, starter); !errors.Is(err, gopostgres.ErrContextRequired) {
+		t.Fatalf("openDatabase(nil) error = %v, want ErrContextRequired", err)
+	}
+	cause := errors.New("startup canceled")
+	ctx, cancel := context.WithCancelCause(context.Background())
+	cancel(cause)
+	if _, err := openDatabase(ctx, Config{}, starter); !errors.Is(err, cause) {
+		t.Fatalf("openDatabase(canceled) error = %v, want caller cause", err)
+	}
+	if starts.Load() != 0 {
+		t.Fatalf("starter calls = %d, want 0", starts.Load())
+	}
+	if _, err := Start(nilContext, Config{}); !errors.Is(err, gopostgres.ErrContextRequired) {
+		t.Fatalf("Start(nil) error = %v, want ErrContextRequired", err)
+	}
+}
+
+func TestDatabaseShutdownUsesOneTerminationAndIndependentCallerBounds(t *testing.T) {
+	t.Parallel()
+
+	started := make(chan struct{})
+	release := make(chan struct{})
+	container := &stubDatabase{dsn: "postgres://test", terminate: func(context.Context) error {
+		close(started)
+		<-release
+		return nil
+	}}
+	database, err := startDatabase(context.Background(), Config{CleanupTimeout: time.Second}, stubStarter(container))
+	if err != nil {
+		t.Fatalf("startDatabase() error = %v", err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := database.Shutdown(ctx); !errors.Is(err, context.Canceled) {
+		t.Fatalf("Shutdown(canceled) error = %v, want cancellation", err)
+	}
+	<-started
+	done := make(chan error, 1)
+	go func() { done <- database.Close(context.Background()) }()
+	close(release)
+	if err := <-done; err != nil {
+		t.Fatalf("Close() error = %v", err)
+	}
+	if err := database.Shutdown(context.Background()); err != nil {
+		t.Fatalf("repeated Shutdown() error = %v", err)
+	}
+	if container.terminations != 1 {
+		t.Fatalf("termination calls = %d, want 1", container.terminations)
+	}
+}
+
+func TestDatabaseShutdownRejectsNilWithoutTermination(t *testing.T) {
+	t.Parallel()
+
+	container := &stubDatabase{dsn: "postgres://test"}
+	database, err := startDatabase(context.Background(), Config{}, stubStarter(container))
+	if err != nil {
+		t.Fatalf("startDatabase() error = %v", err)
+	}
+	var nilContext context.Context
+	if err := database.Shutdown(nilContext); !errors.Is(err, gopostgres.ErrContextRequired) {
+		t.Fatalf("Shutdown(nil) error = %v, want ErrContextRequired", err)
+	}
+	if err := database.Close(nilContext); !errors.Is(err, gopostgres.ErrContextRequired) {
+		t.Fatalf("Close(nil) error = %v, want ErrContextRequired", err)
+	}
+	if container.terminations != 0 {
+		t.Fatalf("termination calls = %d, want 0", container.terminations)
+	}
+	if err := database.Shutdown(context.Background()); err != nil {
+		t.Fatalf("Shutdown() error = %v", err)
+	}
+}
+
+func TestDatabaseShutdownSharesTerminationFailure(t *testing.T) {
+	t.Parallel()
+
+	terminationErr := errors.New("termination failed")
+	container := &stubDatabase{dsn: "postgres://test", terminateErr: terminationErr}
+	database, err := startDatabase(context.Background(), Config{}, stubStarter(container))
+	if err != nil {
+		t.Fatalf("startDatabase() error = %v", err)
+	}
+	for range 2 {
+		if err := database.Shutdown(context.Background()); !errors.Is(err, terminationErr) {
+			t.Fatalf("Shutdown() error = %v, want termination failure", err)
+		}
+	}
+	if container.terminations != 1 {
+		t.Fatalf("termination calls = %d, want 1", container.terminations)
+	}
+}
+
 func TestStartDatabaseCleansUpConnectionStringFailure(t *testing.T) {
 	t.Parallel()
 
@@ -100,7 +204,7 @@ func TestStartDatabasePreservesConnectionStringErrorWhenCleanupPanics(t *testing
 	}
 }
 
-func TestStartDatabaseRunsSetupAndRetriesFailedClose(t *testing.T) {
+func TestStartDatabaseRunsSetupAndSharesFailedShutdown(t *testing.T) {
 	t.Parallel()
 
 	setupErr := errors.New("setup failed")
@@ -132,11 +236,11 @@ func TestStartDatabaseRunsSetupAndRetriesFailedClose(t *testing.T) {
 	firstErr := database.Close(context.Background())
 	secondErr := database.Close(context.Background())
 	thirdErr := database.Close(context.Background())
-	if !errors.Is(firstErr, closeErr) || secondErr != nil || thirdErr != nil {
-		t.Fatalf("Close() errors = (%v, %v)", firstErr, secondErr)
+	if !errors.Is(firstErr, closeErr) || !errors.Is(secondErr, closeErr) || !errors.Is(thirdErr, closeErr) {
+		t.Fatalf("Close() errors = (%v, %v, %v), want shared failure", firstErr, secondErr, thirdErr)
 	}
-	if container.terminations != 2 {
-		t.Fatalf("termination calls = %d, want 2", container.terminations)
+	if container.terminations != 1 {
+		t.Fatalf("termination calls = %d, want 1", container.terminations)
 	}
 }
 

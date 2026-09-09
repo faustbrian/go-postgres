@@ -1,4 +1,4 @@
-package otelpostgres
+package postgresotel
 
 import (
 	"context"
@@ -123,15 +123,15 @@ func TestObserverUsesNoopProviderByDefault(t *testing.T) {
 	observer.Observe(context.Background(), postgres.Observation{})
 }
 
-func TestNewPreservesLegacyInstrumentationScope(t *testing.T) {
+func TestNewUsesCanonicalInstrumentationScope(t *testing.T) {
 	t.Parallel()
 
 	provider := &scopeMeterProvider{MeterProvider: metricnoop.NewMeterProvider()}
 	if _, err := New(Config{MeterProvider: provider}); err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
-	if provider.scope != "github.com/faustbrian/go-postgres/otelpostgres" {
-		t.Fatalf("instrumentation scope = %q, want legacy package path", provider.scope)
+	if provider.scope != "github.com/faustbrian/go-postgres/adapters/otel" {
+		t.Fatalf("instrumentation scope = %q, want canonical package path", provider.scope)
 	}
 }
 

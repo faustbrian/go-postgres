@@ -64,6 +64,42 @@
     },
     {
       "module_directory": ".",
+      "directory": "internal/oteladapter",
+      "name": "oteladapter",
+      "import_path": "github.com/faustbrian/go-postgres/internal/oteladapter",
+      "kind": "internal",
+      "production": true,
+      "executable": true,
+      "coverage_required": true,
+      "build_required": true,
+      "build_tags": []
+    },
+    {
+      "module_directory": ".",
+      "directory": "adapters/otel",
+      "name": "postgresotel",
+      "import_path": "github.com/faustbrian/go-postgres/adapters/otel",
+      "kind": "adapter",
+      "production": true,
+      "executable": true,
+      "coverage_required": true,
+      "build_required": true,
+      "build_tags": []
+    },
+    {
+      "module_directory": ".",
+      "directory": "adapters/service",
+      "name": "postgresservice",
+      "import_path": "github.com/faustbrian/go-postgres/adapters/service",
+      "kind": "adapter",
+      "production": true,
+      "executable": true,
+      "coverage_required": true,
+      "build_required": true,
+      "build_tags": []
+    },
+    {
+      "module_directory": ".",
       "directory": "otelpostgres",
       "name": "otelpostgres",
       "import_path": "github.com/faustbrian/go-postgres/otelpostgres",

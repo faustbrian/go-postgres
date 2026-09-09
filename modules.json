@@ -58,6 +58,42 @@
         },
         {
           "module_directory": ".",
+          "directory": "internal/oteladapter",
+          "name": "oteladapter",
+          "import_path": "github.com/faustbrian/go-postgres/internal/oteladapter",
+          "kind": "internal",
+          "production": true,
+          "executable": true,
+          "coverage_required": true,
+          "build_required": true,
+          "build_tags": []
+        },
+        {
+          "module_directory": ".",
+          "directory": "adapters/otel",
+          "name": "postgresotel",
+          "import_path": "github.com/faustbrian/go-postgres/adapters/otel",
+          "kind": "adapter",
+          "production": true,
+          "executable": true,
+          "coverage_required": true,
+          "build_required": true,
+          "build_tags": []
+        },
+        {
+          "module_directory": ".",
+          "directory": "adapters/service",
+          "name": "postgresservice",
+          "import_path": "github.com/faustbrian/go-postgres/adapters/service",
+          "kind": "adapter",
+          "production": true,
+          "executable": true,
+          "coverage_required": true,
+          "build_required": true,
+          "build_tags": []
+        },
+        {
+          "module_directory": ".",
           "directory": "otelpostgres",
           "name": "otelpostgres",
           "import_path": "github.com/faustbrian/go-postgres/otelpostgres",
@@ -119,8 +155,10 @@
         ],
         "package_selection": {
           "github.com/faustbrian/go-postgres": "Use for finite pgx pool configuration, bounded lifecycle, transaction cleanup, SQLSTATE classification, health, and safe observations.",
-          "github.com/faustbrian/go-postgres/otelpostgres": "Use to adapt PostgreSQL observations to a caller-owned OpenTelemetry meter provider.",
-          "github.com/faustbrian/go-postgres/postgresservice": "Use to adapt a PostgreSQL pool into an explicit go-service lifecycle component.",
+          "github.com/faustbrian/go-postgres/adapters/otel": "Use to adapt PostgreSQL observations to a caller-owned OpenTelemetry meter provider.",
+          "github.com/faustbrian/go-postgres/adapters/service": "Use to adapt a PostgreSQL pool into an explicit go-service lifecycle component.",
+          "github.com/faustbrian/go-postgres/otelpostgres": "Deprecated compatibility path for adapters/otel.",
+          "github.com/faustbrian/go-postgres/postgresservice": "Deprecated compatibility path for adapters/service.",
           "github.com/faustbrian/go-postgres/postgrestest": "Use in tests for a real PostgreSQL container and always-rollback transaction isolation."
         },
         "lifecycle_status": "active",
@@ -147,6 +185,8 @@
         },
         "optional_owned_dependencies": [],
         "adapters": [
+          "github.com/faustbrian/go-postgres/adapters/otel",
+          "github.com/faustbrian/go-postgres/adapters/service",
           "github.com/faustbrian/go-postgres/otelpostgres",
           "github.com/faustbrian/go-postgres/postgresservice"
         ],
@@ -187,7 +227,7 @@
           "release": "not-started"
         }
       },
-      "version": "1.0.1",
+      "version": "1.1.0",
       "tag_prefix": "v",
       "owned_dependencies": [
         "github.com/faustbrian/go-cli",

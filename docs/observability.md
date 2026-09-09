@@ -18,7 +18,7 @@ level for failures. It works with standard `slog` and therefore with `log`.
 Logging remains synchronous with the configured handler; use the bounded
 handler facilities in `log` if exporter latency must be isolated.
 
-`otelpostgres.New` accepts a standard OpenTelemetry `metric.MeterProvider` and
+`adapters/otel.New` accepts a standard OpenTelemetry `metric.MeterProvider` and
 records:
 
 - `db.client.operation.duration`
@@ -50,3 +50,5 @@ arguments, or raw database error text. Keep operation sets finite and static.
 The independently version-aligned `gopostgres` package test is part of the
 compatibility audit; it remains optional and is not pulled into this module's
 dependency graph.
+
+The legacy `otelpostgres` path remains a deprecated compatibility facade.

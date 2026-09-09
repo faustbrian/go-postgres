@@ -31,11 +31,11 @@ func (q *queries) CurrentTime(ctx context.Context) (time.Time, error) {
 
 func main() {
 	ctx := context.Background()
-	pool, err := postgres.New(ctx, postgres.Config{DSN: os.Getenv("DATABASE_URL")})
+	pool, err := postgres.Connect(ctx, postgres.Config{DSN: os.Getenv("DATABASE_URL")})
 	if err != nil {
 		panic(err)
 	}
-	defer func() { _ = pool.Close(context.Background()) }()
+	defer func() { _ = pool.Shutdown(context.Background()) }()
 
 	generated := &queries{db: pool.Raw()}
 	err = postgres.RunTransaction(ctx, pool.Raw(), postgres.TransactionOptions{}, func(ctx context.Context, tx pgx.Tx) error {

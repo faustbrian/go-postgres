@@ -51,7 +51,7 @@ The core construction and transaction flow is:
 
 ```go
 ctx := context.Background()
-pool, err := postgres.New(ctx, postgres.Config{
+pool, err := postgres.Connect(ctx, postgres.Config{
     DSN:             os.Getenv("DATABASE_URL"),
     MaxConns:        20,
     AcquireTimeout:  2 * time.Second,
@@ -61,7 +61,7 @@ pool, err := postgres.New(ctx, postgres.Config{
 if err != nil {
     return err
 }
-defer pool.Close(context.Background())
+defer pool.Shutdown(context.Background())
 
 err = postgres.RunTransaction(ctx, pool.Raw(), postgres.TransactionOptions{
     TxOptions: pgx.TxOptions{IsoLevel: pgx.Serializable},
@@ -71,7 +71,7 @@ err = postgres.RunTransaction(ctx, pool.Raw(), postgres.TransactionOptions{
 })
 ```
 
-`New` performs a bounded startup ping by default. `Pool.Raw()` returns the exact
+`Connect` performs a bounded startup ping by default. `Pool.Raw()` returns the exact
 `*pgxpool.Pool`, so generated `sqlc` code and all native pgx operations remain
 available.
 
@@ -100,10 +100,10 @@ the server when `InsecureSkipVerify` is enabled.
 - [`postgres`](https://pkg.go.dev/github.com/faustbrian/go-postgres):
   configuration, pool lifecycle, transactions, health, classification,
   bounded observations, and safe `slog` integration
-- [`postgresservice`](https://pkg.go.dev/github.com/faustbrian/go-postgres/postgresservice):
+- [`adapters/service`](https://pkg.go.dev/github.com/faustbrian/go-postgres/adapters/service):
   service lifecycle, optional startup validation and
   readiness, and explicit shared or transferred pool ownership
-- [`otelpostgres`](https://pkg.go.dev/github.com/faustbrian/go-postgres/otelpostgres):
+- [`adapters/otel`](https://pkg.go.dev/github.com/faustbrian/go-postgres/adapters/otel):
   optional standard OpenTelemetry metrics adapter
 - [`postgrestest`](https://pkg.go.dev/github.com/faustbrian/go-postgres/postgrestest):
   optional Testcontainers lifecycle and always-rollback
@@ -116,7 +116,7 @@ names and never SQL or arguments.
 
 ## Service lifecycle
 
-`postgresservice.New` accepts either an existing pool or a constructor. A
+`adapters/service.New` accepts either an existing pool or a constructor. A
 constructor transfers ownership after successful startup. Existing pools remain
 shared unless `TransferOwnership` is explicit. `StartupPing` is opt-in, and
 callers opt into runtime readiness by adding `adapter.Readiness()` to the
@@ -125,6 +125,9 @@ selected `service.Plan`.
 The adapter performs no retries. It closes an owned pool once, never closes a
 shared pool, and uses the service lifecycle context together with the pool's
 configured ping and shutdown bounds.
+
+The released `postgresservice` and `otelpostgres` import paths remain
+compatibility facades. New code should use the target-oriented adapter paths.
 
 ## Documentation
 

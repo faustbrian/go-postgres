@@ -292,6 +292,154 @@ func TestNewReturnsConfigurationFailure(t *testing.T) {
 	}
 }
 
+func TestConnectRejectsNilAndCanceledContextsBeforeConfiguration(t *testing.T) {
+	t.Parallel()
+
+	var configureCalls atomic.Int32
+	input := Config{
+		DSN: "postgres://localhost/app?sslmode=disable",
+		Configure: func(*PoolConfig) error {
+			configureCalls.Add(1)
+			return nil
+		},
+	}
+	var nilContext context.Context
+	if _, err := Connect(nilContext, input); !errors.Is(err, ErrContextRequired) {
+		t.Fatalf("Connect(nil) error = %v, want ErrContextRequired", err)
+	}
+
+	cause := errors.New("caller stopped startup")
+	ctx, cancel := context.WithCancelCause(context.Background())
+	cancel(cause)
+	if _, err := Connect(ctx, input); !errors.Is(err, cause) {
+		t.Fatalf("Connect(canceled) error = %v, want caller cause", err)
+	}
+	if got := configureCalls.Load(); got != 0 {
+		t.Fatalf("Configure calls = %d, want 0", got)
+	}
+	if _, err := New(nilContext, input); !errors.Is(err, ErrContextRequired) {
+		t.Fatalf("New(nil) error = %v, want ErrContextRequired", err)
+	}
+}
+
+func TestConnectConstructsOnceAndRollsBackFailedReadiness(t *testing.T) {
+	t.Parallel()
+
+	pingErr := errors.New("readiness failed")
+	var constructs atomic.Int32
+	var closes atomic.Int32
+	backend := &stubPoolBackend{
+		ping:  func(context.Context) error { return pingErr },
+		close: func() { closes.Add(1) },
+	}
+	_, err := connect(context.Background(), Config{
+		DSN: "postgres://localhost/app?sslmode=disable",
+	}, func(context.Context, *pgxpool.Config) (*pgxpool.Pool, poolBackend, error) {
+		constructs.Add(1)
+		return nil, backend, nil
+	})
+	if !errors.Is(err, pingErr) {
+		t.Fatalf("connect() error = %v, want readiness failure", err)
+	}
+	if got := constructs.Load(); got != 1 {
+		t.Fatalf("construction calls = %d, want 1", got)
+	}
+	if got := closes.Load(); got != 1 {
+		t.Fatalf("rollback close calls = %d, want 1", got)
+	}
+}
+
+func TestPoolShutdownRejectsNilWithoutClosingAdmission(t *testing.T) {
+	t.Parallel()
+
+	var closes atomic.Int32
+	backend := &stubPoolBackend{close: func() { closes.Add(1) }}
+	pool := newPool(nil, backend, time.Second, time.Second, time.Second)
+	var nilContext context.Context
+	if err := pool.Shutdown(nilContext); !errors.Is(err, ErrContextRequired) {
+		t.Fatalf("Shutdown(nil) error = %v, want ErrContextRequired", err)
+	}
+	if err := pool.Close(nilContext); !errors.Is(err, ErrContextRequired) {
+		t.Fatalf("Close(nil) error = %v, want ErrContextRequired", err)
+	}
+	if pool.closed.Load() || closes.Load() != 0 {
+		t.Fatalf("nil shutdown changed state: closed=%t closes=%d", pool.closed.Load(), closes.Load())
+	}
+}
+
+func TestPoolShutdownUsesOneCleanupAndIndependentCallerBounds(t *testing.T) {
+	t.Parallel()
+
+	started := make(chan struct{})
+	release := make(chan struct{})
+	var closes atomic.Int32
+	backend := &stubPoolBackend{close: func() {
+		closes.Add(1)
+		close(started)
+		<-release
+	}}
+	pool := newPool(nil, backend, time.Second, time.Second, time.Second)
+
+	short, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := pool.Shutdown(short); !errors.Is(err, ErrShutdownTimeout) || !errors.Is(err, context.Canceled) {
+		t.Fatalf("Shutdown(canceled) error = %v, want timeout and cancellation", err)
+	}
+	<-started
+
+	done := make(chan error, 1)
+	go func() { done <- pool.Shutdown(context.Background()) }()
+	close(release)
+	if err := <-done; err != nil {
+		t.Fatalf("concurrent Shutdown() error = %v", err)
+	}
+	if err := pool.Close(context.Background()); err != nil {
+		t.Fatalf("repeated Close() error = %v", err)
+	}
+	if got := closes.Load(); got != 1 {
+		t.Fatalf("underlying close calls = %d, want 1", got)
+	}
+}
+
+func TestPoolRejectsUseAfterShutdownBegins(t *testing.T) {
+	t.Parallel()
+
+	release := make(chan struct{})
+	var acquires atomic.Int32
+	var pings atomic.Int32
+	backend := &stubPoolBackend{
+		acquire: func(context.Context) (*pgxpool.Conn, error) {
+			acquires.Add(1)
+			return nil, nil
+		},
+		ping: func(context.Context) error {
+			pings.Add(1)
+			return nil
+		},
+		close: func() { <-release },
+	}
+	pool := newPool(nil, backend, time.Second, time.Second, time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	_ = pool.Shutdown(ctx)
+	if _, err := pool.Acquire(context.Background()); !errors.Is(err, ErrPoolClosed) {
+		t.Fatalf("Acquire() error = %v, want ErrPoolClosed", err)
+	}
+	if err := pool.Ping(context.Background()); !errors.Is(err, ErrPoolClosed) {
+		t.Fatalf("Ping() error = %v, want ErrPoolClosed", err)
+	}
+	if health := pool.Readiness(context.Background()); health.Ready || !errors.Is(health.Err, ErrPoolClosed) {
+		t.Fatalf("Readiness() = %#v, want ErrPoolClosed", health)
+	}
+	if acquires.Load() != 0 || pings.Load() != 0 {
+		t.Fatalf("use after shutdown reached backend: acquire=%d ping=%d", acquires.Load(), pings.Load())
+	}
+	close(release)
+	if err := pool.Shutdown(context.Background()); err != nil {
+		t.Fatalf("final Shutdown() error = %v", err)
+	}
+}
+
 func TestBoundedContextSupportsNoAdditionalTimeout(t *testing.T) {
 	t.Parallel()
 
