@@ -38,7 +38,7 @@ func run(ctx context.Context) error {
 	if dsn == "" {
 		return errors.New("DATABASE_URL is required")
 	}
-	pool, err := postgres.New(ctx, postgres.Config{
+	pool, err := postgres.Connect(ctx, postgres.Config{
 		DSN:             dsn,
 		MaxConns:        2,
 		AcquireTimeout:  30 * time.Second,
@@ -50,7 +50,7 @@ func run(ctx context.Context) error {
 	defer func() {
 		closeCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
-		if err := pool.Close(closeCtx); err != nil {
+		if err := pool.Shutdown(closeCtx); err != nil {
 			log.Printf("close migration pool: %v", err)
 		}
 	}()
