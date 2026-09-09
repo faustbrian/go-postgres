@@ -119,7 +119,8 @@ func newAdapter(options Options, factory adapterFactory) (*Adapter, error) {
 		StartupPing:       options.StartupPing,
 	})
 	if err != nil {
-		if optionsErr, ok := err.(*canonical.OptionsError); ok {
+		var optionsErr *canonical.OptionsError
+		if errors.As(err, &optionsErr) {
 			return nil, &OptionsError{Field: optionsErr.Field, Reason: optionsErr.Reason}
 		}
 
@@ -159,10 +160,11 @@ func (adapter *Adapter) Readiness() service.ReadinessCheck {
 }
 
 func compatibilityError(err error) error {
-	if err == canonical.ErrUnavailable {
+	if errors.Is(err, canonical.ErrUnavailable) {
 		return ErrUnavailable
 	}
-	if startupErr, ok := err.(*canonical.StartupError); ok {
+	var startupErr *canonical.StartupError
+	if errors.As(err, &startupErr) {
 		return &StartupError{
 			Validation: startupErr.Validation,
 			Cleanup:    startupErr.Cleanup,
