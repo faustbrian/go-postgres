@@ -9,7 +9,7 @@ DATABASE_URL='postgres://app:secret@localhost/app' go run .
 ```
 
 The example is a nested module because it composes independently released
-`migrations` and `postgres` modules. Both require Go 1.26.6. The local
+`migrations` and `postgres` modules. Both use Go 1.27.0 for validation. The local
 `replace` directive ensures CI compiles this example against the checkout under
 test. Build deployment images with an explicit output path such as
 `go build -o /app/migrate .`.

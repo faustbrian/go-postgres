@@ -1,12 +1,12 @@
 {
   "schema_version": 2,
   "repository": "github.com/faustbrian/go-postgres",
-  "go_version": "1.26.6",
+  "go_version": "1.27.0",
   "modules": [
     {
       "directory": ".",
       "module_path": "github.com/faustbrian/go-postgres",
-      "go_version": "1.26.6",
+      "go_version": "1.27.0",
       "packages": [
         {
           "module_directory": ".",
@@ -195,9 +195,9 @@
           "github.com/faustbrian/go-postgres/postgrestest"
         ],
         "supported_go": {
-          "minimum": "1.26.6",
+          "minimum": "1.27.0",
           "tested": [
-            "1.26.6"
+            "1.27.0"
           ]
         },
         "supported_platforms": [
@@ -283,7 +283,7 @@
     {
       "directory": "examples/migrations",
       "module_path": "github.com/faustbrian/go-postgres/examples/migrations",
-      "go_version": "1.26.6",
+      "go_version": "1.27.0",
       "packages": [
         {
           "module_directory": "examples/migrations",

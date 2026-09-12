@@ -7,7 +7,7 @@
 [![Documentation](https://img.shields.io/badge/docs-checked_in_CI-blue)](docs/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/faustbrian/go-postgres.svg)](https://pkg.go.dev/github.com/faustbrian/go-postgres)
 [![Release](https://img.shields.io/github/v/release/faustbrian/go-postgres?sort=semver)](https://github.com/faustbrian/go-postgres/releases)
-[![Go](https://img.shields.io/badge/go-1.26.6-00ADD8?logo=go)](https://go.dev/)
+[![Go](https://img.shields.io/badge/go-1.27.0-00ADD8?logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 `postgres` is focused production infrastructure for PostgreSQL applications
@@ -24,7 +24,7 @@ the [compatibility policy](COMPATIBILITY.md).
 
 ## Requirements
 
-- Go 1.26.6 or newer
+- Go 1.27.0 or newer
 - pgx 5.10.x
 - PostgreSQL 14, 15, 16, 17, or 18
 - Docker-compatible container runtime only for `postgrestest` and integration
