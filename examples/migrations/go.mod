@@ -3,7 +3,7 @@ module github.com/faustbrian/go-postgres/examples/migrations
 go 1.27.0
 
 require (
-	github.com/faustbrian/go-migrations v1.0.0
+	github.com/faustbrian/go-migrations/v2 v2.0.0
 	github.com/faustbrian/go-postgres v1.1.0
 	github.com/jackc/pgx/v5 v5.10.0
 )

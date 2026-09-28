@@ -6,14 +6,16 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"io"
+	"io/fs"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	migrations "github.com/faustbrian/go-migrations"
-	migrationpostgres "github.com/faustbrian/go-migrations/postgres"
+	migrations "github.com/faustbrian/go-migrations/v2"
+	migrationpostgres "github.com/faustbrian/go-migrations/v2/postgres"
 	postgres "github.com/faustbrian/go-postgres"
 	"github.com/jackc/pgx/v5/stdlib"
 )
@@ -57,7 +59,7 @@ func run(ctx context.Context) error {
 
 	database := stdlib.OpenDBFromPool(pool.Raw())
 	defer func() { _ = database.Close() }()
-	source, err := migrations.NewFSSource(migrationFiles, "schema")
+	source, err := migrations.NewFSSource(embeddedSourceFileSystem{files: migrationFiles}, "schema")
 	if err != nil {
 		return fmt.Errorf("create migration source: %w", err)
 	}
@@ -92,4 +94,64 @@ func run(ctx context.Context) error {
 	log.Printf("completed migrations=%d", len(result.Records()))
 
 	return nil
+}
+
+type embeddedSourceFileSystem struct {
+	files embed.FS
+}
+
+func (filesystem embeddedSourceFileSystem) ReadDir(
+	ctx context.Context,
+	root string,
+	limits migrations.SourceDirectoryLimits,
+) ([]migrations.SourceEntry, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	entries, err := fs.ReadDir(filesystem.files, root)
+	if err != nil {
+		return nil, err
+	}
+	if len(entries) > limits.MaxEntries {
+		return nil, migrations.ErrSourceLimit
+	}
+	converted := make([]migrations.SourceEntry, 0, len(entries))
+	totalNameBytes := 0
+	for _, entry := range entries {
+		name := entry.Name()
+		if len(name) > limits.MaxNameBytes || len(name) > limits.MaxTotalNameBytes-totalNameBytes {
+			return nil, migrations.ErrSourceLimit
+		}
+		totalNameBytes += len(name)
+		converted = append(converted, migrations.SourceEntry{Name: name, Directory: entry.IsDir()})
+	}
+
+	return converted, ctx.Err()
+}
+
+func (filesystem embeddedSourceFileSystem) ReadFile(
+	ctx context.Context,
+	name string,
+	maxBytes int,
+) ([]byte, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if maxBytes < 0 {
+		return nil, migrations.ErrInvalidEncoding
+	}
+	file, err := filesystem.files.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = file.Close() }()
+	contents, err := io.ReadAll(io.LimitReader(file, int64(maxBytes)+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(contents) > maxBytes {
+		return nil, migrations.ErrInvalidEncoding
+	}
+
+	return contents, ctx.Err()
 }
