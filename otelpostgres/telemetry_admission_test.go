@@ -1,4 +1,4 @@
-package postgresotel_test
+package otelpostgres
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 
 	postgres "github.com/faustbrian/go-postgres"
 	canonical "github.com/faustbrian/go-postgres/adapters/otel"
-	legacy "github.com/faustbrian/go-postgres/otelpostgres"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
@@ -27,7 +26,7 @@ func TestTelemetryOTelVariantsDirectCategories(t *testing.T) {
 			if variant == "canonical" {
 				observer, err = canonical.New(canonical.Config{MeterProvider: provider})
 			} else {
-				observer, err = legacy.New(legacy.Config{MeterProvider: provider})
+				observer, err = New(Config{MeterProvider: provider})
 			}
 			if err != nil {
 				t.Fatal("observer construction failed")

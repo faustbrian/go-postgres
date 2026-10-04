@@ -7,6 +7,10 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ### Fixed
 
+- Upgrade the OpenTelemetry SDK and aligned API modules to v1.45.0, fixing
+  GHSA-8wmf-6v46-5gfg's disclosure of exporter configuration through verbose
+  internal diagnostics. Keep unrelated Docker and HTTP instrumentation pins.
+
 - Project telemetry categories to fixed recognized values or `unknown` before
   custom observer delivery and built-in slog/OpenTelemetry emission, including
   direct canonical and retained adapter calls. Native error classification and
