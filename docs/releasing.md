@@ -1,5 +1,11 @@
 # Release process
 
+The root's next major is `github.com/faustbrian/go-postgres/v2`, tagged `v2.x.y`
+from main without a version-specific source directory. The v1 API archive is
+historical; the v2 archive characterizes the new nominal boundary. Publish the
+root before updating independently released consumers to actual public v2.
+`examples/migrations` stays pinned to released root v1.1.0 until that adoption.
+
 1. Confirm the intended SemVer and update `CHANGELOG.md` with a dated version.
 2. Review public API, pgx release notes, supported Go/PostgreSQL matrix,
    security findings, and migration guidance.

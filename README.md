@@ -5,7 +5,7 @@
 [![Coverage](https://img.shields.io/badge/coverage-100%25_required-blue)](CONTRIBUTING.md#verification)
 [![Mutation](https://img.shields.io/badge/mutation-100%25_required-blue)](CONTRIBUTING.md#verification)
 [![Documentation](https://img.shields.io/badge/docs-checked_in_CI-blue)](docs/)
-[![Go Reference](https://pkg.go.dev/badge/github.com/faustbrian/go-postgres.svg)](https://pkg.go.dev/github.com/faustbrian/go-postgres)
+[![Published v1 Reference](https://pkg.go.dev/badge/github.com/faustbrian/go-postgres.svg)](https://pkg.go.dev/github.com/faustbrian/go-postgres)
 [![Release](https://img.shields.io/github/v/release/faustbrian/go-postgres?sort=semver)](https://github.com/faustbrian/go-postgres/releases)
 [![Go](https://img.shields.io/badge/go-1.27.0-00ADD8?logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -19,8 +19,9 @@ without hiding native pgx types.
 It is not a driver, ORM, query builder, migration engine, repository layer, or
 multi-database abstraction.
 
-The module is stable at `v1`. Its exported API and documented behavior follow
-the [compatibility policy](COMPATIBILITY.md).
+Main prepares the next `v2` major; publication and clean public consumption are
+pending. Existing published v1 consumers remain unchanged. See the
+[migration guide](docs/migration.md#v1-to-v2-safe-configuration).
 
 ## Requirements
 
@@ -33,7 +34,7 @@ the [compatibility policy](COMPATIBILITY.md).
 ## Installation
 
 ```sh
-go get github.com/faustbrian/go-postgres@v1
+go get github.com/faustbrian/go-postgres/v2@v2 # after the v2 release is published
 ```
 
 ## Quick start
@@ -52,6 +53,8 @@ The core construction and transaction flow is:
 ```go
 ctx := context.Background()
 pool, err := postgres.Connect(ctx, postgres.Config{
+	ResolveDSN:       resolveDSN, // explicit application policy; see migration guide
+	StartupPolicy:    postgres.StartupPing, // opt into startup connectivity
     DSN:             os.Getenv("DATABASE_URL"),
     MaxConns:        20,
     AcquireTimeout:  2 * time.Second,
@@ -71,7 +74,8 @@ err = postgres.RunTransaction(ctx, pool.Raw(), postgres.TransactionOptions{
 })
 ```
 
-`Connect` performs a bounded startup ping by default. `Pool.Raw()` returns the exact
+`Connect` defaults to lazy startup without proactive minimum connections.
+This example explicitly requests a bounded ping. `Pool.Raw()` returns the exact
 `*pgxpool.Pool`, so generated `sqlc` code and all native pgx operations remain
 available.
 
@@ -88,24 +92,25 @@ available.
 | lifetime jitter | 5 minutes |
 | maximum idle time | 30 minutes |
 | health-check period | 1 minute |
-| startup policy | fail-fast ping |
+| startup policy | lazy, zero minimum connections |
 
-Zero values select these defaults. Every limit is overrideable. TLS remains an
+Zero values select these finite defaults. Admission budgets allow positive
+reductions, and native policies are revalidated after Configure. TLS remains an
 explicit deployment decision: use a DSN with `sslmode=verify-full` or provide a
 verified `tls.Config` with `TLSRequire`; never assume encryption authenticates
 the server when `InsecureSkipVerify` is enabled.
 
 ## Packages
 
-- [`postgres`](https://pkg.go.dev/github.com/faustbrian/go-postgres):
+- [`postgres`](docs/api.md):
   configuration, pool lifecycle, transactions, health, classification,
   bounded observations, and safe `slog` integration
-- [`adapters/service`](https://pkg.go.dev/github.com/faustbrian/go-postgres/adapters/service):
+- [`adapters/service`](adapters/service/service.go):
   service lifecycle, optional startup validation and
   readiness, and explicit shared or transferred pool ownership
-- [`adapters/otel`](https://pkg.go.dev/github.com/faustbrian/go-postgres/adapters/otel):
+- [`adapters/otel`](adapters/otel/observer.go):
   optional standard OpenTelemetry metrics adapter
-- [`postgrestest`](https://pkg.go.dev/github.com/faustbrian/go-postgres/postgrestest):
+- [`postgrestest`](postgrestest/database.go):
   optional Testcontainers lifecycle and always-rollback
   transaction helpers for real PostgreSQL
 

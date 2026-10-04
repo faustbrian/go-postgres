@@ -1,5 +1,67 @@
 # Migration from direct pgx and database/sql
 
+## v1 to v2 safe configuration
+
+The next major uses `github.com/faustbrian/go-postgres/v2` on main, not a new
+source directory. Its public release and clean-public-consumer verification
+are pending; do not use an unpublished version in downstream modules.
+Canonical and retained adapter names remain, with their existing metric scopes.
+
+Every configuration must supply `ResolveDSN(ctx, dsn)`, returning a fresh,
+exclusively transferred, valid pgx parser-created `*PoolConfig`. There is no
+built-in parser or resolver. Applications explicitly own any parser environment,
+passfile/service/TLS filesystem access, resolution allocations, and cooperation
+with cancellation. An application that deliberately opts into native pgx
+resolution can use:
+
+```go
+func resolveDSN(ctx context.Context, dsn string) (*postgres.PoolConfig, error) {
+    if ctx.Err() != nil {
+        return nil, context.Cause(ctx)
+    }
+    return pgxpool.ParseConfig(dsn) // application-owned ambient acquisition
+}
+```
+
+`PrepareConfig(ctx, input)` is the single preparation owner used by `Connect`.
+`ParseConfig(input)` delegates with the finite default preparation deadline.
+`ConfigResolutionTimeout` defaults to five seconds; caller deadlines win.
+`Configure` now takes the same preparation context before the native config.
+Callbacks must cooperate; deadlines cannot preempt arbitrary application code.
+Resolver errors have fixed private messages without upstream causes; trusted
+Configure causes and native transaction/error identities remain inspectable.
+
+`Config.Limits` zero fields select ceilings: 8 KiB DSN, 16 fallbacks, 128 runtime
+parameters, 64 KiB aggregate native strings, and 1024 entries for each native
+statement/description cache. Positive values only reduce these ceilings;
+negative values are invalid. Aggregate bytes count each occurrence of all
+native scalar strings (including original connection string), fallback hosts,
+and runtime parameter keys/values. Counts precede iteration and byte subtraction
+cannot overflow. Shapes are checked before typed overrides and after Configure.
+Native caches may be disabled with zero capacities. MaxConns is 1..1024;
+connection/preparation/ping/acquisition/shutdown timeouts are positive and at
+most one hour; zero typed fields select defaults. Pool lifetime/idle/health
+durations are positive and at most 30 days; jitter is nonnegative and no larger
+than lifetime. Final native invariants cannot be bypassed by Configure.
+
+`StartupLazy` is now zero/default. Both final minimum connection counts must
+be zero under lazy startup, including after Configure; select `StartupPing`
+explicitly when startup connectivity or positive minima are required. Native
+pool maintenance still has its own shutdown-owned goroutine. Later Acquire,
+Ping, Raw operations and application/native callbacks may perform network I/O.
+
+Opaque TLS certificate pools, keys, caches, callbacks, tracers and resolver
+backing allocations remain trusted application-owned bounded resources. Typed
+TLS defensive copying is retained, not a certificate-size admission policy.
+Review these owners if untrusted data or blocking work is introduced; the
+credential-shape policy does not certify arbitrary native collaborators.
+
+Queue Control Plane and Service DSN-based Connect callers require explicit
+resolution and the paired `/v2` nominal import migration. Audit/postgrestest and
+other published v1 consumers remain supported by their existing release.
+`examples/migrations` intentionally continues consuming published v1.1.0 and
+SDK1.45; its SDK interoperability test does not certify unreleased v2 behavior.
+
 ## From direct pgxpool wiring
 
 1. Keep existing SQL and generated queries unchanged.

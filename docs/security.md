@@ -18,13 +18,19 @@
 | partial transaction cleanup | one commit or rollback path; joined errors | avoid external side effects or own retry/idempotency |
 | telemetry data leak | bounded event schema; no SQL/arguments/raw errors | safe exporters, allow-listed query names |
 | cardinality attack | fixed operation/outcome/kind/state values | never add tenant/input labels in adapters |
-| malformed DSN crash | panic containment plus fuzz corpus | treat config as untrusted deployment input |
+| implicit credential acquisition | required explicit resolver after finite DSN admission | bound resolver acquisition and cooperate with context |
 | unsafe runtime feature | GO-SAFETY-1 scan forbids unsafe/cgo/linkname | review dependencies and vulnerability reports |
 
 `ErrorInfo.Detail` and `Hint` intentionally preserve native diagnostic data for
 authorized application policy, but are not safe log fields. `Config.Configure`
-is a trusted extension boundary and can weaken TLS, remove timeouts, install
-unsafe tracers, or add hooks; review it as production code.
+is a trusted extension boundary and can weaken TLS, install unsafe tracers, or
+add hooks; review it as production code. Finite native shapes and timeout/pool
+invariants are revalidated after it returns. Resolver causes are withheld.
+
+See [v2 configuration migration](migration.md#v1-to-v2-safe-configuration) for
+limits and ownership. There is no library-owned native parser/bootstrap call.
+Opaque TLS/callback/tracer resources and resolver allocations must have explicit
+application bounds; cooperative deadlines are not preemption guarantees.
 
 Telemetry projects caller-supplied categories to fixed recognized values or
 `unknown` at custom-observer delivery and built-in output. Exact SQLSTATE

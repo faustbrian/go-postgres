@@ -94,8 +94,8 @@ func New(ctx context.Context, input Config) (*Pool, error) {
 	return Connect(ctx, input)
 }
 
-// Connect constructs a native pgxpool and, by default, proves connectivity
-// with a bounded ping. StartupLazy skips that initial network operation. A nil
+// Connect constructs a native pgxpool without a startup connection by default.
+// StartupPing explicitly requests a bounded connectivity check. A nil
 // or already-canceled context is rejected before configuration or I/O.
 func Connect(ctx context.Context, input Config) (*Pool, error) {
 	return connect(ctx, input, openNativePool)
@@ -119,9 +119,12 @@ func connect(ctx context.Context, input Config, factory poolFactory) (*Pool, err
 	if err := ctx.Err(); err != nil {
 		return nil, context.Cause(ctx)
 	}
-	config, err := ParseConfig(input)
+	config, err := PrepareConfig(ctx, input)
 	if err != nil {
 		return nil, err
+	}
+	if ctx.Err() != nil {
+		return nil, context.Cause(ctx)
 	}
 
 	raw, backend, err := factory(ctx, config)

@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	postgres "github.com/faustbrian/go-postgres"
+	postgres "github.com/faustbrian/go-postgres/v2"
 )
 
 func TestParseConfigRequiresExplicitResolverHosted(t *testing.T) {

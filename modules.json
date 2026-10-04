@@ -5,14 +5,14 @@
   "modules": [
     {
       "directory": ".",
-      "module_path": "github.com/faustbrian/go-postgres",
+      "module_path": "github.com/faustbrian/go-postgres/v2",
       "go_version": "1.27.0",
       "packages": [
         {
           "module_directory": ".",
           "directory": ".",
           "name": "postgres",
-          "import_path": "github.com/faustbrian/go-postgres",
+          "import_path": "github.com/faustbrian/go-postgres/v2",
           "kind": "public",
           "production": true,
           "executable": true,
@@ -24,7 +24,7 @@
           "module_directory": ".",
           "directory": "examples/service",
           "name": "main",
-          "import_path": "github.com/faustbrian/go-postgres/examples/service",
+          "import_path": "github.com/faustbrian/go-postgres/v2/examples/service",
           "kind": "example",
           "production": false,
           "executable": true,
@@ -36,7 +36,7 @@
           "module_directory": ".",
           "directory": "examples/sqlc",
           "name": "main",
-          "import_path": "github.com/faustbrian/go-postgres/examples/sqlc",
+          "import_path": "github.com/faustbrian/go-postgres/v2/examples/sqlc",
           "kind": "example",
           "production": false,
           "executable": true,
@@ -48,7 +48,7 @@
           "module_directory": ".",
           "directory": "examples/worker",
           "name": "main",
-          "import_path": "github.com/faustbrian/go-postgres/examples/worker",
+          "import_path": "github.com/faustbrian/go-postgres/v2/examples/worker",
           "kind": "example",
           "production": false,
           "executable": true,
@@ -60,7 +60,7 @@
           "module_directory": ".",
           "directory": "internal/telemetry",
           "name": "telemetry",
-          "import_path": "github.com/faustbrian/go-postgres/internal/telemetry",
+          "import_path": "github.com/faustbrian/go-postgres/v2/internal/telemetry",
           "kind": "internal",
           "production": true,
           "executable": true,
@@ -72,7 +72,7 @@
           "module_directory": ".",
           "directory": "internal/oteladapter",
           "name": "oteladapter",
-          "import_path": "github.com/faustbrian/go-postgres/internal/oteladapter",
+          "import_path": "github.com/faustbrian/go-postgres/v2/internal/oteladapter",
           "kind": "internal",
           "production": true,
           "executable": true,
@@ -84,7 +84,7 @@
           "module_directory": ".",
           "directory": "adapters/otel",
           "name": "postgresotel",
-          "import_path": "github.com/faustbrian/go-postgres/adapters/otel",
+          "import_path": "github.com/faustbrian/go-postgres/v2/adapters/otel",
           "kind": "adapter",
           "production": true,
           "executable": true,
@@ -96,7 +96,7 @@
           "module_directory": ".",
           "directory": "adapters/service",
           "name": "postgresservice",
-          "import_path": "github.com/faustbrian/go-postgres/adapters/service",
+          "import_path": "github.com/faustbrian/go-postgres/v2/adapters/service",
           "kind": "adapter",
           "production": true,
           "executable": true,
@@ -108,7 +108,7 @@
           "module_directory": ".",
           "directory": "otelpostgres",
           "name": "otelpostgres",
-          "import_path": "github.com/faustbrian/go-postgres/otelpostgres",
+          "import_path": "github.com/faustbrian/go-postgres/v2/otelpostgres",
           "kind": "public",
           "production": true,
           "executable": true,
@@ -120,7 +120,7 @@
           "module_directory": ".",
           "directory": "postgresservice",
           "name": "postgresservice",
-          "import_path": "github.com/faustbrian/go-postgres/postgresservice",
+          "import_path": "github.com/faustbrian/go-postgres/v2/postgresservice",
           "kind": "public",
           "production": true,
           "executable": true,
@@ -132,7 +132,7 @@
           "module_directory": ".",
           "directory": "postgrestest",
           "name": "postgrestest",
-          "import_path": "github.com/faustbrian/go-postgres/postgrestest",
+          "import_path": "github.com/faustbrian/go-postgres/v2/postgrestest",
           "kind": "test support",
           "production": false,
           "executable": true,
@@ -163,15 +163,15 @@
         ],
         "public_package_identifier": "postgres",
         "primary_entry_packages": [
-          "github.com/faustbrian/go-postgres"
+          "github.com/faustbrian/go-postgres/v2"
         ],
         "package_selection": {
-          "github.com/faustbrian/go-postgres": "Use for finite pgx pool configuration, bounded lifecycle, transaction cleanup, SQLSTATE classification, health, and safe observations.",
-          "github.com/faustbrian/go-postgres/adapters/otel": "Use to adapt PostgreSQL observations to a caller-owned OpenTelemetry meter provider.",
-          "github.com/faustbrian/go-postgres/adapters/service": "Use to adapt a PostgreSQL pool into an explicit go-service lifecycle component.",
-          "github.com/faustbrian/go-postgres/otelpostgres": "Deprecated compatibility path for adapters/otel.",
-          "github.com/faustbrian/go-postgres/postgresservice": "Deprecated compatibility path for adapters/service.",
-          "github.com/faustbrian/go-postgres/postgrestest": "Use in tests for a real PostgreSQL container and always-rollback transaction isolation."
+          "github.com/faustbrian/go-postgres/v2": "Use for finite pgx pool configuration, bounded lifecycle, transaction cleanup, SQLSTATE classification, health, and safe observations.",
+          "github.com/faustbrian/go-postgres/v2/adapters/otel": "Use to adapt PostgreSQL observations to a caller-owned OpenTelemetry meter provider.",
+          "github.com/faustbrian/go-postgres/v2/adapters/service": "Use to adapt a PostgreSQL pool into an explicit go-service lifecycle component.",
+          "github.com/faustbrian/go-postgres/v2/otelpostgres": "Deprecated compatibility path for adapters/otel.",
+          "github.com/faustbrian/go-postgres/v2/postgresservice": "Deprecated compatibility path for adapters/service.",
+          "github.com/faustbrian/go-postgres/v2/postgrestest": "Use in tests for a real PostgreSQL container and always-rollback transaction isolation."
         },
         "lifecycle_status": "active",
         "maturity": "stable",
@@ -197,14 +197,14 @@
         },
         "optional_owned_dependencies": [],
         "adapters": [
-          "github.com/faustbrian/go-postgres/adapters/otel",
-          "github.com/faustbrian/go-postgres/adapters/service",
-          "github.com/faustbrian/go-postgres/otelpostgres",
-          "github.com/faustbrian/go-postgres/postgresservice"
+          "github.com/faustbrian/go-postgres/v2/adapters/otel",
+          "github.com/faustbrian/go-postgres/v2/adapters/service",
+          "github.com/faustbrian/go-postgres/v2/otelpostgres",
+          "github.com/faustbrian/go-postgres/v2/postgresservice"
         ],
         "companions": [
           "github.com/faustbrian/go-postgres/examples/migrations",
-          "github.com/faustbrian/go-postgres/postgrestest"
+          "github.com/faustbrian/go-postgres/v2/postgrestest"
         ],
         "supported_go": {
           "minimum": "1.27.0",
@@ -229,7 +229,7 @@
           "examples": "docs/quickstart.md",
           "faq": "docs/faq.md",
           "changelog": "CHANGELOG.md",
-          "pkg_go_dev": "https://pkg.go.dev/github.com/faustbrian/go-postgres",
+          "pkg_go_dev": "https://pkg.go.dev/github.com/faustbrian/go-postgres/v2",
           "ecosystem_index": "https://github.com/faustbrian/go-library-tools/blob/v1.4.0/docs/ecosystem/README.md"
         },
         "known_good_compatibility_sets": [],
@@ -239,7 +239,7 @@
           "release": "not-started"
         }
       },
-      "version": "1.1.0",
+      "version": "2.0.0",
       "tag_prefix": "v",
       "owned_dependencies": [
         "github.com/faustbrian/go-cli",

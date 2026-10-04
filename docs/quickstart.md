@@ -3,7 +3,7 @@
 Install the module and create one application-owned pool:
 
 ```sh
-go get github.com/faustbrian/go-postgres@v1
+go get github.com/faustbrian/go-postgres/v2@v2 # after public v2 publication
 ```
 
 For a complete compiler-built program, use the
@@ -19,6 +19,8 @@ The package-level construction flow is:
 
 ```go
 pool, err := postgres.Connect(ctx, postgres.Config{
+	ResolveDSN:       resolveDSN, // application resolver from the migration guide
+	StartupPolicy:    postgres.StartupPing,
     DSN:             os.Getenv("DATABASE_URL"),
     MaxConns:        20,
     MinIdleConns:    2,
@@ -36,9 +38,10 @@ if err != nil {
 defer pool.Shutdown(context.Background())
 ```
 
-`Connect` parses and validates the DSN without returning it in validation errors,
-constructs the native pool, then performs a bounded startup ping. Use
-`StartupLazy` only when startup must succeed while PostgreSQL is unavailable.
+`Connect` admits the DSN before explicit application resolution and constructs
+the native pool. The example explicitly requests a startup ping. The default
+`StartupLazy` requires zero final minima and performs no proactive connection.
+See [resolver ownership and migration](migration.md#v1-to-v2-safe-configuration).
 
 Use native pgx methods through `pool.Raw()`:
 

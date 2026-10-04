@@ -50,7 +50,7 @@ tracer, _ := gopostgres.New(gopostgres.Config{
     Operations: []string{"users.by_id", "jobs.claim"},
 })
 
-config.Configure = func(native *pgxpool.Config) error {
+config.Configure = func(ctx context.Context, native *pgxpool.Config) error {
     native.ConnConfig.Tracer = tracer
     return nil
 }

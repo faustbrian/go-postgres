@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	postgres "github.com/faustbrian/go-postgres"
-	canonical "github.com/faustbrian/go-postgres/adapters/otel"
+	postgres "github.com/faustbrian/go-postgres/v2"
+	canonical "github.com/faustbrian/go-postgres/v2/adapters/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"

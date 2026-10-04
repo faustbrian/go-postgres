@@ -1,5 +1,5 @@
 // Package postgresservice preserves the released service-adapter path. New
-// code should import github.com/faustbrian/go-postgres/adapters/service.
+// code should import github.com/faustbrian/go-postgres/v2/adapters/service.
 package postgresservice
 
 import (
@@ -7,21 +7,21 @@ import (
 	"errors"
 	"fmt"
 
-	canonical "github.com/faustbrian/go-postgres/adapters/service"
+	canonical "github.com/faustbrian/go-postgres/v2/adapters/service"
 	"github.com/faustbrian/go-service"
 )
 
 var (
 	// ErrInvalidOptions identifies invalid adapter construction.
-	// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
+	// Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 	ErrInvalidOptions = errors.New("invalid postgres service options")
 	// ErrUnavailable identifies a pool that has not started or is stopping.
-	// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
+	// Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 	ErrUnavailable = errors.New("postgres service pool unavailable")
 )
 
 // Resource is the released adapter resource contract.
-// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
+// Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 type Resource interface {
 	Ping(context.Context) error
 	Close(context.Context) error
@@ -29,11 +29,11 @@ type Resource interface {
 
 // Constructor acquires a pool whose ownership transfers after a successful
 // return.
-// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
+// Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 type Constructor func(context.Context) (Resource, error)
 
 // Options configure one PostgreSQL lifecycle adapter.
-// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
+// Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 type Options struct {
 	// Name is the secret-safe component and readiness-check name.
 	Name string
@@ -48,7 +48,7 @@ type Options struct {
 }
 
 // OptionsError identifies a rejected option.
-// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
+// Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 type OptionsError struct {
 	Field  string
 	Reason string
@@ -63,7 +63,7 @@ func (err *OptionsError) Error() string {
 func (err *OptionsError) Unwrap() error { return ErrInvalidOptions }
 
 // StartupError preserves validation and cleanup failures.
-// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
+// Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 type StartupError struct {
 	Validation error
 	Cleanup    error
@@ -90,14 +90,14 @@ func (err *StartupError) Unwrap() []error {
 
 // Adapter preserves released type identity while delegating behavior to the
 // canonical service adapter.
-// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
+// Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 type Adapter struct {
 	delegate *canonical.Adapter
 }
 
 // New delegates to the canonical service adapter.
 //
-// Deprecated: import github.com/faustbrian/go-postgres/adapters/service.
+// Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 func New(options Options) (*Adapter, error) {
 	return newAdapter(options, canonical.New)
 }

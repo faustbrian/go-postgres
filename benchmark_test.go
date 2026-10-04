@@ -11,12 +11,12 @@ import (
 
 func BenchmarkParseConfig(b *testing.B) {
 	for b.Loop() {
-		config, err := ParseConfig(Config{
+		config, err := parseHostedConfig(Config{
 			DSN:      "postgres://app:secret@localhost/app?sslmode=disable",
 			MaxConns: 20,
 		})
 		if err != nil || config.MaxConns != 20 {
-			b.Fatalf("ParseConfig() = %#v, %v", config, err)
+			b.Fatalf("parseHostedConfig() = %#v, %v", config, err)
 		}
 	}
 }
@@ -45,6 +45,7 @@ func BenchmarkPoolAcquireOverhead(b *testing.B) {
 func BenchmarkPoolCreation(b *testing.B) {
 	ctx := context.Background()
 	config := Config{
+		ResolveDSN:    resolveHostedDSN,
 		DSN:           "postgres://localhost/app?sslmode=disable",
 		StartupPolicy: StartupLazy,
 	}

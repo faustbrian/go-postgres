@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	postgres "github.com/faustbrian/go-postgres"
+	postgres "github.com/faustbrian/go-postgres/v2"
 	metricapi "go.opentelemetry.io/otel/metric"
 	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/sdk/metric"

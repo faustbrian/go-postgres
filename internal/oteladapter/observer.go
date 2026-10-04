@@ -4,8 +4,8 @@ package oteladapter
 import (
 	"context"
 
-	postgres "github.com/faustbrian/go-postgres"
-	"github.com/faustbrian/go-postgres/internal/telemetry"
+	postgres "github.com/faustbrian/go-postgres/v2"
+	"github.com/faustbrian/go-postgres/v2/internal/telemetry"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	metricnoop "go.opentelemetry.io/otel/metric/noop"

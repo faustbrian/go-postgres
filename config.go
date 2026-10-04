@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"time"
 
@@ -20,6 +19,8 @@ const (
 	DefaultPingTimeout = 2 * time.Second
 	// DefaultShutdownTimeout bounds how long Close waits for borrowed connections.
 	DefaultShutdownTimeout = 10 * time.Second
+	// DefaultConfigResolutionTimeout bounds cooperative resolver preparation.
+	DefaultConfigResolutionTimeout = 5 * time.Second
 )
 
 // PoolConfig is the native pgxpool configuration type. The alias makes hooks
@@ -47,21 +48,31 @@ type TLSConfig struct {
 	Config *tls.Config
 }
 
-// StartupPolicy controls whether New proves connectivity before returning.
+// StartupPolicy controls whether Connect proves connectivity before returning.
 type StartupPolicy uint8
 
 const (
-	// StartupPing is the fail-fast default and pings PostgreSQL during New.
-	StartupPing StartupPolicy = iota
-	// StartupLazy returns after pool construction without opening a connection.
-	StartupLazy
+	// StartupLazy is the default: no startup ping or proactive minimum connections.
+	StartupLazy StartupPolicy = iota
+	// StartupPing explicitly requests a bounded connectivity check during Connect.
+	StartupPing
 )
 
 // Config defines safe, finite defaults for constructing a PostgreSQL pool.
-// Zero values select the documented defaults. Negative sizes or durations are
-// rejected rather than passed through to pgxpool.
+// ResolveDSN is required; other zero fields select documented defaults.
+// Negative sizes or durations are rejected rather than passed through to pgxpool.
 type Config struct {
 	DSN string
+
+	// ResolveDSN is required. It owns any environment, filesystem or other
+	// acquisition used to resolve the admitted DSN, must cooperate with ctx,
+	// and transfers a fresh parser-created native configuration exclusively.
+	ResolveDSN func(context.Context, string) (*PoolConfig, error)
+
+	// ConfigResolutionTimeout bounds cooperative preparation; zero uses 5s.
+	ConfigResolutionTimeout time.Duration
+	// Limits selects finite native credential admission budgets.
+	Limits ConfigLimits
 
 	ConnectTimeout  time.Duration
 	AcquireTimeout  time.Duration
@@ -84,13 +95,14 @@ type Config struct {
 	// AfterConnect hook. Returning an error rejects that connection.
 	SessionInit func(context.Context, *pgx.Conn) error
 
-	// Configure receives the parsed native configuration after typed options
-	// are applied and before the pool is created.
-	Configure func(*PoolConfig) error
+	// Configure receives the admitted native configuration and preparation
+	// deadline after typed options. It must cooperate with ctx and exclusively
+	// mutate the transferred configuration without retaining it for later use.
+	Configure func(context.Context, *PoolConfig) error
 }
 
-// ConfigError reports a configuration field without echoing the DSN or its
-// credentials. Cause is retained only for errors outside DSN parsing.
+// ConfigError reports a field without echoing credentials. Resolver causes are
+// withheld; trusted Configure causes remain inspectable.
 type ConfigError struct {
 	Field   string
 	Problem string
@@ -107,9 +119,36 @@ func (e *ConfigError) Unwrap() error {
 	return e.Cause
 }
 
-// ParseConfig parses the DSN, applies finite defaults and overrides, validates
-// pool invariants, and finally invokes Config.Configure.
+// ParseConfig delegates to PrepareConfig with a finite cooperative deadline.
+// ResolveDSN is required and owns native parsing and its ambient acquisitions.
+// A deadline cannot preempt an uncooperative application callback.
 func ParseConfig(input Config) (*PoolConfig, error) {
+	return PrepareConfig(context.Background(), input)
+}
+
+// PrepareConfig admits the DSN before calling the required application resolver,
+// validates native shapes before typed overrides, and revalidates after Configure.
+// The resolver transfers a fresh parser-created configuration; TLS data, native
+// callbacks, parser allocations and their resource bounds remain application-owned.
+// Preparation cooperatively honors ctx and ConfigResolutionTimeout, including
+// callback completion checks. It does not recover collaborator panics.
+func PrepareConfig(ctx context.Context, input Config) (*PoolConfig, error) {
+	if ctx == nil {
+		return nil, ErrContextRequired
+	}
+	if ctx.Err() != nil {
+		return nil, context.Cause(ctx)
+	}
+	if input.ResolveDSN == nil {
+		return nil, configError("resolver", "is required")
+	}
+	limits, err := input.Limits.admitted()
+	if err != nil {
+		return nil, err
+	}
+	if len(input.DSN) > limits.MaximumDSNBytes {
+		return nil, configError("dsn", "exceeds byte limit")
+	}
 	if input.DSN == "" {
 		return nil, configError("dsn", "must not be empty")
 	}
@@ -117,7 +156,18 @@ func ParseConfig(input Config) (*PoolConfig, error) {
 	if field, ok := invalidNegativeField(input); ok {
 		return nil, configError(field, "must not be negative")
 	}
-	if input.StartupPolicy > StartupLazy {
+	for _, field := range []struct {
+		name  string
+		value time.Duration
+	}{
+		{"acquire_timeout", input.AcquireTimeout},
+		{"shutdown_timeout", input.ShutdownTimeout},
+	} {
+		if field.value > MaximumConfigTimeout {
+			return nil, configError(field.name, "is outside the finite policy")
+		}
+	}
+	if input.StartupPolicy > StartupPing {
 		return nil, configError("startup_policy", "is not recognized")
 	}
 	if input.TLS.Mode > TLSRequire {
@@ -127,9 +177,24 @@ func ParseConfig(input Config) (*PoolConfig, error) {
 		return nil, configError("tls.config", "is required when TLS is required")
 	}
 
-	config, err := parsePoolConfig(input.DSN)
+	resolutionTimeout := valueOrDefault(input.ConfigResolutionTimeout, DefaultConfigResolutionTimeout)
+	if resolutionTimeout <= 0 || resolutionTimeout > MaximumConfigTimeout {
+		return nil, configError("config_resolution_timeout", "is outside the finite policy")
+	}
+	ctx, cancel := context.WithTimeout(ctx, resolutionTimeout)
+	defer cancel()
+	config, err := input.ResolveDSN(ctx, input.DSN)
 	if err != nil {
-		return nil, configError("dsn", "could not be parsed")
+		if ctx.Err() != nil {
+			return nil, context.Cause(ctx)
+		}
+		return nil, configError("resolver", "could not resolve configuration")
+	}
+	if ctx.Err() != nil {
+		return nil, context.Cause(ctx)
+	}
+	if err := admitNativeShape(config, limits); err != nil {
+		return nil, err
 	}
 
 	config.ConnConfig.ConnectTimeout = valueOrDefault(input.ConnectTimeout, DefaultConnectTimeout)
@@ -151,7 +216,11 @@ func ParseConfig(input Config) (*PoolConfig, error) {
 	}
 
 	if input.Configure != nil {
-		if err := input.Configure(config); err != nil {
+		err := input.Configure(ctx, config)
+		if ctx.Err() != nil {
+			return nil, context.Cause(ctx)
+		}
+		if err != nil {
 			return nil, &ConfigError{
 				Field:   "configure hook",
 				Problem: "returned an error",
@@ -159,21 +228,19 @@ func ParseConfig(input Config) (*PoolConfig, error) {
 			}
 		}
 	}
+	if err := admitNativeShape(config, limits); err != nil {
+		return nil, err
+	}
+	if err := admitNativePolicy(config, input.StartupPolicy); err != nil {
+		return nil, err
+	}
+	if ctx.Err() != nil {
+		return nil, context.Cause(ctx)
+	}
 
 	composeSessionInit(config, input.SessionInit)
 
 	return config, nil
-}
-
-func parsePoolConfig(dsn string) (config *PoolConfig, err error) {
-	defer func() {
-		if recover() != nil {
-			config = nil
-			err = errors.New("pgx rejected the connection string")
-		}
-	}()
-
-	return pgxpool.ParseConfig(dsn)
 }
 
 func applyTLSConfig(config *PoolConfig, input TLSConfig) {
@@ -290,6 +357,7 @@ func invalidNegativeField(config Config) (string, bool) {
 		value int64
 	}{
 		{name: "connect_timeout", value: int64(config.ConnectTimeout)},
+		{name: "config_resolution_timeout", value: int64(config.ConfigResolutionTimeout)},
 		{name: "acquire_timeout", value: int64(config.AcquireTimeout)},
 		{name: "ping_timeout", value: int64(config.PingTimeout)},
 		{name: "shutdown_timeout", value: int64(config.ShutdownTimeout)},

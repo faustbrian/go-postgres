@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	gopostgres "github.com/faustbrian/go-postgres"
+	gopostgres "github.com/faustbrian/go-postgres/v2"
 	"github.com/testcontainers/testcontainers-go"
 )
 
