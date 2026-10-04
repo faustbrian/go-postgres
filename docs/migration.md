@@ -33,13 +33,20 @@ Configure causes and native transaction/error identities remain inspectable.
 
 `Config.Limits` zero fields select ceilings: 8 KiB DSN, 16 fallbacks, 128 runtime
 parameters, 64 KiB aggregate native strings, and 1024 entries for each native
-statement/description cache. Positive values only reduce these ceilings;
+statement/description cache, plus 8 MiB per native protocol-message body.
+Positive values only reduce these ceilings;
 negative values are invalid. Aggregate bytes count each occurrence of all
 native scalar strings (including original connection string), fallback hosts,
 and runtime parameter keys/values. Counts precede iteration and byte subtraction
 cannot overflow. Shapes are checked before typed overrides and after Configure.
-Native caches may be disabled with zero capacities. MaxConns is 1..1024;
-connection/preparation/ping/acquisition/shutdown timeouts are positive and at
+Native caches may be disabled with zero capacities. MaxConns is 1..1024.
+The initial native message allowance of zero selects the explicit package
+allowance before Configure, rather than relying on the native frontend default.
+Final zero, negative or over-budget message allowances are refused. Message
+budgets can reject otherwise valid large rows; applications must account for
+their query results within this finite contract. Custom BuildFrontend and its
+opaque allocations remain bounded, trusted application-owned collaborators.
+Connection/preparation/ping/acquisition/shutdown timeouts are positive and at
 most one hour; zero typed fields select defaults. Pool lifetime/idle/health
 durations are positive and at most 30 days; jitter is nonnegative and no larger
 than lifetime. Final native invariants cannot be bypassed by Configure.

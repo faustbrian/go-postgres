@@ -290,6 +290,69 @@ func TestConfigAdmissionFactoryFailurePreservesCause(t *testing.T) {
 	}
 }
 
+func TestConfigAdmissionProtocolMessageBudget(t *testing.T) {
+	input := admittedInput()
+	input.Limits.MaximumProtocolMessageBodyBytes = 3
+	configured := false
+	input.Configure = func(_ context.Context, native *PoolConfig) error {
+		configured = true
+		if native.ConnConfig.MaxProtocolMessageBodyLen != 3 {
+			t.Fatal("native zero did not select finite message budget before hook")
+		}
+		return nil
+	}
+	native, err := PrepareConfig(context.Background(), input)
+	if err != nil || native == nil || native.ConnConfig.MaxProtocolMessageBodyLen != 3 || !configured {
+		t.Fatal("finite message default not retained")
+	}
+	for _, value := range []int{3, 4, -1} {
+		t.Run("resolver", func(t *testing.T) {
+			input := admittedInput()
+			input.Limits.MaximumProtocolMessageBodyBytes = 3
+			input.ResolveDSN = func(context.Context, string) (*PoolConfig, error) {
+				native := admittedNative()
+				native.ConnConfig.MaxProtocolMessageBodyLen = value
+				return native, nil
+			}
+			configured := false
+			input.Configure = func(context.Context, *PoolConfig) error { configured = true; return nil }
+			native, err := PrepareConfig(context.Background(), input)
+			if value == 3 {
+				if err != nil || native == nil || native.ConnConfig.MaxProtocolMessageBodyLen != value || !configured {
+					t.Fatal("inclusive message allowance refused")
+				}
+			} else {
+				requireConfigField(t, native, err, "native_config")
+				if configured {
+					t.Fatal("invalid message allowance reached hook")
+				}
+			}
+		})
+	}
+}
+
+func TestConfigAdmissionProtocolHookRefusal(t *testing.T) {
+	for _, value := range []int{0, -1, 4} {
+		t.Run("hook", func(t *testing.T) {
+			input := admittedInput()
+			input.Limits.MaximumProtocolMessageBodyBytes = 3
+			input.Configure = func(_ context.Context, native *PoolConfig) error {
+				native.ConnConfig.MaxProtocolMessageBodyLen = value
+				return nil
+			}
+			constructed := false
+			pool, err := connect(context.Background(), input, func(context.Context, *pgxpool.Config) (*pgxpool.Pool, poolBackend, error) {
+				constructed = true
+				return nil, &admissionBackend{}, nil
+			})
+			var detail *ConfigError
+			if pool != nil || !errors.As(err, &detail) || detail.Field != "native_config" || detail.Cause != nil || constructed {
+				t.Fatal("hook relaxed finite message policy before factory")
+			}
+		})
+	}
+}
+
 func TestConfigAdmissionAdditionalNativeFields(t *testing.T) {
 	for _, field := range []string{"kerberos_service", "kerberos_spn", "ssl_negotiation", "min_protocol", "max_protocol", "channel_binding", "require_auth", "statement_cache", "description_cache"} {
 		t.Run(field, func(t *testing.T) {

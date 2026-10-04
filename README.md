@@ -26,7 +26,7 @@ pending. Existing published v1 consumers remain unchanged. See the
 ## Requirements
 
 - Go 1.27.0 or newer
-- pgx 5.10.x
+- pgx 5.11.x (root v2); the retained published-v1 example pins its own baseline
 - PostgreSQL 14, 15, 16, 17, or 18
 - Docker-compatible container runtime only for `postgrestest` and integration
   tests

@@ -13,6 +13,8 @@ const (
 	DefaultMaximumNativeStringBytes = 64 << 10
 	// DefaultMaximumCacheEntries bounds each native statement/description cache.
 	DefaultMaximumCacheEntries = 1024
+	// DefaultMaximumProtocolMessageBodyBytes bounds each native wire-message body.
+	DefaultMaximumProtocolMessageBodyBytes = 8 << 20
 	// MaximumPoolConnections is the finite pool-size ceiling.
 	MaximumPoolConnections = 1024
 	// MaximumConfigTimeout bounds preparation and connection/operation timeouts.
@@ -39,6 +41,8 @@ type ConfigLimits struct {
 	MaximumStatementCacheEntries int
 	// MaximumDescriptionCacheEntries bounds the native description cache.
 	MaximumDescriptionCacheEntries int
+	// MaximumProtocolMessageBodyBytes bounds each native wire-message body.
+	MaximumProtocolMessageBodyBytes int
 }
 
 func (limits ConfigLimits) admitted() (ConfigLimits, error) {
@@ -52,6 +56,7 @@ func (limits ConfigLimits) admitted() (ConfigLimits, error) {
 		{&limits.MaximumNativeStringBytes, DefaultMaximumNativeStringBytes},
 		{&limits.MaximumStatementCacheEntries, DefaultMaximumCacheEntries},
 		{&limits.MaximumDescriptionCacheEntries, DefaultMaximumCacheEntries},
+		{&limits.MaximumProtocolMessageBodyBytes, DefaultMaximumProtocolMessageBodyBytes},
 	}
 	for _, field := range fields {
 		if *field.value < 0 || *field.value > field.ceiling {
@@ -70,6 +75,9 @@ func admitNativeShape(config *PoolConfig, limits ConfigLimits) error {
 		return refusal()
 	}
 	conn := config.ConnConfig
+	if conn.MaxProtocolMessageBodyLen < 0 || conn.MaxProtocolMessageBodyLen > limits.MaximumProtocolMessageBodyBytes {
+		return refusal()
+	}
 	if conn.StatementCacheCapacity < 0 || conn.StatementCacheCapacity > limits.MaximumStatementCacheEntries || conn.DescriptionCacheCapacity < 0 || conn.DescriptionCacheCapacity > limits.MaximumDescriptionCacheEntries {
 		return refusal()
 	}
@@ -104,6 +112,9 @@ func admitNativeShape(config *PoolConfig, limits ConfigLimits) error {
 }
 
 func admitNativePolicy(config *PoolConfig, startup StartupPolicy) error {
+	if config.ConnConfig.MaxProtocolMessageBodyLen <= 0 {
+		return configError("native_config", "requires a finite positive message budget")
+	}
 	if config.MaxConns <= 0 || config.MaxConns > MaximumPoolConnections {
 		return configError("max_conns", "is outside the finite policy")
 	}

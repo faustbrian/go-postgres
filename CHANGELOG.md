@@ -18,6 +18,11 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ### Fixed
 
+- Upgrade root pgx to v5.11.0 to fix quoted connection-value bounds handling.
+  No package panic recovery hides resolver failures. Admit its new native
+  message-body allowance to an explicit 8 MiB default/ceiling with positive
+  reductions; post-Configure zero, negative and over-budget values are refused.
+
 - Upgrade the OpenTelemetry SDK and aligned API modules to v1.45.0, fixing
   GHSA-8wmf-6v46-5gfg's disclosure of exporter configuration through verbose
   internal diagnostics. Keep unrelated Docker and HTTP instrumentation pins.

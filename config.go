@@ -196,6 +196,11 @@ func PrepareConfig(ctx context.Context, input Config) (*PoolConfig, error) {
 	if err := admitNativeShape(config, limits); err != nil {
 		return nil, err
 	}
+	// Native zero is not our policy: choose an explicit finite body allowance
+	// before application mutation, then refuse any post-hook relaxation.
+	if config.ConnConfig.MaxProtocolMessageBodyLen == 0 {
+		config.ConnConfig.MaxProtocolMessageBodyLen = limits.MaximumProtocolMessageBodyBytes
+	}
 
 	config.ConnConfig.ConnectTimeout = valueOrDefault(input.ConnectTimeout, DefaultConnectTimeout)
 	config.MaxConns = int32OrDefault(input.MaxConns, 10)

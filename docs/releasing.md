@@ -14,8 +14,14 @@ root before updating independently released consumers to actual public v2.
    benchmark, and compatibility job on that exact SHA with no required skip.
 5. Create a signed or protected `vMAJOR.MINOR.PATCH` tag on a commit reachable
    from `main`.
-6. Let the release workflow re-run gates, build a deterministic source archive,
-   publish checksums, and create release notes from the changelog.
+6. Deliberately publish the source archive, checksums and changelog-derived
+   release notes through the coordinator's authorized release operation. This
+   repository has CI only, not a tag-triggered publication workflow.
+
+The CI `release_dry_run` selector runs structural release validation and the
+ordinary check contract. It is not an executed CLI release rehearsal or proof
+of public proxy consumption. Those release checks and publication remain
+separate prerequisites.
 
 Never move or force-update a published tag. A pgx or PostgreSQL support change
 requires explicit compatibility evidence before release.
