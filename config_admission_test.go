@@ -353,6 +353,108 @@ func TestConfigAdmissionProtocolHookRefusal(t *testing.T) {
 	}
 }
 
+func TestConfigAdmissionWrapperTimeoutCeilings(t *testing.T) {
+	for _, field := range []string{"acquire_timeout", "shutdown_timeout"} {
+		t.Run(field, func(t *testing.T) {
+			input := admittedInput()
+			resolved := false
+			input.ResolveDSN = func(context.Context, string) (*PoolConfig, error) {
+				resolved = true
+				return admittedNative(), nil
+			}
+			if field == "acquire_timeout" {
+				input.AcquireTimeout = MaximumConfigTimeout
+			} else {
+				input.ShutdownTimeout = MaximumConfigTimeout
+			}
+			native, err := PrepareConfig(context.Background(), input)
+			if err != nil || native == nil || !resolved {
+				t.Fatal("inclusive wrapper timeout ceiling refused")
+			}
+			resolved = false
+			if field == "acquire_timeout" {
+				input.AcquireTimeout++
+			} else {
+				input.ShutdownTimeout++
+			}
+			native, err = PrepareConfig(context.Background(), input)
+			requireConfigField(t, native, err, field)
+			if resolved || err.Error() != "postgres: invalid "+field+": is outside the finite policy" {
+				t.Fatal("wrapper timeout refusal crossed resolver or diagnostic boundary")
+			}
+		})
+	}
+}
+
+func TestConfigAdmissionCanceledResolverErrorPrecedence(t *testing.T) {
+	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
+	cause := errors.New("ordinary caller cancellation")
+	upstream := errors.New("ordinary resolver refusal")
+	input := admittedInput()
+	input.ResolveDSN = func(context.Context, string) (*PoolConfig, error) {
+		cancel(cause)
+		return nil, upstream
+	}
+	configured := false
+	input.Configure = func(context.Context, *PoolConfig) error { configured = true; return nil }
+	native, err := PrepareConfig(ctx, input)
+	var detail *ConfigError
+	if native != nil || !errors.Is(err, cause) || errors.Is(err, upstream) || errors.As(err, &detail) || configured {
+		t.Fatal("canceled resolver error lost caller cause or continued preparation")
+	}
+}
+
+func TestConfigAdmissionHookJitterBoundaries(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		jitter   time.Duration
+		accepted bool
+	}{
+		{"zero", 0, true},
+		{"inclusive", time.Second, true},
+		{"negative", -time.Nanosecond, false},
+		{"one_over", time.Second + time.Nanosecond, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			input := admittedInput()
+			input.Configure = func(_ context.Context, native *PoolConfig) error {
+				native.MaxConnLifetime = time.Second
+				native.MaxConnLifetimeJitter = test.jitter
+				return nil
+			}
+			constructed := false
+			pool, err := connect(context.Background(), input, func(_ context.Context, native *pgxpool.Config) (*pgxpool.Pool, poolBackend, error) {
+				constructed = true
+				if native.MaxConnLifetime != time.Second || native.MaxConnLifetimeJitter != test.jitter {
+					t.Fatal("admitted jitter changed before factory")
+				}
+				return nil, &admissionBackend{}, nil
+			})
+			if pool != nil {
+				t.Cleanup(func() {
+					if err := pool.Shutdown(context.Background()); err != nil {
+						t.Error("owned fake backend cleanup failed")
+					}
+				})
+			}
+			if test.accepted {
+				if err != nil || pool == nil || !constructed {
+					t.Fatal("inclusive hook jitter refused")
+				}
+				return
+			}
+			var detail *ConfigError
+			if pool != nil || !errors.As(err, &detail) || detail.Field != "max_conn_lifetime_jitter" || detail.Cause != nil || constructed {
+				t.Fatal("out-of-policy hook jitter reached factory or lost refusal category")
+			}
+			if err.Error() != "postgres: invalid max_conn_lifetime_jitter: must be within the connection lifetime" {
+				t.Fatal("jitter refusal exposed a nonconstant diagnostic")
+			}
+		})
+	}
+}
+
 func TestConfigAdmissionAdditionalNativeFields(t *testing.T) {
 	for _, field := range []string{"kerberos_service", "kerberos_spn", "ssl_negotiation", "min_protocol", "max_protocol", "channel_binding", "require_auth", "statement_cache", "description_cache"} {
 		t.Run(field, func(t *testing.T) {
