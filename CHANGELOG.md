@@ -5,6 +5,13 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+### Fixed
+
+- Project telemetry categories to fixed recognized values or `unknown` before
+  custom observer delivery and built-in slog/OpenTelemetry emission, including
+  direct canonical and retained adapter calls. Native error classification and
+  SQLSTATE inspection remain unchanged.
+
 ## [1.1.0] - 2026-09-09
 
 ### Added

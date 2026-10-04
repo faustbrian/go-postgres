@@ -26,6 +26,13 @@ authorized application policy, but are not safe log fields. `Config.Configure`
 is a trusted extension boundary and can weaken TLS, remove timeouts, install
 unsafe tracers, or add hooks; review it as production code.
 
+Telemetry projects caller-supplied categories to fixed recognized values or
+`unknown` at custom-observer delivery and built-in output. Exact SQLSTATE
+telemetry categories are listed in [observability](observability.md); a class
+prefix never retains an arbitrary suffix. This policy does not redact raw
+`ErrorInfo`, `SQLState`, or returned native errors, which remain application-owned
+diagnostic data.
+
 Typed TLS overrides copy certificate pools, protocol slices, and certificate
 bytes. Callback functions, private keys, session caches, randomness, clocks,
 and writers remain application-owned and must be safe for concurrent use.

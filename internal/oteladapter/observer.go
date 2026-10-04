@@ -5,6 +5,7 @@ import (
 	"context"
 
 	postgres "github.com/faustbrian/go-postgres"
+	"github.com/faustbrian/go-postgres/internal/telemetry"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	metricnoop "go.opentelemetry.io/otel/metric/noop"
@@ -43,12 +44,12 @@ func New(scope string, provider metric.MeterProvider) (*Observer, error) {
 func (o *Observer) Observe(ctx context.Context, observation postgres.Observation) {
 	attributes := []attribute.KeyValue{
 		attribute.String("db.system.name", "postgresql"),
-		attribute.String("db.operation.name", string(observation.Operation)),
-		attribute.String("error.type", string(observation.ErrorKind)),
-		attribute.String("operation.outcome", string(observation.Outcome)),
+		attribute.String("db.operation.name", telemetry.Operation(string(observation.Operation))),
+		attribute.String("error.type", telemetry.ErrorKind(string(observation.ErrorKind))),
+		attribute.String("operation.outcome", telemetry.Outcome(string(observation.Outcome))),
 	}
 	if observation.SQLState != "" {
-		attributes = append(attributes, attribute.String("db.response.status_code", observation.SQLState))
+		attributes = append(attributes, attribute.String("db.response.status_code", telemetry.SQLState(observation.SQLState)))
 	}
 	recordOptions := metric.WithAttributes(attributes...)
 	o.duration.Record(ctx, observation.Duration.Seconds(), recordOptions)

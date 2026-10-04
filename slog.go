@@ -20,6 +20,7 @@ func NewSlogObserver(logger *slog.Logger) Observer {
 }
 
 func (o *slogObserver) Observe(ctx context.Context, observation Observation) {
+	observation = boundedObservation(observation)
 	level := slog.LevelDebug
 	if observation.Outcome != OutcomeSuccess {
 		level = slog.LevelError
