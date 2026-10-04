@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 	"time"
 
@@ -49,6 +50,83 @@ func TestConfigAdmissionDSN(t *testing.T) {
 	requireConfigField(t, result, err, "dsn")
 	if called {
 		t.Fatal("oversize DSN reached resolver")
+	}
+}
+
+func TestConfigAdmissionResolutionTimeoutCeiling(t *testing.T) {
+	input := admittedInput()
+	input.ConfigResolutionTimeout = time.Hour
+	resolved := false
+	input.ResolveDSN = func(context.Context, string) (*PoolConfig, error) {
+		resolved = true
+		return admittedNative(), nil
+	}
+	native, err := PrepareConfig(context.Background(), input)
+	if err != nil || native == nil || !resolved {
+		t.Fatal("inclusive resolution timeout refused")
+	}
+	resolved = false
+	input.ConfigResolutionTimeout = time.Hour + time.Nanosecond
+	native, err = PrepareConfig(context.Background(), input)
+	requireConfigField(t, native, err, "config_resolution_timeout")
+	if resolved || err.Error() != "postgres: invalid config_resolution_timeout: is outside the finite policy" {
+		t.Fatal("resolution timeout refusal crossed resolver or diagnostic boundary")
+	}
+}
+
+func TestConfigAdmissionRuntimeParameterStringBudgets(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		value  string
+		budget int
+	}{
+		// The native scalar fields use 12 bytes; application_name uses 16.
+		// With an empty value, reducing 28 to 27 refuses the key itself.
+		{"key", "", 28},
+		// The key fits at 30, but the three-byte value requires 31 total.
+		{"value", "app", 31},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			input := admittedInput()
+			input.Limits.MaximumNativeStringBytes = test.budget
+			input.ResolveDSN = func(context.Context, string) (*PoolConfig, error) {
+				native := admittedNative()
+				native.ConnConfig.RuntimeParams = map[string]string{"application_name": test.value}
+				return native, nil
+			}
+			configured := false
+			input.Configure = func(context.Context, *PoolConfig) error { configured = true; return nil }
+			constructed := false
+			backend := &admissionBackend{}
+			factory := func(_ context.Context, native *PoolConfig) (*pgxpool.Pool, poolBackend, error) {
+				constructed = true
+				value, present := native.ConnConfig.RuntimeParams["application_name"]
+				if !present || value != test.value || len(native.ConnConfig.RuntimeParams) != 1 {
+					t.Fatal("admitted runtime parameter changed before factory")
+				}
+				return nil, backend, nil
+			}
+			pool, err := connect(context.Background(), input, factory)
+			if err != nil || pool == nil || !configured || !constructed {
+				t.Fatal("inclusive runtime string budget refused")
+			}
+			owned := pool
+			t.Cleanup(func() {
+				if err := owned.Shutdown(context.Background()); err != nil || backend.closes != 1 {
+					t.Error("owned fake backend cleanup failed")
+				}
+			})
+			configured, constructed = false, false
+			input.Limits.MaximumNativeStringBytes--
+			pool, err = connect(context.Background(), input, factory)
+			var detail *ConfigError
+			if pool != nil || !errors.As(err, &detail) || detail.Field != "native_config" || detail.Cause != nil || configured || constructed {
+				t.Fatal("runtime string refusal crossed hook or factory boundary")
+			}
+			if err.Error() != "postgres: invalid native_config: exceeds or violates admission policy" {
+				t.Fatal("runtime string refusal exposed a nonconstant diagnostic")
+			}
+		})
 	}
 }
 
@@ -287,6 +365,32 @@ func TestConfigAdmissionFactoryFailurePreservesCause(t *testing.T) {
 	}
 	if err.Error() != "postgres: startup connectivity check failed" {
 		t.Fatal("factory failure exposed an unbounded diagnostic")
+	}
+}
+
+func TestOpenNativePoolRejectsInvalidMaximumHosted(t *testing.T) {
+	if os.Getenv("GITHUB_ACTIONS") != "true" {
+		t.Skip("native adapter construction refusal runs only in hosted CI")
+	}
+
+	// This is the internal adapter's native error contract. Public Connect
+	// refuses this maximum during admission before calling the adapter.
+	native, err := pgxpool.ParseConfig("host=database.example port=5432 user=example database=example sslmode=disable")
+	if err != nil {
+		t.Fatal("ordinary native configuration refused")
+	}
+	native.MaxConns = 0
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	raw, backend, err := openNativePool(ctx, native)
+	if raw != nil {
+		raw.Close()
+	}
+	if raw != nil || backend != nil || err == nil {
+		t.Fatal("invalid native maximum did not refuse construction")
+	}
+	if err.Error() != "MaxSize must be >= 1" {
+		t.Fatal("native construction refusal lost its category")
 	}
 }
 
