@@ -5,6 +5,20 @@ SQLSTATE, and pool gauges. It has no field for SQL, arguments, DSNs, raw errors,
 details, hints, arbitrary labels, or query names. Observer panics are recovered
 so telemetry cannot change database behavior.
 
+Package-produced observations, `NewSlogObserver`, and both OpenTelemetry
+variants admit only the five built-in operations, four outcomes, and declared
+`ErrorKind` values. Unknown categories become `unknown`. Empty error kind and
+SQLSTATE remain empty. Telemetry preserves only these exact SQLSTATE values:
+`23505`, `23503`, `23514`, `23P01`, `40001`, `40P01`, `57014`, `55P03`,
+`57P01`, `57P02`, `57P03`, `53300`, `08000`, `08001`, `08003`, `08004`,
+`08006`, `08007`, and `08P01`; all other nonempty states become `unknown`,
+including unrecognized connection-class suffixes. This intentionally narrows
+telemetry labels, not diagnostic data: `Classify`, `SQLState`, returned errors,
+and `errors.Is`/`errors.As` preserve native information. Applications needing
+other server states must inspect those diagnostic APIs under their own privacy
+policy. Custom observers remain trusted synchronous collaborators; a direct
+application call to a custom observer is application-owned.
+
 Transaction outcomes are `success`, `error`, `panic`, or `aborted`. The
 `aborted` value identifies a callback that terminated its goroutine with
 `runtime.Goexit`, including test helpers such as `testing.T.FailNow`.

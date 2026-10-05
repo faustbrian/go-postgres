@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 	"time"
+
+	"github.com/faustbrian/go-postgres/internal/telemetry"
 )
 
 // Operation is a fixed low-cardinality operation name.
@@ -37,6 +39,8 @@ const (
 
 // Observation contains bounded metadata only. It intentionally excludes SQL,
 // query arguments, DSNs, database error text, and arbitrary caller labels.
+// Package-produced observations and built-in observers project unrecognized
+// categories to "unknown"; Classify and SQLState retain native diagnostic data.
 type Observation struct {
 	Operation Operation
 	Outcome   Outcome
@@ -70,7 +74,16 @@ func safeObserve(ctx context.Context, observer Observer, observation Observation
 	defer func() {
 		_ = recover()
 	}()
-	observer.Observe(ctx, observation)
+	observer.Observe(ctx, boundedObservation(observation))
+}
+
+func boundedObservation(observation Observation) Observation {
+	observation.Operation = Operation(telemetry.Operation(string(observation.Operation)))
+	observation.Outcome = Outcome(telemetry.Outcome(string(observation.Outcome)))
+	observation.ErrorKind = ErrorKind(telemetry.ErrorKind(string(observation.ErrorKind)))
+	observation.SQLState = telemetry.SQLState(observation.SQLState)
+
+	return observation
 }
 
 func observationFor(operation Operation, started time.Time, err error) Observation {
