@@ -4,10 +4,10 @@
 
 | Release line | Status | End of support |
 | --- | --- | --- |
-| Latest published `v2` release | Supported once published | Not scheduled |
+| Latest published `v2` release | Supported | Not scheduled |
 | Latest `v1` release | Supported | Not scheduled |
 
-Preparing v2 on main does not retire v1 reporting support or make unreleased
+Publication of v2 does not retire v1 reporting support or make unreleased
 source a supported release. Supported lines receive private triage and upgrade
 guidance; a fix may require migration to a newer major. An advisory identifies
 affected modules and versions, fixed releases, and any change to support.

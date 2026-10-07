@@ -2,8 +2,9 @@
 
 Model version: 2.0.0. Reviewed: 2026-10-07. Owner: repository maintainer.
 Scope: the root `github.com/faustbrian/go-postgres/v2` module and its canonical
-and retained telemetry adapters. This is a source-bound model, not a claim
-that the pending v2 release or any application deployment is verified.
+and retained telemetry adapters. Published v2.0.0 binds source
+`331fcb61a05c11241a9df36d6f57d875e74d93e0`. This source-bound model does not
+claim verification of any application deployment.
 
 ## Assets
 
@@ -62,8 +63,8 @@ classification only and leaves execution policy to the application.
 
 Inspected public root releases v1.0.1 and v1.1.0 parse connection configuration
 through pgx and default to startup connectivity checks. They also retain native
-SQLSTATE values in observations and built-in metric attributes. The pending v2
-release requires explicit resolution and finite native-shape admission, defaults
+SQLSTATE values in observations and built-in metric attributes. Published v2.0.0
+requires explicit resolution and finite native-shape admission, defaults
 to lazy startup with caller-selected ping, and projects telemetry to finite
 categories. These are security and public-contract hardening changes; this
 source review has not established
@@ -73,9 +74,9 @@ deployment. That is not a claim that every earlier integration was safe.
 Both inspected v1 releases select OpenTelemetry SDK v1.44.0, within the affected
 dependency range of the upstream Low-severity
 [OpenTelemetry logging advisory](https://github.com/advisories/GHSA-8wmf-6v46-5gfg).
-The candidate v2 graph selects SDK v1.45.0, the upstream fix. Dependency selection
-does not establish exposure in a particular PostgreSQL application, and pending
-source does not fix an already published v1 artifact. Review the upstream
+The published v2.0.0 graph selects SDK v1.45.0, the upstream fix. Dependency
+selection does not establish exposure in a particular PostgreSQL application,
+and v2 publication does not fix an already published v1 artifact. Review the upstream
 deployment conditions and keep application diagnostic logging restricted.
 
 The maintainer retains private triage for supported v1 reports and must reopen

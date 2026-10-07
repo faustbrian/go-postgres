@@ -5,7 +5,7 @@
 [![Coverage](https://img.shields.io/badge/coverage-risk_based_evidence-blue)](CONTRIBUTING.md#verification)
 [![Mutation](https://img.shields.io/badge/mutation-100%25_required-blue)](CONTRIBUTING.md#verification)
 [![Documentation](https://img.shields.io/badge/docs-checked_in_CI-blue)](docs/)
-[![Published v1 Reference](https://pkg.go.dev/badge/github.com/faustbrian/go-postgres.svg)](https://pkg.go.dev/github.com/faustbrian/go-postgres)
+[![Published v2 Reference](https://pkg.go.dev/badge/github.com/faustbrian/go-postgres/v2.svg)](https://pkg.go.dev/github.com/faustbrian/go-postgres/v2)
 [![Release](https://img.shields.io/github/v/release/faustbrian/go-postgres?sort=semver)](https://github.com/faustbrian/go-postgres/releases)
 [![Go](https://img.shields.io/badge/go-1.27.0-00ADD8?logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -19,8 +19,8 @@ without hiding native pgx types.
 It is not a driver, ORM, query builder, migration engine, repository layer, or
 multi-database abstraction.
 
-Main prepares the next `v2` major; publication and clean public consumption are
-pending. Existing published v1 consumers remain unchanged. See the
+The published [v2.0.0 release](https://github.com/faustbrian/go-postgres/releases/tag/v2.0.0)
+uses the `/v2` module path. Existing published v1 consumers remain unchanged. See the
 [migration guide](docs/migration.md#v1-to-v2-safe-configuration).
 
 ## Requirements
@@ -34,7 +34,7 @@ pending. Existing published v1 consumers remain unchanged. See the
 ## Installation
 
 ```sh
-go get github.com/faustbrian/go-postgres/v2@v2 # after the v2 release is published
+go get github.com/faustbrian/go-postgres/v2@v2
 ```
 
 ## Quick start

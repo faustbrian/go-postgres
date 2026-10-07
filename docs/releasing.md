@@ -1,6 +1,6 @@
 # Release process
 
-The root's next major is `github.com/faustbrian/go-postgres/v2`, tagged `v2.x.y`
+The root's current major is `github.com/faustbrian/go-postgres/v2`, tagged `v2.x.y`
 from main without a version-specific source directory. The v1 API archive is
 historical; the v2 archive characterizes the new nominal boundary. Publish the
 root before updating independently released consumers to actual public v2.
@@ -18,10 +18,12 @@ root before updating independently released consumers to actual public v2.
    release notes through the coordinator's authorized release operation. This
    repository has CI only, not a tag-triggered publication workflow.
 
-The CI `release_dry_run` selector runs structural release validation and the
-ordinary check contract. It is not an executed CLI release rehearsal or proof
-of public proxy consumption. Those release checks and publication remain
-separate prerequisites.
+The CI `release_dry_run` selector performs structural release validation and
+invokes `golib release dry-run` through the pinned source-built verifier. That
+executed rehearsal exercises the selected release contract without publishing
+tags or assets. Neither structural validation nor rehearsal proves actual
+public proxy consumption; deliberate publication and public verification remain
+separate boundaries.
 
 Never move or force-update a published tag. A pgx or PostgreSQL support change
 requires explicit compatibility evidence before release.
