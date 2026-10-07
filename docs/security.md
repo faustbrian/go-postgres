@@ -58,6 +58,32 @@ No package can make an arbitrary transaction closure safe to retry. Network
 calls and emitted messages may escape PostgreSQL rollback. The module exposes
 classification only and leaves execution policy to the application.
 
+## Release and disclosure disposition
+
+Inspected public root releases v1.0.1 and v1.1.0 parse connection configuration
+through pgx and default to startup connectivity checks. They also retain native
+SQLSTATE values in observations and built-in metric attributes. The pending v2
+release requires explicit resolution and finite native-shape admission, defaults
+to lazy startup with caller-selected ping, and projects telemetry to finite
+categories. These are security and public-contract hardening changes; this
+source review has not established
+an advisory-required PostgreSQL vulnerability or impact in an application
+deployment. That is not a claim that every earlier integration was safe.
+
+Both inspected v1 releases select OpenTelemetry SDK v1.44.0, within the affected
+dependency range of the upstream Low-severity
+[GHSA-8wmf-6v46-5gfg](https://github.com/advisories/GHSA-8wmf-6v46-5gfg).
+The candidate v2 graph selects SDK v1.45.0, the upstream fix. Dependency selection
+does not establish exposure in a particular PostgreSQL application, and pending
+source does not fix an already published v1 artifact. Review the upstream
+deployment conditions and keep application diagnostic logging restricted.
+
+The maintainer retains private triage for supported v1 reports and must reopen
+this disposition if a supported integration demonstrates protected-data
+exposure, unsafe implicit acquisition or exploitable unbounded work. Record
+affected and first-fixed public versions from that evidence; do not infer an
+affected range or severity from empty advisory lists or unpublished source.
+
 ## Retained trust boundaries and risk ownership
 
 These are explicit application responsibilities, not scanner exemptions or
