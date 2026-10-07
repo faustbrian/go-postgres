@@ -5,8 +5,8 @@ package postgresotel
 import (
 	"context"
 
-	postgres "github.com/faustbrian/go-postgres"
-	"github.com/faustbrian/go-postgres/internal/oteladapter"
+	postgres "github.com/faustbrian/go-postgres/v2"
+	"github.com/faustbrian/go-postgres/v2/internal/oteladapter"
 	"go.opentelemetry.io/otel/metric"
 )
 

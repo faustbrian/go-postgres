@@ -4,7 +4,7 @@ set -euo pipefail
 : "${APIDIFF_VERSION:?APIDIFF_VERSION is required}"
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-baseline="${root}/api/v1.export"
+baseline="${root}/api/v2.export"
 current="$(mktemp)"
 trap 'rm -f "${current}"' EXIT
 tool="golang.org/x/exp/cmd/apidiff@${APIDIFF_VERSION}"
@@ -24,5 +24,5 @@ fi
 
 cd "${root}"
 GOWORK=off run_apidiff -m -w "${current}" \
-	"github.com/faustbrian/go-postgres"
+	"github.com/faustbrian/go-postgres/v2"
 GOWORK=off run_apidiff -m -incompatible "${baseline}" "${current}"

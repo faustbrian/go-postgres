@@ -8,15 +8,27 @@ import (
 	"syscall"
 	"time"
 
-	postgres "github.com/faustbrian/go-postgres"
+	postgres "github.com/faustbrian/go-postgres/v2"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+// resolveDSN deliberately opts this application into native ambient parsing.
+// pgx parsing itself is synchronous; callbacks must remain cooperatively bounded.
+func resolveDSN(ctx context.Context, dsn string) (*postgres.PoolConfig, error) {
+	if ctx.Err() != nil {
+		return nil, context.Cause(ctx)
+	}
+	return pgxpool.ParseConfig(dsn)
+}
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	pool, err := postgres.Connect(ctx, postgres.Config{
+		ResolveDSN:      resolveDSN,
+		StartupPolicy:   postgres.StartupPing,
 		DSN:             os.Getenv("DATABASE_URL"),
 		MaxConns:        8,
 		AcquireTimeout:  time.Second,

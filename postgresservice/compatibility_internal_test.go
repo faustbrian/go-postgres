@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	canonical "github.com/faustbrian/go-postgres/adapters/service"
+	canonical "github.com/faustbrian/go-postgres/v2/adapters/service"
 )
 
 func TestNewAdapterPreservesUnexpectedCanonicalFailure(t *testing.T) {

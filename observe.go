@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/faustbrian/go-postgres/internal/telemetry"
+	"github.com/faustbrian/go-postgres/v2/internal/telemetry"
 )
 
 // Operation is a fixed low-cardinality operation name.

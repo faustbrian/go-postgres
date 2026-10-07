@@ -5,7 +5,23 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+### Changed
+
+- Prepare the v2 module/import path on main. Require an explicit application
+  `ResolveDSN` collaborator, add context-aware `PrepareConfig` and `Configure`,
+  admit DSN/native credential shapes and cache capacities before owned work,
+  and revalidate hook results. Resolver errors omit untrusted causes.
+- Default startup to lazy without proactive minimum connections; request
+  `StartupPing` explicitly. Lazy positive minima and out-of-policy native
+  timeouts/pool settings are rejected rather than silently changed. See the
+  migration guide; published v1 consumers remain a separate baseline.
+
 ### Fixed
+
+- Upgrade root pgx to v5.11.0 to fix quoted connection-value bounds handling.
+  No package panic recovery hides resolver failures. Admit its new native
+  message-body allowance to an explicit 8 MiB default/ceiling with positive
+  reductions; post-Configure zero, negative and over-budget values are refused.
 
 - Upgrade the OpenTelemetry SDK and aligned API modules to v1.45.0, fixing
   GHSA-8wmf-6v46-5gfg's disclosure of exporter configuration through verbose

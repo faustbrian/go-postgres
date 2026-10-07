@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	postgresservice "github.com/faustbrian/go-postgres/adapters/service"
+	postgresservice "github.com/faustbrian/go-postgres/v2/adapters/service"
 )
 
 type resource struct {

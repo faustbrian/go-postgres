@@ -6,8 +6,9 @@ import (
 	"os"
 	"time"
 
-	postgres "github.com/faustbrian/go-postgres"
+	postgres "github.com/faustbrian/go-postgres/v2"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type dbtx interface {
@@ -29,9 +30,18 @@ func (q *queries) CurrentTime(ctx context.Context) (time.Time, error) {
 	return value, err
 }
 
+// resolveDSN deliberately opts this application into native ambient parsing.
+// pgx parsing itself is synchronous; callbacks must remain cooperatively bounded.
+func resolveDSN(ctx context.Context, dsn string) (*postgres.PoolConfig, error) {
+	if ctx.Err() != nil {
+		return nil, context.Cause(ctx)
+	}
+	return pgxpool.ParseConfig(dsn)
+}
+
 func main() {
 	ctx := context.Background()
-	pool, err := postgres.Connect(ctx, postgres.Config{DSN: os.Getenv("DATABASE_URL")})
+	pool, err := postgres.Connect(ctx, postgres.Config{DSN: os.Getenv("DATABASE_URL"), ResolveDSN: resolveDSN, StartupPolicy: postgres.StartupPing})
 	if err != nil {
 		panic(err)
 	}

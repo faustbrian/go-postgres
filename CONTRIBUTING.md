@@ -32,6 +32,24 @@ that hide a failing package.
 
 ## Verification
 
+Classify changes under [proportional assurance](AGENTS.md#proportional-assurance).
+The root module collects complete native coverage in explicit evidence mode.
+Test failures, missing packages and invalid or absent profiles remain errors;
+universal exact-percentage acceptance is replaced by behavioral risk review.
+The final cancellation guards remain intact even when their precise race
+windows lack deterministic public synchronization. Mutation, security and
+strict aggregate checks remain required.
+
+CI builds matched immutable workflow and tooling source
+`55c50f11cc9a33a5306d71cb3dac71a9c92ed13c` with `source_bootstrap: true`,
+using official public dependency and checksum authorities. This is a development
+tooling route, not qualification of a published SDK binary. The declared
+v1.8.5 checksum retains published tool metadata; that binary does not support
+the optional coverage policy. For local development, build `cmd/golib` from
+the pinned pristine Tools source with task-owned disposable Go caches and
+select it through Make's `GOLIB` variable. Required public v2 publication,
+clean consumers and owned adoption remain separate from source CI.
+
 Run during development:
 
 ```bash

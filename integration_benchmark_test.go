@@ -6,12 +6,12 @@ import (
 	"context"
 	"testing"
 
-	postgres "github.com/faustbrian/go-postgres"
+	postgres "github.com/faustbrian/go-postgres/v2"
 	"github.com/jackc/pgx/v5"
 )
 
 func BenchmarkPostgreSQLPoolAcquire(b *testing.B) {
-	pool, err := postgres.New(context.Background(), postgres.Config{
+	pool, err := postgres.New(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 		DSN:      integrationDatabase.DSN(),
 		MaxConns: 4,
 	})
@@ -31,7 +31,7 @@ func BenchmarkPostgreSQLPoolAcquire(b *testing.B) {
 }
 
 func BenchmarkPostgreSQLTransaction(b *testing.B) {
-	pool, err := postgres.New(context.Background(), postgres.Config{
+	pool, err := postgres.New(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 		DSN:      integrationDatabase.DSN(),
 		MaxConns: 4,
 	})

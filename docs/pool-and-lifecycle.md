@@ -2,8 +2,9 @@
 
 ## Connection strings
 
-`ParseConfig` accepts the same PostgreSQL URL and keyword/value connection
-strings as pgx. Regression coverage includes percent-encoded credentials,
+`ParseConfig` requires an explicit application resolver; the library does not
+parse PostgreSQL strings or acquire ambient defaults. Native-parser hosted
+controls include percent-encoded credentials,
 quoted keyword values, IPv6, Unix sockets, and multi-host fallback lists. The
 package never returns the input DSN in its own validation errors. Treat the
 native parsed configuration and `Database.DSN()` test helper output as secrets.
@@ -31,10 +32,10 @@ Use `Connect(ctx, config)` for resource acquisition. A nil context returns
 configuration callbacks or pool construction. `New` remains a compatibility
 delegate.
 
-`StartupPing` is the default and proves DNS, transport, TLS, authentication,
+`StartupPing` explicitly requests a check of DNS, transport, TLS, authentication,
 server acceptance, session initialization, and one pool acquisition before the
-application announces startup. `StartupLazy` defers all of that and should be
-reserved for systems whose orchestrator or worker loop owns retry behavior.
+application announces startup. `StartupLazy` is zero/default and rejects final
+positive minima so native construction cannot proactively create connections.
 Unavailable endpoints, wrong-protocol listeners, rejected authentication, and
 strict-TLS mismatches have bounded secret-safe startup regressions.
 
@@ -53,8 +54,9 @@ and free of process-external side effects.
 
 ## Native hook lifecycle
 
-`Config.Configure` exposes the native `pgxpool.Config` after typed defaults are
-applied. Hook ownership and failure behavior remain explicit:
+`Config.Configure(ctx, native)` receives the preparation deadline after typed
+defaults. Credential shapes and finite native invariants are revalidated after
+it returns. Hook ownership and failure behavior remain explicit:
 
 | Hook | Failure behavior |
 | --- | --- |

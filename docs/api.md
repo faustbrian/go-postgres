@@ -11,15 +11,16 @@ stability and behavior of each public surface.
 - `Config.Configure` is a trusted native extension boundary. Returned errors
   are preserved safely; panics propagate and must not represent expected hook
   rejection.
-- `ParseConfig` returns the native `*pgxpool.Config`. It catches malformed-input
-  parser panics and never includes the DSN in its own error string.
+- `PrepareConfig(ctx, input)` admits DSN and native shapes around explicit
+  application resolution and context-aware Configure. `ParseConfig` delegates
+  with a finite cooperative deadline; collaborator panics propagate.
 - `ConfigError` identifies a field. `Unwrap` exposes only safe hook causes; DSN
   parser causes are deliberately withheld because upstream text may change.
 - `PoolConfig` is an alias, not a wrapper, for `pgxpool.Config`.
 
 ## Pool and health
 
-- `Connect` returns `*Pool`; startup ping is the default. `New` delegates to it
+- `Connect` returns `*Pool`; lazy startup is the default. `New` delegates to it
   for compatibility.
 - `Raw` returns the exact native `*pgxpool.Pool`.
 - `Acquire`, `Ping`, and `Shutdown` honor the earlier caller or configured

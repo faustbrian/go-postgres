@@ -23,9 +23,9 @@ func FuzzParseConfig(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, dsn string) {
 		const marker = "fuzz-secret"
-		_, err := ParseConfig(Config{DSN: dsn})
+		_, err := parseHostedConfig(Config{DSN: dsn})
 		if err != nil && strings.Contains(err.Error(), marker) {
-			t.Fatalf("ParseConfig() leaked secret marker: %v", err)
+			t.Fatalf("parseHostedConfig() leaked secret marker: %v", err)
 		}
 	})
 }
@@ -44,7 +44,7 @@ func FuzzOptions(f *testing.F) {
 		cleanupNanoseconds int64,
 		callbackFails bool,
 	) {
-		_, configErr := ParseConfig(Config{
+		_, configErr := parseHostedConfig(Config{
 			DSN:           "postgres://localhost/app?sslmode=disable",
 			StartupPolicy: StartupPolicy(startupPolicy),
 			TLS: TLSConfig{
@@ -52,10 +52,10 @@ func FuzzOptions(f *testing.F) {
 				Config: &tls.Config{MinVersion: tls.VersionTLS12},
 			},
 		})
-		invalidConfig := StartupPolicy(startupPolicy) > StartupLazy || TLSMode(tlsMode) > TLSRequire
+		invalidConfig := StartupPolicy(startupPolicy) > StartupPing || TLSMode(tlsMode) > TLSRequire
 		if (configErr != nil) != invalidConfig {
 			t.Fatalf(
-				"ParseConfig() error = %v for startup %d TLS %d, invalid = %v",
+				"parseHostedConfig() error = %v for startup %d TLS %d, invalid = %v",
 				configErr,
 				startupPolicy,
 				tlsMode,
@@ -123,9 +123,9 @@ func FuzzRedaction(f *testing.F) {
 			"postgres://app:%s@%s/app?sslmode=verify-full&invalid=1",
 			url.PathEscape(secret), host,
 		)
-		_, err := ParseConfig(Config{DSN: dsn})
+		_, err := parseHostedConfig(Config{DSN: dsn})
 		if err != nil && strings.Contains(err.Error(), secret) {
-			t.Fatalf("ParseConfig() leaked password marker")
+			t.Fatalf("parseHostedConfig() leaked password marker")
 		}
 	})
 }
@@ -151,7 +151,7 @@ func FuzzConfigurationBounds(f *testing.F) {
 	f.Add(int32(-1), int32(0), int32(0), int64(-1))
 
 	f.Fuzz(func(t *testing.T, maxConns, minConns, minIdleConns int32, timeoutMilliseconds int64) {
-		_, _ = ParseConfig(Config{
+		_, _ = parseHostedConfig(Config{
 			DSN:            "postgres://localhost/app?sslmode=disable",
 			MaxConns:       maxConns,
 			MinConns:       minConns,

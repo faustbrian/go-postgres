@@ -10,16 +10,34 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+// Native parsing controls are hosted-only during agent verification. This is
+// an explicit application resolver, not a package default.
+func resolveHostedDSN(ctx context.Context, dsn string) (*PoolConfig, error) {
+	if ctx.Err() != nil {
+		return nil, context.Cause(ctx)
+	}
+	return pgxpool.ParseConfig(dsn)
+}
+
+func parseHostedConfig(input Config) (*PoolConfig, error) {
+	input.ResolveDSN = resolveHostedDSN
+	if input.MinConns > 0 || input.MinIdleConns > 0 {
+		input.StartupPolicy = StartupPing
+	}
+	return ParseConfig(input)
+}
 
 func TestParseConfigAppliesFiniteProductionDefaults(t *testing.T) {
 	t.Parallel()
 
-	config, err := ParseConfig(Config{
+	config, err := parseHostedConfig(Config{
 		DSN: "postgres://app:secret@localhost:5432/app?sslmode=disable",
 	})
 	if err != nil {
-		t.Fatalf("ParseConfig() error = %v", err)
+		t.Fatalf("parseHostedConfig() error = %v", err)
 	}
 
 	if config.MaxConns != 10 {
@@ -90,9 +108,9 @@ func TestParseConfigAcceptsRepresentativePostgreSQLDSNForms(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			config, err := ParseConfig(Config{DSN: tt.dsn})
+			config, err := parseHostedConfig(Config{DSN: tt.dsn})
 			if err != nil {
-				t.Fatalf("ParseConfig() error = %v", err)
+				t.Fatalf("parseHostedConfig() error = %v", err)
 			}
 			if config.ConnConfig.Host != tt.host || config.ConnConfig.Password != tt.password {
 				t.Fatalf(
@@ -117,7 +135,7 @@ func TestParseConfigHonorsOverridesAndHook(t *testing.T) {
 	t.Parallel()
 
 	hookCalled := false
-	config, err := ParseConfig(Config{
+	config, err := parseHostedConfig(Config{
 		DSN:                   "postgres://localhost/app?sslmode=disable",
 		ConnectTimeout:        7 * time.Second,
 		PingTimeout:           9 * time.Second,
@@ -128,7 +146,7 @@ func TestParseConfigHonorsOverridesAndHook(t *testing.T) {
 		MaxConnLifetimeJitter: 10 * time.Minute,
 		MaxConnIdleTime:       20 * time.Minute,
 		HealthCheckPeriod:     30 * time.Second,
-		Configure: func(config *PoolConfig) error {
+		Configure: func(_ context.Context, config *PoolConfig) error {
 			hookCalled = true
 			config.ConnConfig.RuntimeParams["application_name"] = "worker"
 
@@ -136,7 +154,7 @@ func TestParseConfigHonorsOverridesAndHook(t *testing.T) {
 		},
 	})
 	if err != nil {
-		t.Fatalf("ParseConfig() error = %v", err)
+		t.Fatalf("parseHostedConfig() error = %v", err)
 	}
 
 	if !hookCalled {
@@ -179,9 +197,9 @@ func TestParseConfigRejectsInvalidValuesWithoutLeakingDSN(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := ParseConfig(tt.config)
+			_, err := parseHostedConfig(tt.config)
 			if err == nil {
-				t.Fatal("ParseConfig() error = nil")
+				t.Fatal("parseHostedConfig() error = nil")
 			}
 			if strings.Contains(err.Error(), password) {
 				t.Fatalf("error leaked password: %v", err)
@@ -193,27 +211,27 @@ func TestParseConfigRejectsInvalidValuesWithoutLeakingDSN(t *testing.T) {
 func TestParseConfigRejectsInconsistentPoolSizes(t *testing.T) {
 	t.Parallel()
 
-	_, err := ParseConfig(Config{
+	_, err := parseHostedConfig(Config{
 		DSN:      "postgres://localhost/app?sslmode=disable",
 		MaxConns: 2,
 		MinConns: 3,
 	})
 	if err == nil {
-		t.Fatal("ParseConfig() error = nil")
+		t.Fatal("parseHostedConfig() error = nil")
 	}
 }
 
 func TestParseConfigAcceptsPoolSizesAtMaximum(t *testing.T) {
 	t.Parallel()
 
-	config, err := ParseConfig(Config{
+	config, err := parseHostedConfig(Config{
 		DSN:          "postgres://localhost/app?sslmode=disable",
 		MaxConns:     2,
 		MinConns:     2,
 		MinIdleConns: 2,
 	})
 	if err != nil {
-		t.Fatalf("ParseConfig(equal pool sizes) error = %v", err)
+		t.Fatalf("parseHostedConfig(equal pool sizes) error = %v", err)
 	}
 	if config.MinConns != config.MaxConns || config.MinIdleConns != config.MaxConns {
 		t.Fatalf(
@@ -229,9 +247,9 @@ func TestParseConfigComposesNativeAndSessionInitializationHooks(t *testing.T) {
 	t.Parallel()
 
 	var calls []string
-	config, err := ParseConfig(Config{
+	config, err := parseHostedConfig(Config{
 		DSN: "postgres://localhost/app?sslmode=disable",
-		Configure: func(config *PoolConfig) error {
+		Configure: func(_ context.Context, config *PoolConfig) error {
 			config.AfterConnect = func(context.Context, *pgx.Conn) error {
 				calls = append(calls, "native")
 
@@ -247,7 +265,7 @@ func TestParseConfigComposesNativeAndSessionInitializationHooks(t *testing.T) {
 		},
 	})
 	if err != nil {
-		t.Fatalf("ParseConfig() error = %v", err)
+		t.Fatalf("parseHostedConfig() error = %v", err)
 	}
 
 	if err := config.AfterConnect(context.Background(), nil); err != nil {
@@ -262,14 +280,14 @@ func TestParseConfigPreservesSessionInitializationFailure(t *testing.T) {
 	t.Parallel()
 
 	sentinel := errors.New("session setup failed")
-	config, err := ParseConfig(Config{
+	config, err := parseHostedConfig(Config{
 		DSN: "postgres://localhost/app?sslmode=disable",
 		SessionInit: func(context.Context, *pgx.Conn) error {
 			return sentinel
 		},
 	})
 	if err != nil {
-		t.Fatalf("ParseConfig() error = %v", err)
+		t.Fatalf("parseHostedConfig() error = %v", err)
 	}
 
 	err = config.AfterConnect(context.Background(), nil)
@@ -281,12 +299,12 @@ func TestParseConfigPreservesSessionInitializationFailure(t *testing.T) {
 func TestParseConfigRejectsUnknownStartupPolicy(t *testing.T) {
 	t.Parallel()
 
-	_, err := ParseConfig(Config{
+	_, err := parseHostedConfig(Config{
 		DSN:           "postgres://localhost/app?sslmode=disable",
 		StartupPolicy: StartupPolicy(99),
 	})
 	if err == nil {
-		t.Fatal("ParseConfig() error = nil")
+		t.Fatal("parseHostedConfig() error = nil")
 	}
 }
 
@@ -294,7 +312,7 @@ func TestParseConfigAppliesTypedTLSOverride(t *testing.T) {
 	t.Parallel()
 
 	tlsConfig := &tls.Config{ServerName: "db.internal", MinVersion: tls.VersionTLS13}
-	config, err := ParseConfig(Config{
+	config, err := parseHostedConfig(Config{
 		DSN: "postgres://localhost/app?sslmode=disable",
 		TLS: TLSConfig{
 			Mode:   TLSRequire,
@@ -302,7 +320,7 @@ func TestParseConfigAppliesTypedTLSOverride(t *testing.T) {
 		},
 	})
 	if err != nil {
-		t.Fatalf("ParseConfig() error = %v", err)
+		t.Fatalf("parseHostedConfig() error = %v", err)
 	}
 
 	if config.ConnConfig.TLSConfig == nil {
@@ -328,12 +346,12 @@ func TestParseConfigCopiesMutableTLSInputs(t *testing.T) {
 		CipherSuites: []uint16{tls.TLS_AES_128_GCM_SHA256},
 		Certificates: []tls.Certificate{{Certificate: [][]byte{{1, 2, 3}}}},
 	}
-	config, err := ParseConfig(Config{
+	config, err := parseHostedConfig(Config{
 		DSN: "postgres://localhost/app?sslmode=disable",
 		TLS: TLSConfig{Mode: TLSRequire, Config: tlsConfig},
 	})
 	if err != nil {
-		t.Fatalf("ParseConfig() error = %v", err)
+		t.Fatalf("parseHostedConfig() error = %v", err)
 	}
 
 	got := config.ConnConfig.TLSConfig
@@ -355,12 +373,12 @@ func TestParseConfigCopiesMutableTLSInputs(t *testing.T) {
 func TestParseConfigCanExplicitlyDisableTLS(t *testing.T) {
 	t.Parallel()
 
-	config, err := ParseConfig(Config{
+	config, err := parseHostedConfig(Config{
 		DSN: "postgres://localhost/app?sslmode=require",
 		TLS: TLSConfig{Mode: TLSDisable},
 	})
 	if err != nil {
-		t.Fatalf("ParseConfig() error = %v", err)
+		t.Fatalf("parseHostedConfig() error = %v", err)
 	}
 
 	if config.ConnConfig.TLSConfig != nil {
@@ -376,12 +394,12 @@ func TestParseConfigCanExplicitlyDisableTLS(t *testing.T) {
 func TestParseConfigRejectsRequiredTLSWithoutConfiguration(t *testing.T) {
 	t.Parallel()
 
-	_, err := ParseConfig(Config{
+	_, err := parseHostedConfig(Config{
 		DSN: "postgres://localhost/app?sslmode=disable",
 		TLS: TLSConfig{Mode: TLSRequire},
 	})
 	if err == nil {
-		t.Fatal("ParseConfig() error = nil")
+		t.Fatal("parseHostedConfig() error = nil")
 	}
 }
 
@@ -389,18 +407,18 @@ func TestParseConfigCoversValidationAndSafeCauses(t *testing.T) {
 	t.Parallel()
 
 	sentinel := errors.New("configuration rejected")
-	_, err := ParseConfig(Config{
+	_, err := parseHostedConfig(Config{
 		DSN: "postgres://localhost/app?sslmode=disable",
-		Configure: func(*PoolConfig) error {
+		Configure: func(_ context.Context, _ *PoolConfig) error {
 			return sentinel
 		},
 	})
 	if !errors.Is(err, sentinel) {
-		t.Fatalf("ParseConfig() error = %v, want sentinel", err)
+		t.Fatalf("parseHostedConfig() error = %v, want sentinel", err)
 	}
 	var configErr *ConfigError
 	if !errors.As(err, &configErr) || !errors.Is(configErr.Unwrap(), sentinel) {
-		t.Fatalf("ParseConfig() error = %#v, want ConfigError cause", err)
+		t.Fatalf("parseHostedConfig() error = %#v, want ConfigError cause", err)
 	}
 
 	for _, config := range []Config{
@@ -414,8 +432,8 @@ func TestParseConfigCoversValidationAndSafeCauses(t *testing.T) {
 			TLS: TLSConfig{Mode: TLSMode(99)},
 		},
 	} {
-		if _, err := ParseConfig(config); err == nil {
-			t.Fatalf("ParseConfig(%+v) error = nil", config)
+		if _, err := parseHostedConfig(config); err == nil {
+			t.Fatalf("parseHostedConfig(%+v) error = nil", config)
 		}
 	}
 }
@@ -423,23 +441,23 @@ func TestParseConfigCoversValidationAndSafeCauses(t *testing.T) {
 func TestParseConfigPreservesDSNTLSAndConfiguresFallbackHosts(t *testing.T) {
 	t.Parallel()
 
-	fromDSN, err := ParseConfig(Config{
+	fromDSN, err := parseHostedConfig(Config{
 		DSN: "postgres://localhost/app?sslmode=require",
 		TLS: TLSConfig{Mode: TLSFromDSN},
 	})
 	if err != nil {
-		t.Fatalf("ParseConfig(from DSN) error = %v", err)
+		t.Fatalf("parseHostedConfig(from DSN) error = %v", err)
 	}
 	if fromDSN.ConnConfig.TLSConfig == nil {
 		t.Fatal("DSN TLS configuration was removed")
 	}
 
-	configured, err := ParseConfig(Config{
+	configured, err := parseHostedConfig(Config{
 		DSN: "host=primary,fallback user=app dbname=app sslmode=disable",
 		TLS: TLSConfig{Mode: TLSRequire, Config: &tls.Config{MinVersion: tls.VersionTLS13}},
 	})
 	if err != nil {
-		t.Fatalf("ParseConfig(fallbacks) error = %v", err)
+		t.Fatalf("parseHostedConfig(fallbacks) error = %v", err)
 	}
 	if configured.ConnConfig.TLSConfig.ServerName != "primary" {
 		t.Fatalf("primary ServerName = %q", configured.ConnConfig.TLSConfig.ServerName)
@@ -453,12 +471,12 @@ func TestParseConfigPreservesDSNTLSAndConfiguresFallbackHosts(t *testing.T) {
 func TestParseConfigDisablesTLSForFallbackHosts(t *testing.T) {
 	t.Parallel()
 
-	config, err := ParseConfig(Config{
+	config, err := parseHostedConfig(Config{
 		DSN: "host=primary,fallback user=app dbname=app sslmode=require",
 		TLS: TLSConfig{Mode: TLSDisable},
 	})
 	if err != nil {
-		t.Fatalf("ParseConfig() error = %v", err)
+		t.Fatalf("parseHostedConfig() error = %v", err)
 	}
 	if config.ConnConfig.TLSConfig != nil {
 		t.Fatal("primary TLS remains enabled")
@@ -475,9 +493,9 @@ func TestNativeSessionHookFailureSkipsSessionInitialization(t *testing.T) {
 
 	sentinel := errors.New("native hook failed")
 	sessionCalled := false
-	config, err := ParseConfig(Config{
+	config, err := parseHostedConfig(Config{
 		DSN: "postgres://localhost/app?sslmode=disable",
-		Configure: func(config *PoolConfig) error {
+		Configure: func(_ context.Context, config *PoolConfig) error {
 			config.AfterConnect = func(context.Context, *pgx.Conn) error { return sentinel }
 
 			return nil
@@ -489,7 +507,7 @@ func TestNativeSessionHookFailureSkipsSessionInitialization(t *testing.T) {
 		},
 	})
 	if err != nil {
-		t.Fatalf("ParseConfig() error = %v", err)
+		t.Fatalf("parseHostedConfig() error = %v", err)
 	}
 	if err := config.AfterConnect(context.Background(), nil); !errors.Is(err, sentinel) {
 		t.Fatalf("AfterConnect() error = %v, want sentinel", err)
@@ -510,9 +528,9 @@ func TestTrustedConfigurationHookPanicsPropagate(t *testing.T) {
 			}
 		}()
 
-		_, _ = ParseConfig(Config{
+		_, _ = parseHostedConfig(Config{
 			DSN: "postgres://localhost/app?sslmode=disable",
-			Configure: func(*PoolConfig) error {
+			Configure: func(_ context.Context, _ *PoolConfig) error {
 				panic(panicValue)
 			},
 		})
@@ -521,9 +539,9 @@ func TestTrustedConfigurationHookPanicsPropagate(t *testing.T) {
 	t.Run("native after connect", func(t *testing.T) {
 		const panicValue = "native hook panic"
 		sessionCalled := false
-		config, err := ParseConfig(Config{
+		config, err := parseHostedConfig(Config{
 			DSN: "postgres://localhost/app?sslmode=disable",
-			Configure: func(config *PoolConfig) error {
+			Configure: func(_ context.Context, config *PoolConfig) error {
 				config.AfterConnect = func(context.Context, *pgx.Conn) error {
 					panic(panicValue)
 				}
@@ -537,7 +555,7 @@ func TestTrustedConfigurationHookPanicsPropagate(t *testing.T) {
 			},
 		})
 		if err != nil {
-			t.Fatalf("ParseConfig() error = %v", err)
+			t.Fatalf("parseHostedConfig() error = %v", err)
 		}
 		defer func() {
 			if recovered := recover(); recovered != panicValue {

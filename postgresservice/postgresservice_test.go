@@ -6,13 +6,13 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/faustbrian/go-postgres/postgresservice"
+	"github.com/faustbrian/go-postgres/v2/postgresservice"
 )
 
 func TestCompatibilityTypesPreserveLegacyPackageIdentity(t *testing.T) {
 	t.Parallel()
 
-	const legacyPath = "github.com/faustbrian/go-postgres/postgresservice"
+	const legacyPath = "github.com/faustbrian/go-postgres/v2/postgresservice"
 	for name, typ := range map[string]reflect.Type{
 		"Options":      reflect.TypeOf(postgresservice.Options{}),
 		"OptionsError": reflect.TypeOf(postgresservice.OptionsError{}),
