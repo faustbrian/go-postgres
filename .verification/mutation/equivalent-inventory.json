@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "packages": [
+    {
+      "module_directory": ".",
+      "package_directory": ".",
+      "source_digest": "0d0e7f69b9a28a292156ad6ddedc3388be103acb3307f38b1bcd9d7083d8bf76",
+      "gremlins_version": "v0.6.0",
+      "gremlins_verifier_sha256": "390cf4085a0063fe5dcaa29ce942ea4cb8c7876347da90376b65dc8c5c811104",
+      "mutations": [
+        {
+          "file_name": "config.go",
+          "type": "CONDITIONALS_BOUNDARY",
+          "line": 181,
+          "column": 23,
+          "contract_domain": "Public PrepareConfig over Config inputs; identical timeout admission, resolver deadline, cancellation and returned configuration",
+          "reason": "Independent reviewer /root/postgres_admission_boundary_final_review APPROVE; date 2026-10-07; expiry 2026-11-06 or any bound source/verifier, default timeout or preparation ordering change. Gremlins changes resolutionTimeout<=0 to resolutionTimeout<0. Before this guard, invalidNegativeField refuses every negative ConfigResolutionTimeout. valueOrDefault maps zero to the positive DefaultConfigResolutionTimeout (5 seconds), and leaves positive values unchanged. Therefore resolutionTimeout is strictly positive for every public invocation reaching the guard; equality zero is unreachable. The upper bound, context deadline, resolver acquisition, cancellation observations and diagnostics are identical. Preserve the defensive production guard. Native37597684416 remains FAILED with this coordinate LIVED; this reviewed disposition does not alter native counters or accept any other survivor."
+        }
+      ]
+    }
+  ]
+}
