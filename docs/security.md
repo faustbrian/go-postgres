@@ -72,7 +72,7 @@ deployment. That is not a claim that every earlier integration was safe.
 
 Both inspected v1 releases select OpenTelemetry SDK v1.44.0, within the affected
 dependency range of the upstream Low-severity
-[GHSA-8wmf-6v46-5gfg](https://github.com/advisories/GHSA-8wmf-6v46-5gfg).
+[OpenTelemetry logging advisory](https://github.com/advisories/GHSA-8wmf-6v46-5gfg).
 The candidate v2 graph selects SDK v1.45.0, the upstream fix. Dependency selection
 does not establish exposure in a particular PostgreSQL application, and pending
 source does not fix an already published v1 artifact. Review the upstream
