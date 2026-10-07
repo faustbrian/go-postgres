@@ -5,6 +5,8 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-07
+
 ### Changed
 
 - Prepare the v2 module/import path on main. Require an explicit application
