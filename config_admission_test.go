@@ -175,6 +175,7 @@ func TestConfigAdmissionNativeBudgets(t *testing.T) {
 
 func TestConfigAdmissionContextAndResolverPrivacy(t *testing.T) {
 	input := admittedInput()
+	//lint:ignore SA1012 Intentionally exercise ErrContextRequired before resolver acquisition.
 	result, err := PrepareConfig(nil, input)
 	if result != nil || !errors.Is(err, ErrContextRequired) {
 		t.Fatal("nil context admitted")
