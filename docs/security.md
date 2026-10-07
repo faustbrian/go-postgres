@@ -1,5 +1,10 @@
 # Security and threat model
 
+Model version: 2.0.0. Reviewed: 2026-10-07. Owner: repository maintainer.
+Scope: the root `github.com/faustbrian/go-postgres/v2` module and its canonical
+and retained telemetry adapters. This is a source-bound model, not a claim
+that the pending v2 release or any application deployment is verified.
+
 ## Assets
 
 - PostgreSQL credentials, client keys, certificates, DSNs, and network routes
@@ -52,3 +57,25 @@ single `Config.Configure` composition point.
 No package can make an arbitrary transaction closure safe to retry. Network
 calls and emitted messages may escape PostgreSQL rollback. The module exposes
 classification only and leaves execution policy to the application.
+
+## Retained trust boundaries and risk ownership
+
+These are explicit application responsibilities, not scanner exemptions or
+claims that arbitrary collaborators are safe. The maintainer owns enforcement
+of the library's admission and redaction controls; deployment and collaborator
+owners must satisfy the constraints below before adoption.
+
+| Boundary | Owner | Rationale | Required mitigation | Review condition |
+| --- | --- | --- | --- | --- |
+| `ResolveDSN`, `Configure`, hooks and tracers | application integration owner | trusted callbacks may allocate, block or panic outside library control | finite acquisition and allocation budgets, cooperative context handling, reviewed TLS and tracer policy; do not treat timeout as preemption | collaborator, configured native shape or trust domain changes |
+| Native errors, `ErrorInfo`, `SQLState`, server `Detail` and `Hint` | application observability owner | authorized classification retains diagnostic data that can be sensitive | allow-list safe fields and redact before logging, tracing or exporting | logging/exporter policy or native diagnostic handling changes |
+| PostgreSQL hosts, credentials, TLS and roles | application security owner | explicit connection configuration cannot replace deployment access controls | approved destinations, certificate validation, least privilege and credential rotation | destination, resolver, TLS, role or secret-acquisition policy changes |
+| Transaction closures and retries | application transaction owner | PostgreSQL rollback cannot undo external effects | keep effects transaction-owned or provide explicit outbox/idempotency and compensation policy | a closure gains external effects or retry semantics change |
+| Borrowed connections and workload capacity | application operations owner | finite pool limits do not ensure release of borrowed resources or bound application demand | close every borrowed resource; set workload deadlines and a capacity/concurrency budget | workload, pool limits, resource lifetime or shutdown policy changes |
+
+The maintainer must revisit this model when public configuration defaults,
+admission limits, dependency behavior, redaction, or release support changes.
+Private reports follow [the security policy](../SECURITY.md); critical or high
+findings cannot be accepted into a passing release verdict. A medium finding
+needs its own evidence-backed, time-bounded disposition; this boundary table
+does not waive a confirmed vulnerability.
