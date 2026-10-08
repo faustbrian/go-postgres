@@ -7,6 +7,11 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ### Changed
 
+- Adopt Moby API v1.56.1 for the PostgreSQL test-container transport and the
+  independently resolved migration example. Preserve fixture startup, stable
+  loopback port binding, restart, and cleanup with Testcontainers v0.44.0 and
+  Moby client v0.5.0; owned pool and transaction contracts remain unchanged.
+
 - Adopt Testcontainers core and PostgreSQL modules at v0.44.0 for the public
   `postgrestest` helper and retain the separate published-v1 migration example.
   Native container logging now uses stderr by default; upstream session-ID
