@@ -2,9 +2,9 @@
 
 ## v1 to v2 safe configuration
 
-The next major uses `github.com/faustbrian/go-postgres/v2` on main, not a new
-source directory. Its public release and clean-public-consumer verification
-are pending; do not use an unpublished version in downstream modules.
+Published v2.0.0 uses `github.com/faustbrian/go-postgres/v2` on main, not a new
+source directory. Its actual public module passed replacement-free consumer
+verification. Downstream adoption must still verify each affected application.
 Canonical and retained adapter names remain, with their existing metric scopes.
 
 Every configuration must supply `ResolveDSN(ctx, dsn)`, returning a fresh,
@@ -67,7 +67,7 @@ Queue Control Plane and Service DSN-based Connect callers require explicit
 resolution and the paired `/v2` nominal import migration. Audit/postgrestest and
 other published v1 consumers remain supported by their existing release.
 `examples/migrations` intentionally continues consuming published v1.1.0 and
-SDK1.45; its SDK interoperability test does not certify unreleased v2 behavior.
+SDK1.45; its SDK interoperability test does not certify v2 behavior.
 
 ## From direct pgxpool wiring
 

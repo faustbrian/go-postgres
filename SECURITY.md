@@ -4,10 +4,15 @@
 
 | Release line | Status | End of support |
 | --- | --- | --- |
+| Latest published `v2` release | Supported | Not scheduled |
 | Latest `v1` release | Supported | Not scheduled |
 
-Security fixes are applied to the latest published `v1` release. An advisory
-will identify affected versions and any change to the supported release lines.
+Publication of v2 does not retire v1 reporting support or make unreleased
+source a supported release. Supported lines receive private triage and upgrade
+guidance; a fix may require migration to a newer major. An advisory identifies
+affected modules and versions, fixed releases, and any change to support.
+Fixes use Git tags from main, including a new major for incompatible changes;
+support does not promise a separate version-specific source branch or backport.
 
 ## Reporting a vulnerability
 
@@ -15,6 +20,13 @@ Use [GitHub private vulnerability reporting](https://github.com/faustbrian/go-po
 for this repository. Include a minimal reproducer, affected version, impact,
 and mitigation. Do not include production DSNs, credentials, query arguments,
 customer data, or certificates.
+
+The repository maintainer owns private triage, remediation, release decisions,
+and coordinated disclosure. Follow the shared
+[vulnerability-management procedures](https://github.com/faustbrian/go-library-tools/blob/5f9ee29176fe07942c5ec5d504459d0ad332cec8/docs/ecosystem/security/vulnerability-management.md)
+for severity, acknowledgement and remediation targets, embargo handling,
+advisories, and affected-consumer reassessment. Keep reporter identity and
+private evidence out of public commits, logs, and release artifacts.
 
 ## Security boundary
 
