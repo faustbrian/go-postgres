@@ -239,7 +239,7 @@
           "release": "not-started"
         }
       },
-      "version": "2.0.0",
+      "version": "2.0.1",
       "tag_prefix": "v",
       "owned_dependencies": [
         "github.com/faustbrian/go-cli",

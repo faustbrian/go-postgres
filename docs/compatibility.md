@@ -5,7 +5,7 @@
 | Go | 1.27.0 | repository, race, and clean-consumer gates |
 | pgx | 5.11.x for root v2 | pinned module build, tests, API review; published-v1 migration example remains separate |
 | PostgreSQL | 14, 15, 16, 17, 18 | Testcontainers matrix covering failure semantics and every transaction-mode combination |
-| OpenTelemetry Go | 1.45.x | `adapters/otel` and `otelpostgres` compatibility tests |
+| OpenTelemetry Go | API/metric 1.47.0; SDK 1.45.0 | `adapters/otel` and `otelpostgres` compatibility tests |
 | Testcontainers Go | 0.44.x | integration and lifecycle tests |
 | telemetry `gopostgres` | aligned pgx 5.10.x / OTel 1.44.x | independent query-tracer package test |
 
@@ -19,8 +19,10 @@ interfaces, then running `make check` and every PostgreSQL major job. The
 module exposes native pgx types, so upstream additions are available directly;
 upstream removals or behavioral changes may still require a major release here.
 pgx 5.11 adds `Rows.TypeMap() *pgtype.Map`; callers implementing the native Rows
-interface must implement that method. Root v2 adopts this upstream contract;
-the independently pinned published-v1 migration example is not upgraded here.
+interface must implement that method. Root v2 adopts this upstream contract.
+The migration example also selects pgx 5.11.0 while retaining the separately
+published `go-postgres` v1.1.0 dependency; it does not exercise root v2 through
+a workspace replacement.
 The current pgx hook audit covers `BeforeConnect`, `AfterConnect`,
 `PrepareConn`, and `AfterRelease`; other hooks retain native pgx ownership.
 
