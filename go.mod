@@ -5,7 +5,7 @@ go 1.27.0
 require (
 	github.com/faustbrian/go-service v1.0.0
 	github.com/jackc/pgx/v5 v5.11.0
-	github.com/moby/moby/api v1.55.0
+	github.com/moby/moby/api v1.56.1
 	github.com/testcontainers/testcontainers-go v0.44.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0
 	go.opentelemetry.io/otel v1.47.0
