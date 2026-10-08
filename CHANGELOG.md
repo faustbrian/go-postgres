@@ -7,6 +7,12 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ### Changed
 
+- Adopt Testcontainers core and PostgreSQL modules at v0.44.0 for the public
+  `postgrestest` helper and retain the separate published-v1 migration example.
+  Native container logging now uses stderr by default; upstream session-ID
+  configuration and buffered exec-output behavior remain native contracts.
+  Pool APIs, startup/readiness, shutdown ownership, and PostgreSQL support
+  remain unchanged.
 - Update OpenTelemetry API and metric modules to v1.47.0 while retaining the
   v1.45.0 SDK and PostgreSQL instrumentation scopes and metric contracts.
 - Align the standalone migrations example with pgx v5.11.0, already used by

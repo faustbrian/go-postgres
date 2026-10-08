@@ -6,7 +6,7 @@
 | pgx | 5.11.x for root v2 | pinned module build, tests, API review; published-v1 migration example remains separate |
 | PostgreSQL | 14, 15, 16, 17, 18 | Testcontainers matrix covering failure semantics and every transaction-mode combination |
 | OpenTelemetry Go | 1.45.x | `adapters/otel` and `otelpostgres` compatibility tests |
-| Testcontainers Go | 0.43.x | integration and lifecycle tests |
+| Testcontainers Go | 0.44.x | integration and lifecycle tests |
 | telemetry `gopostgres` | aligned pgx 5.10.x / OTel 1.44.x | independent query-tracer package test |
 
 The PostgreSQL range follows the upstream pgx policy at the time of the first
