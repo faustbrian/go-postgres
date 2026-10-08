@@ -5,6 +5,8 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-10-08
+
 ### Changed
 
 - Adopt Moby API v1.56.1 for the PostgreSQL test-container transport and the
