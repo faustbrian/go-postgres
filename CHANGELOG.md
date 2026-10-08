@@ -5,6 +5,22 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+### Changed
+
+- Update OpenTelemetry API and metric modules to v1.47.0 while retaining the
+  v1.45.0 SDK and PostgreSQL instrumentation scopes and metric contracts.
+- Align the standalone migrations example with pgx v5.11.0, already used by
+  the root library, while preserving its separately published v1 dependency.
+  Connection URLs now follow libpq rules: `+` stays literal and the last
+  repeated query parameter wins. Text-format timestamps with time zones use
+  the client scan location, matching the binary format. See the
+  [pgx v5.11.0 changes](https://github.com/jackc/pgx/releases/tag/v5.11.0).
+- Adopt stable HTTP metric conventions in the Docker client used by test
+  containers. Dashboards consuming dependency-provided HTTP metrics must use
+  `http.client.request.duration` and `http.client.request.body.size`.
+  The legacy `http.client.response.size` instrument is no longer emitted.
+  HTTP request duration is measured in seconds instead of milliseconds.
+
 ## [2.0.0] - 2026-10-07
 
 ### Changed

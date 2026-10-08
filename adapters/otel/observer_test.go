@@ -44,6 +44,45 @@ func TestObserverRecordsBoundedLifecycleMetrics(t *testing.T) {
 	if err := reader.Collect(context.Background(), &metrics); err != nil {
 		t.Fatalf("Collect() error = %v", err)
 	}
+	wantGauges := map[string]int64{"acquired": 4, "idle": 1, "total": 5, "max": 10}
+	found := make(map[string]bool)
+	for _, scope := range metrics.ScopeMetrics {
+		for _, instrument := range scope.Metrics {
+			found[instrument.Name] = true
+			switch instrument.Name {
+			case "db.client.operation.duration":
+				histogram, ok := instrument.Data.(metricdata.Histogram[float64])
+				if !ok || instrument.Unit != "s" || len(histogram.DataPoints) != 1 {
+					t.Fatalf("duration metric shape = %v", instrument)
+				}
+				point := histogram.DataPoints[0]
+				if point.Count != 1 || point.Sum != 0.025 {
+					t.Fatalf("duration count/sum = %d/%g, want 1/0.025", point.Count, point.Sum)
+				}
+			case "db.client.operation.count":
+				sum, ok := instrument.Data.(metricdata.Sum[int64])
+				if !ok || len(sum.DataPoints) != 1 || sum.DataPoints[0].Value != 1 {
+					t.Fatalf("operation count = %v, want one typed point of value 1", instrument)
+				}
+			case "db.client.connection.count":
+				gauge, ok := instrument.Data.(metricdata.Gauge[int64])
+				if !ok || len(gauge.DataPoints) != len(wantGauges) {
+					t.Fatalf("connection gauge shape = %v", instrument)
+				}
+				for _, point := range gauge.DataPoints {
+					state, ok := point.Attributes.Value("pool.state")
+					want, exists := wantGauges[state.AsString()]
+					if !ok || !exists || point.Value != want {
+						t.Fatalf("connection gauge = %v", point)
+					}
+					delete(wantGauges, state.AsString())
+				}
+			}
+		}
+	}
+	if len(wantGauges) != 0 || !found["db.client.operation.duration"] || !found["db.client.operation.count"] || !found["db.client.connection.count"] {
+		t.Fatalf("missing numeric metrics: instruments=%v, gauges=%v", found, wantGauges)
+	}
 	text := fmt.Sprint(metrics)
 	for _, expected := range []string{
 		"db.client.operation.duration",
