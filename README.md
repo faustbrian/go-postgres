@@ -3,7 +3,7 @@
 [![CI](https://github.com/faustbrian/go-postgres/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/faustbrian/go-postgres/actions/workflows/ci.yml)
 [![CodeQL](https://img.shields.io/badge/CodeQL-required-blue)](https://github.com/faustbrian/go-postgres/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-risk_based_evidence-blue)](CONTRIBUTING.md#verification)
-[![Mutation](https://img.shields.io/badge/mutation-100%25_required-blue)](CONTRIBUTING.md#verification)
+[![Mutation](https://img.shields.io/badge/mutation-full%2Frelease-blue)](CONTRIBUTING.md#verification)
 [![Documentation](https://img.shields.io/badge/docs-checked_in_CI-blue)](docs/)
 [![Published v2 Reference](https://pkg.go.dev/badge/github.com/faustbrian/go-postgres/v2.svg)](https://pkg.go.dev/github.com/faustbrian/go-postgres/v2)
 [![Release](https://img.shields.io/github/v/release/faustbrian/go-postgres?sort=semver)](https://github.com/faustbrian/go-postgres/releases)
@@ -158,10 +158,16 @@ make check
 make ci
 ```
 
-`make check` runs the complete package contract, including exact production
-coverage and integration evidence against a real PostgreSQL container. `make
-ci` also validates the standalone repository and cohesion contracts. CI runs
-the integration suite on every supported PostgreSQL major version.
+`make check` runs the bounded contract through the public tool pinned in
+`.golib.yaml`, including PostgreSQL fixtures, the root `integration` tag and
+the targeted single-cleanup/shutdown-admission race. The intentional migration
+example module retains its PostgreSQL fixture and public dependency baseline.
+`make ci` also validates repository/cohesion structure. Base-free checks run
+fuzz seeds; changed-source CI selects active smoke. `make check-full` retains
+all full campaigns and native coverage evidence. Scheduled CI uses the bounded
+route, not an automatic PostgreSQL-major matrix. See
+[contributor verification](CONTRIBUTING.md#verification) for standalone tests,
+public installation, disposable-cache sessions and explicit release rehearsal.
 
 ## License
 

@@ -1,10 +1,12 @@
 # Repository standards
 
 - `make inventory`, `make cohesion`, `make repository-check`, `make check`, and
-  `make ci` are the maintained local and CI entry points.
+  `make ci` are the maintained bounded entry points. `make check-full` and
+  release rehearsal select the full contract explicitly.
 - Production Go source satisfies GO-SAFETY-1: no `unsafe`, cgo, or
   `go:linkname`.
-- Exact coverage instruments every module package and includes real PostgreSQL.
+- Full native coverage evidence instruments module packages and includes real
+  PostgreSQL; percentage acceptance follows the existing behavioral-risk policy.
 - Behavioral changes use red-green-refactor; database semantic claims use
   integration tests.
 - Fuzz regressions remain checked into `testdata/fuzz`.

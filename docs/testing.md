@@ -26,8 +26,9 @@ if err != nil {
 t.Cleanup(func() { _ = database.Shutdown(context.Background()) })
 ```
 
-The repository integration suite selects its image with `POSTGRES_VERSION` and
-CI runs 14 through 18. Keep tests deterministic: use isolated tables or
+The repository integration suite selects its image with `POSTGRES_VERSION`.
+Choose supported majors explicitly for a matrix; the shared bounded carrier
+does not itself run every major. Keep tests deterministic: use isolated tables or
 databases, explicit timeouts, channel synchronization for contention, and
 server-side primitives rather than arbitrary sleeps where possible.
 

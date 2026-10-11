@@ -6,8 +6,13 @@ observer dispatch, the OpenTelemetry adapter, real pooled acquire, and real
 transaction round trips:
 
 ```sh
-make benchmark BENCH_TIME=100ms
+GOWORK=off go test -tags integration ./... -run '^$' -bench . -benchmem -benchtime=100ms
 ```
+
+Run this explicit real-PostgreSQL benchmark selection in the disposable-cache
+session described by [contributor verification](../CONTRIBUTING.md#verification).
+The original full benchmark operation remains available through `make check-full`;
+ordinary or scheduled bounded CI does not automatically produce benchmark proof.
 
 Results are environment-specific evidence, not service-level objectives. The
 wrapper overhead benchmark uses a deterministic backend to isolate package
@@ -28,7 +33,7 @@ Apple M4 Max:
 | real PostgreSQL pool acquire | 480 | 7 |
 | real PostgreSQL transaction | 1,048 | 8 |
 
-Use the benchmark artifact produced by CI for comparisons on its stable runner;
+Use an explicitly selected full benchmark artifact for comparisons on a stable runner;
 rerun the complete command before treating a local difference as a regression.
 
 Optimize only after measuring the deployed workload. Connection establishment,
