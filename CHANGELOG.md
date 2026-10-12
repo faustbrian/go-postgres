@@ -5,6 +5,13 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+### Changed
+
+- Clarify native pool borrowing and caller-bounded shutdown, transaction commit
+  failure windows and detached rollback, synchronous observer privacy/liveness
+  limits, adapter ownership transfer and real-fixture cleanup in source docs.
+  Public types and executable behavior are unchanged.
+
 ## [2.0.1] - 2026-10-08
 
 ### Changed

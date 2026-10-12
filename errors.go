@@ -50,24 +50,40 @@ const (
 // error, Postgres is the matched native PgError, and server metadata remains
 // available for policy code that is allowed to inspect it.
 type ErrorInfo struct {
-	Kind      ErrorKind
-	SQLState  string
+	// Kind is the selected policy category, with native PostgreSQL errors
+	// taking precedence.
+	Kind ErrorKind
+	// SQLState is the unredacted native code when a PgError matches.
+	SQLState string
+	// Retryable is advisory for serialization/deadlock or native safe-to-retry
+	// network errors.
 	Retryable bool
-	Cause     error
-	Postgres  *pgconn.PgError
+	// Cause is the exact input error, including sensitive data it may carry.
+	Cause error
+	// Postgres borrows the matched native error; it is not cloned or redacted.
+	Postgres *pgconn.PgError
 
-	Severity   string
+	// Severity retains native server severity text.
+	Severity string
+	// Constraint retains the native constraint name.
 	Constraint string
-	Schema     string
-	Table      string
-	Column     string
-	Detail     string
-	Hint       string
+	// Schema retains the native schema name.
+	Schema string
+	// Table retains the native table name.
+	Table string
+	// Column retains the native column name.
+	Column string
+	// Detail retains server detail text and may contain sensitive values.
+	Detail string
+	// Hint retains server advice and may contain sensitive values.
+	Hint string
 }
 
 // Classify returns stable policy metadata while preserving the original error
 // graph for errors.Is and errors.As. Detail and Hint may contain sensitive
-// values and must not be logged without an application redaction policy.
+// values and must not be logged without an application redaction policy. A matched
+// native PgError takes precedence over joined pool or context errors; classification
+// does not prove retry safety for external effects or a commit outcome.
 func Classify(err error) ErrorInfo {
 	if err == nil {
 		return ErrorInfo{}

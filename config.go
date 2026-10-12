@@ -17,7 +17,7 @@ const (
 	DefaultAcquireTimeout = 5 * time.Second
 	// DefaultPingTimeout bounds startup and readiness probes.
 	DefaultPingTimeout = 2 * time.Second
-	// DefaultShutdownTimeout bounds how long Close waits for borrowed connections.
+	// DefaultShutdownTimeout bounds each Shutdown wait for native pool cleanup.
 	DefaultShutdownTimeout = 10 * time.Second
 	// DefaultConfigResolutionTimeout bounds cooperative resolver preparation.
 	DefaultConfigResolutionTimeout = 5 * time.Second
@@ -44,7 +44,9 @@ const (
 // Callback, private-key, cache, random-source, clock, and writer values remain
 // caller-owned collaborators and must be safe for concurrent use.
 type TLSConfig struct {
-	Mode   TLSMode
+	// Mode chooses DSN preservation, TLS disablement or an explicit override.
+	Mode TLSMode
+	// Config is required for TLSRequire; it is ignored by other modes.
 	Config *tls.Config
 }
 
@@ -62,6 +64,7 @@ const (
 // ResolveDSN is required; other zero fields select documented defaults.
 // Negative sizes or durations are rejected rather than passed through to pgxpool.
 type Config struct {
+	// DSN is an admitted credential string passed to ResolveDSN; never log it.
 	DSN string
 
 	// ResolveDSN is required. It owns any environment, filesystem or other
@@ -74,22 +77,39 @@ type Config struct {
 	// Limits selects finite native credential admission budgets.
 	Limits ConfigLimits
 
-	ConnectTimeout  time.Duration
-	AcquireTimeout  time.Duration
-	PingTimeout     time.Duration
+	// ConnectTimeout bounds native connection attempts; zero selects 5s.
+	ConnectTimeout time.Duration
+	// AcquireTimeout bounds wrapper acquisition, not subsequent queries; zero
+	// selects 5s.
+	AcquireTimeout time.Duration
+	// PingTimeout bounds wrapper probes and supplies the native default; zero
+	// selects 2s.
+	PingTimeout time.Duration
+	// ShutdownTimeout bounds each wrapper shutdown wait, not native cleanup;
+	// zero selects 10s.
 	ShutdownTimeout time.Duration
 
-	MaxConns     int32
-	MinConns     int32
+	// MaxConns selects the native connection ceiling; zero selects 10.
+	MaxConns int32
+	// MinConns requests a native minimum; StartupLazy requires zero.
+	MinConns int32
+	// MinIdleConns requests a native idle minimum; StartupLazy requires zero.
 	MinIdleConns int32
 
-	MaxConnLifetime       time.Duration
+	// MaxConnLifetime selects the native maximum lifetime; zero selects one hour.
+	MaxConnLifetime time.Duration
+	// MaxConnLifetimeJitter spreads native expiry; zero selects five minutes.
 	MaxConnLifetimeJitter time.Duration
-	MaxConnIdleTime       time.Duration
-	HealthCheckPeriod     time.Duration
-	StartupPolicy         StartupPolicy
-	TLS                   TLSConfig
-	Observer              Observer
+	// MaxConnIdleTime selects the native idle lifetime; zero selects thirty minutes.
+	MaxConnIdleTime time.Duration
+	// HealthCheckPeriod selects native maintenance frequency; zero selects one minute.
+	HealthCheckPeriod time.Duration
+	// StartupPolicy chooses lazy construction or an explicit connectivity probe.
+	StartupPolicy StartupPolicy
+	// TLS applies host-specific overrides before Configure.
+	TLS TLSConfig
+	// Observer receives synchronous wrapper observations; nil disables them.
+	Observer Observer
 
 	// SessionInit runs for every newly established connection after any native
 	// AfterConnect hook. Returning an error rejects that connection.
@@ -104,9 +124,13 @@ type Config struct {
 // ConfigError reports a field without echoing credentials. Resolver causes are
 // withheld; trusted Configure causes remain inspectable.
 type ConfigError struct {
-	Field   string
+	// Field names the rejected configuration field or admission boundary.
+	Field string
+	// Problem is the diagnostic included by Error; package-created text omits
+	// credentials.
 	Problem string
-	Cause   error
+	// Cause is retained for trusted Configure failures, not resolver failures.
+	Cause error
 }
 
 // Error implements error.
@@ -114,7 +138,8 @@ func (e *ConfigError) Error() string {
 	return fmt.Sprintf("postgres: invalid %s: %s", e.Field, e.Problem)
 }
 
-// Unwrap exposes a safe underlying cause when one is available.
+// Unwrap exposes Cause when present. Trusted hook errors retain their original
+// data; the application is responsible for safe inspection or logging.
 func (e *ConfigError) Unwrap() error {
 	return e.Cause
 }
@@ -131,7 +156,10 @@ func ParseConfig(input Config) (*PoolConfig, error) {
 // The resolver transfers a fresh parser-created configuration; TLS data, native
 // callbacks, parser allocations and their resource bounds remain application-owned.
 // Preparation cooperatively honors ctx and ConfigResolutionTimeout, including
-// callback completion checks. It does not recover collaborator panics.
+// callback completion checks. The successful result is transferred to the
+// caller, not retained or copied by preparation. It does not recover collaborator
+// panics. Native parsing and callbacks can still block past a deadline if they
+// do not cooperate; these checks are not a total process-memory budget.
 func PrepareConfig(ctx context.Context, input Config) (*PoolConfig, error) {
 	if ctx == nil {
 		return nil, ErrContextRequired

@@ -31,9 +31,9 @@ const (
 	OutcomeSuccess Outcome = "success"
 	// OutcomeError indicates a classified operation error.
 	OutcomeError Outcome = "error"
-	// OutcomePanic indicates that a transaction callback panicked.
+	// OutcomePanic indicates a transaction or savepoint panic.
 	OutcomePanic Outcome = "panic"
-	// OutcomeAborted indicates that a callback terminated its goroutine.
+	// OutcomeAborted indicates goroutine termination before the runner completed.
 	OutcomeAborted Outcome = "aborted"
 )
 
@@ -42,23 +42,36 @@ const (
 // Package-produced observations and built-in observers project unrecognized
 // categories to "unknown"; Classify and SQLState retain native diagnostic data.
 type Observation struct {
+	// Operation identifies a wrapper lifecycle operation, not application SQL.
 	Operation Operation
-	Outcome   Outcome
-	Duration  time.Duration
+	// Outcome identifies completion, error, panic or goroutine termination.
+	Outcome Outcome
+	// Duration is sampled before observer delivery and excludes its own callback time.
+	Duration time.Duration
+	// ErrorKind is the finite projection of diagnostic classification.
 	ErrorKind ErrorKind
-	SQLState  string
-	Pool      Stats
+	// SQLState is an exact recognized state, empty, or the fixed unknown category.
+	SQLState string
+	// Pool contains a separate native statistics snapshot when HasPoolStats is true.
+	Pool Stats
 	// HasPoolStats distinguishes an actual zero-valued snapshot from an
 	// operation, such as a transaction, that did not sample pool state.
 	HasPoolStats bool
 }
 
-// Observer consumes bounded lifecycle and transaction observations.
+// Observer consumes bounded lifecycle and transaction observations. Package
+// delivery is synchronous and may be concurrent across operations. Keep callbacks
+// prompt and concurrency-safe: ordinary panics are recovered, but blocking and
+// goroutine termination are not isolated. The operation context may be canceled.
+// Avoid recursively invoking observed operations from their own observer;
+// delivery has no recursion guard and may still hold acquired resources.
 type Observer interface {
+	// Observe consumes metadata synchronously; concurrent calls must be safe.
 	Observe(context.Context, Observation)
 }
 
-// ObserverFunc adapts a function to Observer.
+// ObserverFunc adapts a non-nil function to Observer without synchronization or
+// recovery of direct calls. Package delivery supplies its own panic boundary.
 type ObserverFunc func(context.Context, Observation)
 
 // Observe implements Observer.

@@ -1,5 +1,7 @@
 // Package postgresotel adapts postgres observations to standard OpenTelemetry
-// metrics without recording SQL, arguments, DSNs, or raw errors.
+// metrics without recording SQL, arguments, DSNs, or raw errors. New borrows a
+// meter provider, defaulting to no-op instruments. The caller owns provider
+// export/shutdown; this adapter does not add query tracing or a background loop.
 package postgresotel
 
 import (
@@ -14,6 +16,8 @@ const scopeName = "github.com/faustbrian/go-postgres/adapters/otel"
 
 // Config selects the standard OpenTelemetry meter provider.
 type Config struct {
+	// MeterProvider is borrowed; nil selects a no-op provider. Its shutdown is
+	// caller-owned.
 	MeterProvider metric.MeterProvider
 }
 
@@ -33,7 +37,8 @@ func New(config Config) (*Observer, error) {
 	return &Observer{delegate: delegate}, nil
 }
 
-// Observe implements postgres.Observer.
+// Observe records finite category projections synchronously using the caller
+// context. It does not install query tracing or shut down the meter provider.
 func (o *Observer) Observe(ctx context.Context, observation postgres.Observation) {
 	o.delegate.Observe(ctx, observation)
 }

@@ -2,8 +2,10 @@
 
 `Observation` contains only fixed operation, outcome, duration, classification,
 SQLSTATE, and pool gauges. It has no field for SQL, arguments, DSNs, raw errors,
-details, hints, arbitrary labels, or query names. Observer panics are recovered
-so telemetry cannot change database behavior.
+details, hints, arbitrary labels, or query names. Package delivery recovers
+ordinary observer panics. Delivery remains synchronous: blocking callbacks can
+extend call duration, and goroutine termination is not isolated. Keep observers
+prompt and safe for concurrent calls.
 
 Package-produced observations, `NewSlogObserver`, and both OpenTelemetry
 variants admit only the five built-in operations, four outcomes, and declared

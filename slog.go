@@ -10,7 +10,9 @@ type slogObserver struct {
 }
 
 // NewSlogObserver creates a privacy-preserving Observer compatible with slog
-// and log. It records only fixed operation metadata and pool gauges.
+// and log. It records only fixed operation metadata and pool gauges. A nil logger
+// uses slog.Default. The logger and handler stay caller-owned; delivery is
+// synchronous and this constructor does not configure or shut them down.
 func NewSlogObserver(logger *slog.Logger) Observer {
 	if logger == nil {
 		logger = slog.Default()

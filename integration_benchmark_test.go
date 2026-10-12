@@ -10,6 +10,8 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+// These benchmarks require the tagged real-database fixture. They measure
+// actual acquisition/transaction work, unlike the untagged stub microbenchmarks.
 func BenchmarkPostgreSQLPoolAcquire(b *testing.B) {
 	pool, err := postgres.New(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 		DSN:      integrationDatabase.DSN(),

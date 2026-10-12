@@ -23,6 +23,8 @@ var (
 // IsolationBeginner is implemented by pgx.Conn, pgxpool.Pool, pgxpool.Conn,
 // and pgx.Tx values that can begin a transaction.
 type IsolationBeginner interface {
+	// Begin returns a transaction to be borrowed by the isolation callback and
+	// then rolled back.
 	Begin(context.Context) (pgx.Tx, error)
 }
 
@@ -34,7 +36,10 @@ type IsolationBeginner interface {
 // is re-panicked, and goroutine termination cannot skip rollback. A cleanup
 // panic cannot replace a returned callback error or either terminal callback
 // path. With no earlier callback cause, a rollback panic propagates rather than
-// reporting successful isolation.
+// reporting successful isolation. A non-nil ctx and usable beginner are required;
+// the callback must not retain or finalize tx. Cleanup detaches caller cancellation
+// and deadlines but retains context values. The callback itself is not forcibly
+// bounded and this helper performs no retries.
 func RunIsolated(
 	ctx context.Context,
 	beginner IsolationBeginner,

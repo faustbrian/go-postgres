@@ -10,6 +10,8 @@ import (
 
 var _ postgresservice.Resource = (*postgres.Pool)(nil)
 
+// ExampleNew demonstrates ownership and explicit readiness with an in-memory
+// Resource, not a connectivity probe against a PostgreSQL server.
 func ExampleNew() {
 	pool := &resource{}
 	adapter, err := postgresservice.New(postgresservice.Options{

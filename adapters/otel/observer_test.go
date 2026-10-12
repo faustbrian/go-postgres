@@ -174,6 +174,8 @@ func TestNewUsesCanonicalInstrumentationScope(t *testing.T) {
 	}
 }
 
+// BenchmarkObserverInstrumentation excludes instrument construction and records
+// a fixed acquisition snapshot through no-op metrics, not an active exporter.
 func BenchmarkObserverInstrumentation(b *testing.B) {
 	observer, err := New(Config{})
 	if err != nil {

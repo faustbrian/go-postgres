@@ -53,7 +53,11 @@ func (b *nativePoolBackend) Close() {
 	b.pool.Close()
 }
 
-// Pool adds bounded lifecycle operations while retaining the native pgxpool.
+// Pool owns a native pgxpool and adds bounded lifecycle waits. Use Connect;
+// a zero Pool is not usable. Native operations and observer callbacks retain
+// their own cooperation and concurrency requirements. Wrapper admission and
+// shutdown state are synchronized; concurrent operations require safe native
+// hooks and observers. Do not copy a Pool after use.
 type Pool struct {
 	raw             *pgxpool.Pool
 	backend         poolBackend
@@ -66,24 +70,38 @@ type Pool struct {
 	closed          atomic.Bool
 }
 
-// Stats is an immutable snapshot of native pgxpool statistics.
+// Stats is a detached value snapshot of native pgxpool statistics.
 type Stats struct {
-	AcquireCount         int64
-	AcquiredConns        int32
+	// AcquireCount is the native count of successful acquisitions.
+	AcquireCount int64
+	// AcquiredConns is the number of connections currently borrowed.
+	AcquiredConns int32
+	// CanceledAcquireCount is the native count of canceled acquisitions.
 	CanceledAcquireCount int64
-	ConstructingConns    int32
-	EmptyAcquireCount    int64
+	// ConstructingConns is the number of connections being constructed.
+	ConstructingConns int32
+	// EmptyAcquireCount counts successful acquisitions that waited for an empty pool.
+	EmptyAcquireCount int64
+	// EmptyAcquireWaitTime is cumulative wait time for successful acquisitions
+	// from an empty pool; canceled waits are not included.
 	EmptyAcquireWaitTime time.Duration
-	IdleConns            int32
-	MaxConns             int32
-	NewConnsCount        int64
-	TotalConns           int32
+	// IdleConns is the number of currently idle connections.
+	IdleConns int32
+	// MaxConns is the configured native maximum connection count.
+	MaxConns int32
+	// NewConnsCount is the native cumulative count of created connections.
+	NewConnsCount int64
+	// TotalConns includes idle, acquired and constructing connections.
+	TotalConns int32
 }
 
 // Health is the result of a readiness probe and its contemporaneous stats.
 type Health struct {
+	// Ready reports success of this probe, not a persistent availability guarantee.
 	Ready bool
-	Err   error
+	// Err preserves the probe error; nil means the probe succeeded.
+	Err error
+	// Stats is sampled separately from the readiness ping or liveness check.
 	Stats Stats
 }
 
@@ -96,7 +114,10 @@ func New(ctx context.Context, input Config) (*Pool, error) {
 
 // Connect constructs a native pgxpool without a startup connection by default.
 // StartupPing explicitly requests a bounded connectivity check. A nil
-// or already-canceled context is rejected before configuration or I/O.
+// or already-canceled context is rejected before configuration or I/O. The
+// caller owns the successful pool and must Shutdown it. A failed startup ping
+// closes the constructed backend before returning; native Close and application
+// callbacks are not forcibly interrupted by the caller deadline.
 func Connect(ctx context.Context, input Config) (*Pool, error) {
 	return connect(ctx, input, openNativePool)
 }
@@ -177,13 +198,20 @@ func newPool(
 	}
 }
 
-// Raw returns the underlying pgxpool without wrapping or copying it.
+// Raw returns a borrowed native pool without copying it or transferring ownership.
+// Operations through Raw bypass wrapper acquisition bounds, shutdown admission
+// checks and observations. Do not close it independently of its owning Pool.
 func (p *Pool) Raw() *pgxpool.Pool {
 	return p.raw
 }
 
 // Acquire obtains a connection while honoring the earlier of the caller's
-// deadline and the configured acquisition timeout.
+// deadline and the configured acquisition timeout. A non-nil ctx is required.
+// On success the caller must Release the connection; the timeout does not bound
+// how long it is held or any subsequent query. Saturation is inferred from the
+// sampled statistics only when the configured timeout is the context cause.
+// Observer delivery runs before returning the connection and can extend the
+// overall call duration.
 func (p *Pool) Acquire(ctx context.Context) (*pgxpool.Conn, error) {
 	started := time.Now()
 	if p.closed.Load() {
@@ -214,7 +242,9 @@ func (p *Pool) Acquire(ctx context.Context) (*pgxpool.Conn, error) {
 	return conn, err
 }
 
-// Ping checks PostgreSQL connectivity with a strict configured deadline.
+// Ping checks PostgreSQL connectivity using the earlier caller or configured
+// deadline. A non-nil ctx is required. The observer runs synchronously after
+// the native probe and can extend the overall call duration.
 func (p *Pool) Ping(ctx context.Context) error {
 	started := time.Now()
 	if p.closed.Load() {
@@ -267,7 +297,7 @@ func (p *Pool) Liveness() Health {
 	}
 }
 
-// Stats returns an immutable copy of the native pgxpool counters and gauges.
+// Stats returns a detached value copy of native pgxpool counters and gauges.
 func (p *Pool) Stats() Stats {
 	return p.backend.Stats()
 }
@@ -296,7 +326,11 @@ func (p *Pool) Close(ctx context.Context) error {
 
 // Shutdown closes admission and starts native pool shutdown exactly once. Each
 // caller waits independently until its own or the configured shutdown bound.
-// Native cleanup continues after an individual caller stops waiting.
+// Native cleanup continues after an individual caller stops waiting, so a
+// timeout is not proof of resource release. Release borrowed connections to
+// allow cleanup to finish. Even an already-canceled non-nil ctx starts shutdown;
+// nil ctx returns ErrContextRequired without changing admission. In-flight
+// calls that passed the admission check retain native pgx behavior.
 func (p *Pool) Shutdown(ctx context.Context) error {
 	if ctx == nil {
 		return ErrContextRequired
@@ -304,6 +338,7 @@ func (p *Pool) Shutdown(ctx context.Context) error {
 
 	started := time.Now()
 	p.closed.Store(true)
+	// Only the cleanup goroutine closes closeDone; caller deadlines never own it.
 	p.closeOnce.Do(func() {
 		go func() {
 			p.backend.Close()

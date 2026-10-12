@@ -1,3 +1,6 @@
+// Command worker demonstrates a periodic transactional job claim. Applications
+// must supply the jobs schema and processing/retry policy; claiming is not job
+// execution. It requires DATABASE_URL and a reachable database.
 package main
 
 import (

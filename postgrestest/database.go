@@ -1,5 +1,7 @@
 // Package postgrestest provides real PostgreSQL containers for integration
-// tests. It never substitutes a fake for PostgreSQL semantics.
+// tests. It requires a compatible container runtime for Open and never
+// substitutes a fake for PostgreSQL semantics. Release test fixtures with
+// Shutdown. RunIsolated rolls back only work performed on its supplied transaction.
 package postgrestest
 
 import (
@@ -31,22 +33,30 @@ const (
 // cleanup. The original setup panic is preserved even if termination also
 // panics.
 type Config struct {
-	Image    string
+	// Image selects the container image; empty selects postgres:18-alpine.
+	Image string
+	// Database selects the initial database; empty selects postgres_test.
 	Database string
+	// Username selects the test login; empty selects postgres_test.
 	Username string
+	// Password selects test credentials; empty selects postgres_test. Never
+	// log the DSN.
 	Password string
 	// HostPort optionally binds PostgreSQL to a stable loopback port. It is
 	// useful for stop/start tests whose client endpoint must not move.
 	HostPort string
 	// CleanupTimeout bounds container termination even when the setup context
-	// has already been canceled.
+	// has already been canceled. Nonpositive values select 30s.
 	CleanupTimeout time.Duration
 	// Setup runs once after startup. An error, panic, or goroutine termination
 	// triggers bounded container cleanup without replacing the original cause.
 	Setup func(context.Context, string) error
 }
 
-// Database owns a PostgreSQL test container and its connection string.
+// Database owns a PostgreSQL test container and its connection string. Acquire
+// it with Open; its zero value is not usable and it must not be copied after use.
+// Concurrent Shutdown calls share one termination; native Container operations
+// require separate application coordination.
 type Database struct {
 	container      testDatabase
 	native         *testcontainerspostgres.PostgresContainer
@@ -65,7 +75,11 @@ func Start(ctx context.Context, config Config) (*Database, error) {
 }
 
 // Open creates a PostgreSQL container, waits for readiness, obtains a DSN,
-// and invokes the optional deterministic setup hook.
+// and invokes the optional setup hook synchronously. Nil or already-canceled
+// ctx is refused before startup. A successful result transfers fixture ownership
+// to the caller, who must Shutdown it. Returned connection-string/setup errors
+// may join cleanup errors and can contain native or application credentials.
+// Setup must cooperate with ctx; cleanup bounds cannot preempt blocking code.
 func Open(ctx context.Context, config Config) (*Database, error) {
 	return openDatabase(ctx, config, startPostgreSQL)
 }
@@ -213,7 +227,9 @@ func (d *Database) DSN() string {
 	return d.dsn
 }
 
-// Container exposes the native testcontainers PostgreSQL container.
+// Container borrows the native testcontainers PostgreSQL container without
+// transferring ownership. Direct stop/start or termination bypasses this helper
+// lifecycle; coordinate it explicitly and retain responsibility for Shutdown.
 func (d *Database) Container() *testcontainerspostgres.PostgresContainer {
 	return d.native
 }
@@ -227,12 +243,18 @@ func (d *Database) Close(ctx context.Context) error {
 
 // Shutdown starts one caller-independent, bounded container termination and
 // lets each caller wait with its own context. Repeated calls return the shared
-// terminal termination result.
+// terminal termination result. The first caller supplies context values, but
+// its cancellation/deadline is detached from termination and replaced with the
+// configured cleanup timeout. A caller that stops waiting has not proved cleanup
+// completed. Native termination must cooperate with its context; it is not
+// forcibly interrupted. Nil ctx is refused without starting termination.
 func (d *Database) Shutdown(ctx context.Context) error {
 	if ctx == nil {
 		return gopostgres.ErrContextRequired
 	}
 
+	// The termination goroutine publishes shutdownErr by closing shutdownDone;
+	// individual waiting callers do not own the terminal result or channel.
 	d.shutdownOnce.Do(func() {
 		go func() {
 			cleanupCtx, cancel := cleanupContext(ctx, d.cleanupTimeout)

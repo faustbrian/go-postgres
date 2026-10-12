@@ -454,6 +454,8 @@ func (s *stubBeginner) BeginTx(_ context.Context, options pgx.TxOptions) (pgx.Tx
 	return s.tx, s.beginErr
 }
 
+// stubTx captures finalization and injected terminal paths; native server commit
+// outcomes and isolation semantics belong to the tagged integration suite.
 type stubTx struct {
 	begins      int
 	beginTx     pgx.Tx

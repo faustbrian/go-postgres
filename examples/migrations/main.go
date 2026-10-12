@@ -1,4 +1,7 @@
-// Command migrations applies embedded schema changes as a deployment job.
+// Command migrations applies embedded schema changes as a deployment job using
+// an independently versioned, published-v1 postgres dependency, not this root
+// module. DATABASE_URL and a reachable database are required; the application
+// owns migration locking, native SQL bridging and pool cleanup.
 package main
 
 import (
@@ -96,6 +99,8 @@ func run(ctx context.Context) error {
 	return nil
 }
 
+// embeddedSourceFileSystem admits entry counts and aggregate names before
+// conversion, and reads at most maxBytes+1 to distinguish overflow from EOF.
 type embeddedSourceFileSystem struct {
 	files embed.FS
 }

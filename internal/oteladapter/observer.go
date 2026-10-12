@@ -1,4 +1,7 @@
-// Package oteladapter contains the shared OpenTelemetry adapter implementation.
+// Package oteladapter implements both public OpenTelemetry adapter paths while
+// retaining their distinct instrumentation scopes. New borrows a provider and
+// creates instruments; Observe projects fixed categories without recording SQL.
+// Provider export/shutdown and query tracing remain outside this adapter.
 package oteladapter
 
 import (

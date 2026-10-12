@@ -498,6 +498,8 @@ func TestBoundedContextWithCauseAppliesPositiveTimeout(t *testing.T) {
 	}
 }
 
+// stubPoolBackend makes wrapper timing and cleanup ownership observable without
+// claiming native SQL, server scheduling or connection-release semantics.
 type stubPoolBackend struct {
 	acquire func(context.Context) (*pgxpool.Conn, error)
 	ping    func(context.Context) error

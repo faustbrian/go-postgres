@@ -1,3 +1,5 @@
+// Command service demonstrates explicit startup connectivity and separate HTTP
+// readiness/liveness probes. It requires DATABASE_URL and a reachable database.
 package main
 
 import (

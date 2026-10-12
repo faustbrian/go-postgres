@@ -19,13 +19,13 @@ const (
 	MaximumPoolConnections = 1024
 	// MaximumConfigTimeout bounds preparation and connection/operation timeouts.
 	MaximumConfigTimeout = time.Hour
-	// MaximumPoolLifetime bounds pool lifetime, idle and maintenance durations.
+	// MaximumPoolLifetime caps native lifetime, idle and maintenance settings.
 	MaximumPoolLifetime = 30 * 24 * time.Hour
 )
 
 // ConfigLimits controls package-owned admission. Zero selects finite defaults;
-// positive values may only reduce the defaults. Opaque TLS and callback data
-// remain bounded, trusted application-owned collaborators.
+// positive values may only reduce the defaults. The application must bound
+// opaque TLS data and resource use by trusted callbacks separately.
 type ConfigLimits struct {
 	// MaximumDSNBytes admits the input before application resolution.
 	MaximumDSNBytes int
@@ -69,6 +69,8 @@ func (limits ConfigLimits) admitted() (ConfigLimits, error) {
 	return limits, nil
 }
 
+// admitNativeShape bounds collection shapes before iteration and charges native
+// strings, without traversing opaque TLS or invoking application collaborators.
 func admitNativeShape(config *PoolConfig, limits ConfigLimits) error {
 	refusal := func() error { return configError("native_config", "exceeds or violates admission policy") }
 	if config == nil || config.ConnConfig == nil {

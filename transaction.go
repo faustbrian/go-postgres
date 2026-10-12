@@ -22,6 +22,7 @@ var (
 // Beginner is implemented by pgx.Conn, pgxpool.Pool, pgxpool.Conn, and other
 // native pgx values that can begin a transaction with explicit options.
 type Beginner interface {
+	// BeginTx returns a transaction whose finalization is delegated to the runner.
 	BeginTx(context.Context, pgx.TxOptions) (pgx.Tx, error)
 }
 
@@ -29,22 +30,40 @@ type Beginner interface {
 // cleanup policy used when the callback returns an error, panics, or terminates
 // its goroutine.
 type TransactionOptions struct {
+	// TxOptions passes native transaction modes through without validation.
 	pgx.TxOptions
+	// CleanupTimeout bounds cooperative rollback; zero selects 5s, negative
+	// expires immediately.
 	CleanupTimeout time.Duration
-	Observer       Observer
+	// Observer receives the final synchronous transaction observation; nil disables it.
+	Observer Observer
 }
 
 // SavepointOptions controls cleanup and observation for a nested transaction.
 type SavepointOptions struct {
+	// CleanupTimeout bounds cooperative rollback; zero selects 5s, negative
+	// expires immediately.
 	CleanupTimeout time.Duration
-	Observer       Observer
+	// Observer receives the final synchronous savepoint observation; nil disables it.
+	Observer Observer
 }
 
-// RunTransaction begins a transaction, invokes fn once, and finalizes exactly
-// once. It never retries fn. Callback and rollback errors are joined so callers
-// can inspect both with errors.Is and errors.As. A cleanup panic cannot replace
+// RunTransaction begins a transaction and invokes fn once after a successful
+// begin. A nil callback is refused before begin. A non-nil ctx and usable
+// beginner are required. The callback borrows tx for this invocation: do not
+// retain it or finalize it yourself. A nil callback result requests commit; an
+// error requests rollback. A returned commit error is preserved without another
+// rollback attempt or a durability guarantee. It never retries fn.
+//
+// Callback and rollback errors are joined so callers can inspect both with
+// errors.Is and errors.As. A cleanup panic cannot replace
 // a returned callback error, callback panic, or goroutine termination. A panic
 // during commit triggers bounded rollback before the original value propagates.
+//
+// Rollback uses context.WithoutCancel(ctx) plus CleanupTimeout, preserving values
+// but not caller cancellation/deadlines. Begin, body and commit retain the caller
+// context and native semantics; deadlines cannot preempt uncooperative code.
+// External callback effects are not undone by rollback.
 func RunTransaction(
 	ctx context.Context,
 	beginner Beginner,
@@ -90,6 +109,7 @@ func RunTransaction(
 
 // RunSavepoint executes fn in pgx's explicit pseudo-nested transaction. pgx
 // implements this with SAVEPOINT, RELEASE SAVEPOINT, and ROLLBACK TO SAVEPOINT.
+// See RunSavepointWithOptions for context, borrowing and failure-window rules.
 func RunSavepoint(
 	ctx context.Context,
 	parent pgx.Tx,
@@ -102,7 +122,11 @@ func RunSavepoint(
 }
 
 // RunSavepointWithOptions executes fn in an observed pgx pseudo-nested
-// transaction with bounded rollback cleanup.
+// transaction with bounded rollback cleanup. The callback borrows the child
+// transaction; it must not finalize or retain it. The parent stays caller-owned
+// and must still be finalized independently. Context, retry and failure-window
+// rules are the same as RunTransaction; releasing a savepoint is not a durable
+// commit of its parent.
 func RunSavepointWithOptions(
 	ctx context.Context,
 	parent pgx.Tx,
@@ -179,6 +203,8 @@ func runInTransaction(
 		return err
 	}
 
+	// A returned native commit result is terminal; only a commit panic leaves
+	// rollback armed for the deferred cleanup path.
 	commitErr := tx.Commit(ctx)
 	needsRollback = false
 	if commitErr != nil {

@@ -1,4 +1,6 @@
 // Package telemetry owns the finite categorical projection shared by observers.
+// Its stateless functions return recognized owned strings or unknown, not raw
+// server diagnostics. This is a telemetry boundary, not error classification.
 package telemetry
 
 // Operation returns an owned built-in operation or the fixed unknown category.

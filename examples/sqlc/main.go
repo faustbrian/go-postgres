@@ -1,3 +1,6 @@
+// Command sqlc demonstrates transaction-bound queries with native pgx types.
+// Its handwritten query facade illustrates generated-code use; it is not a SQLc
+// generated artifact. It requires DATABASE_URL and a reachable database.
 package main
 
 import (
@@ -15,6 +18,8 @@ type dbtx interface {
 	QueryRow(context.Context, string, ...any) pgx.Row
 }
 
+// queries borrows either the pool or one callback-scoped transaction; rebinding
+// does not acquire a connection or transfer finalization ownership.
 type queries struct {
 	db dbtx
 }

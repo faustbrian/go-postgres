@@ -15,6 +15,8 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
+// Parser fuzzing opts into the hosted native resolver; admission remains distinct
+// from arbitrary callback resource use. Seed cases are not live PostgreSQL proof.
 func FuzzParseConfig(f *testing.F) {
 	f.Add("postgres://app:secret@localhost/app?sslmode=disable")
 	f.Add("host=/var/run/postgresql user=app dbname=app")
@@ -30,6 +32,8 @@ func FuzzParseConfig(f *testing.F) {
 	})
 }
 
+// FuzzOptions checks typed enum admission and one finalization path with stubs,
+// passing native transaction modes through without pretending to validate SQL.
 func FuzzOptions(f *testing.F) {
 	f.Add("", "", "", uint8(0), uint8(0), int64(0), false)
 	f.Add("serializable", "read only", "deferrable", uint8(255), uint8(255), int64(-1), true)
@@ -112,6 +116,8 @@ func FuzzOptions(f *testing.F) {
 	})
 }
 
+// FuzzRedaction varies URL credential/host encoding and guards the password
+// marker in configuration diagnostic text, not arbitrary trusted hook errors.
 func FuzzRedaction(f *testing.F) {
 	f.Add("secret", "host name")
 	f.Add("p@ss word", "[::1")
@@ -130,6 +136,8 @@ func FuzzRedaction(f *testing.F) {
 	})
 }
 
+// FuzzSQLStateClassification preserves raw native codes for diagnostic APIs;
+// this deliberately differs from the finite telemetry category projection.
 func FuzzSQLStateClassification(f *testing.F) {
 	for _, code := range []string{"23505", "23503", "40001", "40P01", "57014", "08006", "ZZZZZ"} {
 		f.Add(code)
@@ -146,6 +154,8 @@ func FuzzSQLStateClassification(f *testing.F) {
 	})
 }
 
+// FuzzConfigurationBounds exercises numeric configuration admission with
+// bounded duration conversion; it neither opens a pool nor measures memory.
 func FuzzConfigurationBounds(f *testing.F) {
 	f.Add(int32(10), int32(0), int32(0), int64(5))
 	f.Add(int32(-1), int32(0), int32(0), int64(-1))

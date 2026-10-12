@@ -1,5 +1,7 @@
 // Package otelpostgres preserves the released OpenTelemetry adapter path.
 // New code should import github.com/faustbrian/go-postgres/v2/adapters/otel.
+// New retains the released instrumentation scope while borrowing the provider;
+// provider lifecycle and query tracing remain caller-owned.
 package otelpostgres
 
 import (
@@ -16,6 +18,8 @@ const scopeName = "github.com/faustbrian/go-postgres/otelpostgres"
 //
 // Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/otel.
 type Config struct {
+	// MeterProvider is borrowed; nil selects a no-op provider. Its shutdown is
+	// caller-owned.
 	MeterProvider metric.MeterProvider
 }
 
@@ -39,7 +43,8 @@ func New(config Config) (*Observer, error) {
 	return &Observer{delegate: delegate}, nil
 }
 
-// Observe implements postgres.Observer.
+// Observe records finite category projections synchronously using the caller
+// context. It does not install query tracing or shut down the meter provider.
 func (o *Observer) Observe(ctx context.Context, observation postgres.Observation) {
 	o.delegate.Observe(ctx, observation)
 }

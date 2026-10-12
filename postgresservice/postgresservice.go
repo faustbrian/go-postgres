@@ -1,5 +1,8 @@
 // Package postgresservice preserves the released service-adapter path. New
 // code should import github.com/faustbrian/go-postgres/v2/adapters/service.
+// New delegates the ordered lifecycle while retaining released type and error
+// identities. Existing pools stay shared unless ownership is transferred;
+// constructors own failed acquisition cleanup and successful results transfer.
 package postgresservice
 
 import (
@@ -13,33 +16,43 @@ import (
 
 var (
 	// ErrInvalidOptions identifies invalid adapter construction.
+	//
 	// Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 	ErrInvalidOptions = errors.New("invalid postgres service options")
 	// ErrUnavailable identifies a pool that has not started or is stopping.
+	//
 	// Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 	ErrUnavailable = errors.New("postgres service pool unavailable")
 )
 
 // Resource is the released adapter resource contract.
+//
 // Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 type Resource interface {
+	// Ping checks connectivity using the service-supplied operation context.
 	Ping(context.Context) error
+	// Close releases owned resources; implementations must honor their context
+	// cooperatively.
 	Close(context.Context) error
 }
 
 // Constructor acquires a pool whose ownership transfers after a successful
-// return.
+// return. On an error the adapter does not close a partially returned resource;
+// the constructor must clean up its own failed acquisition.
+//
 // Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 type Constructor func(context.Context) (Resource, error)
 
 // Options configure one PostgreSQL lifecycle adapter.
+//
 // Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 type Options struct {
 	// Name is the secret-safe component and readiness-check name.
 	Name string
 	// Construct acquires an adapter-owned pool during component startup.
 	Construct Constructor
-	// Pool supplies an existing pool.
+	// Pool supplies an existing pool; ownership stays with the caller unless
+	// transferred.
 	Pool Resource
 	// TransferOwnership closes Pool during shutdown and failed startup.
 	TransferOwnership bool
@@ -48,9 +61,12 @@ type Options struct {
 }
 
 // OptionsError identifies a rejected option.
+//
 // Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 type OptionsError struct {
-	Field  string
+	// Field names the rejected option.
+	Field string
+	// Reason describes the option refusal without echoing the supplied pool or name.
 	Reason string
 }
 
@@ -63,10 +79,14 @@ func (err *OptionsError) Error() string {
 func (err *OptionsError) Unwrap() error { return ErrInvalidOptions }
 
 // StartupError preserves validation and cleanup failures.
+//
 // Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 type StartupError struct {
+	// Validation is the original failed startup ping; inspect under your
+	// privacy policy.
 	Validation error
-	Cleanup    error
+	// Cleanup is an owned resource close failure; nil does not add a second cause.
+	Cleanup error
 }
 
 // Error returns a secret-safe startup diagnostic.
@@ -90,6 +110,7 @@ func (err *StartupError) Unwrap() []error {
 
 // Adapter preserves released type identity while delegating behavior to the
 // canonical service adapter.
+//
 // Deprecated: import github.com/faustbrian/go-postgres/v2/adapters/service.
 type Adapter struct {
 	delegate *canonical.Adapter
@@ -141,14 +162,20 @@ func (adapter *Adapter) Component() service.Component {
 	return component
 }
 
-// Pool returns the current pool after successful component startup.
+// Pool returns a borrowed resource and whether startup succeeded without stopping.
+// The bool is a lifecycle snapshot, not a lease preventing concurrent shutdown;
+// the resource may remain non-nil when inactive. Do not close an adapter-owned
+// resource independently.
 func (adapter *Adapter) Pool() (Resource, bool) {
 	resource, active := adapter.delegate.Pool()
 
 	return resource, active
 }
 
-// Readiness returns an opt-in dependency check for the active pool.
+// Readiness returns an opt-in dependency check for the active pool. It must be
+// added to the service plan separately; it does not enable startup validation.
+// Inactive resources return ErrUnavailable without Ping. Active resources retain
+// their own context bounds and may race with shutdown after the state snapshot.
 func (adapter *Adapter) Readiness() service.ReadinessCheck {
 	check := adapter.delegate.Readiness()
 	run := check.Run

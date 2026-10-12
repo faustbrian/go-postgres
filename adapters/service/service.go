@@ -1,7 +1,9 @@
 // Package postgresservice adapts PostgreSQL pools to the service lifecycle.
 // Constructor results are owned by the adapter. Existing pools remain shared
 // unless ownership is explicitly transferred. The adapter performs no retries,
-// closes owned pools exactly once, and never closes shared pools.
+// closes active owned pools once per ordered service lifecycle, and never closes
+// shared pools. Startup validation failure attempts owned cleanup separately;
+// custom Resource callbacks retain their own context and concurrency contracts.
 package postgresservice
 
 import (
@@ -24,12 +26,16 @@ var (
 
 // Resource is the lifecycle surface required from a PostgreSQL pool.
 type Resource interface {
+	// Ping checks connectivity using the service-supplied operation context.
 	Ping(context.Context) error
+	// Close releases owned resources; implementations must honor their context
+	// cooperatively.
 	Close(context.Context) error
 }
 
 // Constructor acquires a pool whose ownership transfers after a successful
-// return.
+// return. On an error the adapter does not close a partially returned resource;
+// the constructor must clean up its own failed acquisition.
 type Constructor func(context.Context) (Resource, error)
 
 // Options configure one PostgreSQL lifecycle adapter.
@@ -49,7 +55,9 @@ type Options struct {
 
 // OptionsError identifies one rejected option.
 type OptionsError struct {
-	Field  string
+	// Field names the rejected option.
+	Field string
+	// Reason describes the option refusal without echoing the supplied pool or name.
 	Reason string
 }
 
@@ -63,8 +71,11 @@ func (err *OptionsError) Unwrap() error { return ErrInvalidOptions }
 
 // StartupError preserves validation and partial-cleanup failures.
 type StartupError struct {
+	// Validation is the original failed startup ping; inspect under your
+	// privacy policy.
 	Validation error
-	Cleanup    error
+	// Cleanup is an owned resource close failure; nil does not add a second cause.
+	Cleanup error
 }
 
 // Error returns a secret-safe startup diagnostic.
@@ -84,7 +95,10 @@ func (err *StartupError) Unwrap() []error {
 	return causes
 }
 
-// Adapter owns the lifecycle state for one PostgreSQL pool.
+// Adapter owns the lifecycle state for one ordered PostgreSQL pool lifecycle.
+// Construct it with New and do not copy it after use. Pool snapshots are
+// synchronized; native resource operations must tolerate service probes and
+// shutdown. Start must not be concurrent or repeated as a restart mechanism.
 type Adapter struct {
 	name      string
 	construct Constructor
@@ -99,7 +113,9 @@ type Adapter struct {
 	stopErr  error
 }
 
-// New validates and constructs an inert adapter.
+// New validates exactly one Pool or Construct and constructs an inert adapter.
+// Resource acquisition is deferred to Component.Start. Use one ordered service
+// lifecycle; this adapter is not a restartable pool factory.
 func New(options Options) (*Adapter, error) {
 	if strings.TrimSpace(options.Name) == "" {
 		return nil, &OptionsError{Field: "Name", Reason: "must not be blank"}
@@ -116,19 +132,27 @@ func New(options Options) (*Adapter, error) {
 	}, nil
 }
 
-// Component returns the ordered service lifecycle component.
+// Component returns the callbacks for one ordered startup/shutdown cycle.
+// Construct and optional Ping run synchronously; Stop marks the adapter inactive
+// and attempts owned Close once, retaining any close error for later Stop calls.
 func (adapter *Adapter) Component() service.Component {
 	return service.Component{Name: adapter.name, Start: adapter.start, Stop: adapter.stop}
 }
 
-// Pool returns the current pool after successful component startup.
+// Pool returns a borrowed resource and whether startup succeeded without stopping.
+// The bool is a lifecycle snapshot, not a lease preventing concurrent shutdown;
+// the resource may remain non-nil when inactive. Do not close an adapter-owned
+// resource independently.
 func (adapter *Adapter) Pool() (Resource, bool) {
 	adapter.mu.RLock()
 	defer adapter.mu.RUnlock()
 	return adapter.resource, adapter.active
 }
 
-// Readiness returns an opt-in dependency check for the active pool.
+// Readiness returns an opt-in dependency check for the active pool. It must be
+// added to the service plan separately; it does not enable startup validation.
+// Inactive resources return ErrUnavailable without Ping. Active resources retain
+// their own context bounds and may race with shutdown after the state snapshot.
 func (adapter *Adapter) Readiness() service.ReadinessCheck {
 	return service.ReadinessCheck{Name: adapter.name, Run: func(ctx context.Context) error {
 		resource, ok := adapter.Pool()
@@ -168,6 +192,7 @@ func (adapter *Adapter) start(ctx context.Context) error {
 }
 
 func (adapter *Adapter) stop(ctx context.Context) error {
+	// Closing admission does not revoke a resource already borrowed by a reader.
 	adapter.stopOnce.Do(func() {
 		adapter.mu.Lock()
 		resource := adapter.resource

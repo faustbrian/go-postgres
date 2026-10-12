@@ -10,6 +10,8 @@ import (
 
 var _ postgresservice.Resource = (*postgres.Pool)(nil)
 
+// ExampleNew preserves the released adapter path with a fake Resource; new
+// consumers should use adapters/service for the same lifecycle contract.
 func ExampleNew() {
 	pool := &resource{}
 	adapter, err := postgresservice.New(postgresservice.Options{

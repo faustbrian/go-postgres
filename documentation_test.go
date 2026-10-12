@@ -10,6 +10,8 @@ import (
 	"testing"
 )
 
+// This native check covers exported declaration presence, not member semantics
+// or executable examples. The source audit separately includes examples and fields.
 func TestExportedSymbolsHaveGoDocumentation(t *testing.T) {
 	t.Parallel()
 
