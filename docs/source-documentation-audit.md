@@ -204,3 +204,12 @@ No unresolved rationale question required an invented guarantee. Live database,
 container, hosted-only admission, server-major matrix, race/leak, active fuzz,
 benchmark, external CI and publication were not executed for this unchanged
 runtime. Unchanged behavior evidence remains bounded to its original producers.
+
+## Objective Enforcement
+
+The checksum-pinned public Tools v2.4.0 verifier now supplies
+`make source-docs-check` as a prerequisite of the existing local and CI Make
+routes. Ordinary shared CI selects strict source-documentation checking and
+requires its result. Native prerequisites, operation budgets, security and
+release controls are retained. Hosted exact-head evidence is recorded by the
+coordination ledger; configuration alone does not establish green delivery.
