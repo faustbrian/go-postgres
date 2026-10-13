@@ -1,5 +1,7 @@
 # Testing with Testcontainers
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 Use `postgrestest` when behavior depends on SQLSTATE, isolation, locking,
 constraints, cancellation, session state, pool saturation, or connection loss.
 A fake is not equivalent evidence.
@@ -73,3 +75,6 @@ Transaction-isolated tests are appropriate only when code does not commit,
 open additional connections, use non-transactional DDL, or depend on session
 state outside the test transaction. Otherwise create isolated schema/database
 fixtures and clean them explicitly.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

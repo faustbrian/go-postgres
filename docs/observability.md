@@ -1,5 +1,7 @@
 # Observability and redaction
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 `Observation` contains only fixed operation, outcome, duration, classification,
 SQLSTATE, and pool gauges. It has no field for SQL, arguments, DSNs, raw errors,
 details, hints, arbitrary labels, or query names. Package delivery recovers
@@ -68,3 +70,6 @@ compatibility audit; it remains optional and is not pulled into this module's
 dependency graph.
 
 The legacy `otelpostgres` path remains a deprecated compatibility facade.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

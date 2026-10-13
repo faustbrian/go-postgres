@@ -1,5 +1,7 @@
 # Repository standards
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 - `make inventory`, `make cohesion`, `make repository-check`, `make check`, and
   `make ci` are the maintained bounded entry points. `make check-full` and
   release rehearsal select the full contract explicitly.
@@ -13,3 +15,6 @@
 - Documentation, changelog, compatibility, and security contracts change with
   public behavior.
 - Commits are Conventional Commits with an explanatory body.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

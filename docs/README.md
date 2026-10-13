@@ -1,5 +1,7 @@
 # Documentation
 
+[Repository entry](../README.md) · [Versioned ecosystem](https://github.com/faustbrian/go-library-tools/blob/v1.4.0/docs/ecosystem/README.md)
+
 ## Getting started
 
 - [Quickstart](quickstart.md)
@@ -43,3 +45,27 @@
 
 - [Versioned Golib ecosystem index](https://github.com/faustbrian/go-library-tools/blob/v1.4.0/docs/ecosystem/README.md)
 - [Persistence and durability family](https://github.com/faustbrian/go-library-tools/blob/v1.4.0/docs/ecosystem/design-language.md#package-families-and-selection)
+
+## Complete documentation map
+
+- [API reference](api.md) — `docs/api.md`
+- [Architecture and ownership](architecture.md) — `docs/architecture.md`
+- [Compatibility matrix](compatibility.md) — `docs/compatibility.md`
+- [SQLSTATE and error classification](errors.md) — `docs/errors.md`
+- [Operational FAQ](faq.md) — `docs/faq.md`
+- [Kubernetes deployment](kubernetes.md) — `docs/kubernetes.md`
+- [Migration from direct pgx and database/sql](migration.md) — `docs/migration.md`
+- [migrations integration](migrations.md) — `docs/migrations.md`
+- [Observability and redaction](observability.md) — `docs/observability.md`
+- [Package map](package-map.md) — `docs/package-map.md`
+- [Performance](performance.md) — `docs/performance.md`
+- [Pool construction and lifecycle](pool-and-lifecycle.md) — `docs/pool-and-lifecycle.md`
+- [Quickstart](quickstart.md) — `docs/quickstart.md`
+- [Release process](releasing.md) — `docs/releasing.md`
+- [Repository standards](repository-standards.md) — `docs/repository-standards.md`
+- [Security and threat model](security.md) — `docs/security.md`
+- [Source documentation audit](source-documentation-audit.md) — `docs/source-documentation-audit.md`
+- [sqlc integration](sqlc.md) — `docs/sqlc.md`
+- [Testing with Testcontainers](testing.md) — `docs/testing.md`
+- [TLS](tls.md) — `docs/tls.md`
+- [Transactions and savepoints](transactions.md) — `docs/transactions.md`

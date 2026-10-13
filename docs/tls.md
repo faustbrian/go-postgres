@@ -1,5 +1,7 @@
 # TLS
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 PostgreSQL TLS has two separate goals: encrypting traffic and authenticating
 the server. Production deployments normally need both.
 
@@ -29,3 +31,6 @@ the public error string.
 Certificate files are loaded by the application so secret delivery, rotation,
 permissions, and reload policy remain explicit. Never log a DSN, private key,
 client certificate secret, or full `tls.Config`.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

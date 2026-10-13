@@ -1,5 +1,7 @@
 # sqlc integration
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 Generated pgx/v5 code usually exposes a `DBTX` interface and
 `Queries.WithTx(pgx.Tx)`. `Pool.Raw()` satisfies generated query methods, and
 the transaction callback receives the exact native `pgx.Tx` expected by
@@ -36,3 +38,6 @@ account, err := queries.LockAccount(queryCtx, accountID)
 
 Only names present in the tracer's finite `Operations` allow-list are emitted;
 unknown names collapse to its fixed default.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

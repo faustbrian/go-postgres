@@ -1,5 +1,7 @@
 # Operational FAQ
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 ## The pool is saturated
 
 Check acquired versus maximum connections, empty-acquire count and wait time,
@@ -58,3 +60,6 @@ Confirm the server actually accepts TLS, the copied root pool trusts its
 certificate, and `ServerName` matches its identity. `TLSRequire` intentionally
 does not fall back to plaintext. Authentication and TLS failures are separate;
 do not weaken certificate verification to diagnose a password or role problem.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

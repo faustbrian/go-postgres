@@ -1,5 +1,7 @@
 # Compatibility matrix
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 | Component | Supported | Verification |
 | --- | --- | --- |
 | Go | 1.27.0 | repository, race, and clean-consumer gates |
@@ -29,3 +31,6 @@ The current pgx hook audit covers `BeforeConnect`, `AfterConnect`,
 Only PostgreSQL is supported. CockroachDB, YugabyteDB, proxies, and poolers may
 implement overlapping protocols but require their own explicit evidence and
 are not implied by this matrix.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

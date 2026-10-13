@@ -1,5 +1,7 @@
 # Release process
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 The root's current major is `github.com/faustbrian/go-postgres/v2`, tagged `v2.x.y`
 from main without a version-specific source directory. The v1 API archive is
 historical; the v2 archive characterizes the new nominal boundary. Publish the
@@ -35,3 +37,6 @@ installation and disposable-cache sessions.
 
 Never move or force-update a published tag. A pgx or PostgreSQL support change
 requires explicit compatibility evidence before release.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

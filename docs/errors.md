@@ -1,5 +1,7 @@
 # SQLSTATE and error classification
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 | Classification | SQLSTATE or Go error | Retry advice |
 | --- | --- | --- |
 | unique violation | `23505` | fix input or idempotency decision |
@@ -30,3 +32,6 @@ Only SQLSTATE and explicitly bounded classification fields are safe telemetry
 defaults. PostgreSQL `Message`, `Detail`, and `Hint` can contain data values.
 Constraint and table names may also reveal internal schema design; apply the
 application's disclosure policy before returning or logging them.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

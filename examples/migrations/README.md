@@ -1,5 +1,7 @@
 # Migration job
 
+[Documentation index](../../docs/README.md) · [Repository entry](../../README.md)
+
 This executable combines `postgres`, pgx's `database/sql` bridge, and
 `migrations`. It plans and applies embedded migrations once as a dedicated
 deployment job:
@@ -17,3 +19,6 @@ deployment images with an explicit output path such as
 Do not run migrations implicitly during service startup. Supply a dedicated
 DDL identity and review the plan, locks, statement timeout, and rollback
 strategy before deploying a migration.
+
+Choose the next guide in the [documentation index](../../docs/README.md)
+or return to the [repository entry](../../README.md) for installation and ownership.

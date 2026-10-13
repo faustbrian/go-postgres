@@ -1,5 +1,7 @@
 # Performance
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 Benchmarks report allocations for configuration parsing, classification, pool
 construction, acquisition wrapper overhead, transaction runner overhead,
 observer dispatch, the OpenTelemetry adapter, real pooled acquire, and real
@@ -41,3 +43,6 @@ TLS, server execution, locks, rows, codecs, and exporter work normally dominate
 these helpers. Keep telemetry labels bounded, avoid unnecessary parsing on hot
 paths, reuse the pool, and do not trade cancellation or cleanup safety for a
 microbenchmark improvement.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

@@ -1,5 +1,7 @@
 # Pool construction and lifecycle
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 ## Connection strings
 
 `ParseConfig` requires an explicit application resolver; the library does not
@@ -96,3 +98,6 @@ continues in one background goroutine, and later callers observe the same
 terminal result. `Close` delegates to `Shutdown`. Stop accepting work, cancel
 workers, wait for handlers, then shut down the pool. Returning borrowed
 connections is mandatory.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

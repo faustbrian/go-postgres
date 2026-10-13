@@ -1,5 +1,7 @@
 # Architecture and ownership
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 The module sits above pgx and below application repositories or generated
 queries:
 
@@ -31,3 +33,6 @@ There is no global pool. Construct dependencies at process startup and inject
 `pool.Raw()`, a narrow application interface, or generated `sqlc.Queries`.
 Configuration hooks intentionally expose native pgx so this package never has
 to mirror every upstream extension point.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

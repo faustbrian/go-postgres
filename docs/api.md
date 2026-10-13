@@ -1,5 +1,7 @@
 # API reference
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 The authoritative signature reference is `go doc`; this page describes the
 stability and behavior of each public surface.
 
@@ -93,3 +95,6 @@ resource retains its own ping and shutdown bounds.
 
 The `postgresservice` and `otelpostgres` paths remain deprecated compatibility
 facades for `adapters/service` and `adapters/otel`.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

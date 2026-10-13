@@ -1,5 +1,7 @@
 # Migration from direct pgx and database/sql
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 ## v1 to v2 safe configuration
 
 Published v2.0.0 uses `github.com/faustbrian/go-postgres/v2` on main, not a new
@@ -101,3 +103,6 @@ large pools per replica longer than needed during migration.
 with `postgrestest.Open` and `Database.Shutdown`. New integrations should import
 `adapters/otel` and `adapters/service`; the `otelpostgres` and
 `postgresservice` paths remain deprecated compatibility facades.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

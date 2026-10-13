@@ -1,5 +1,7 @@
 # Kubernetes deployment
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 ## Service lifecycle
 
 Use `StartupPing` so startup fails before the Pod becomes ready. A readiness
@@ -32,3 +34,6 @@ recycling.
 Run migrations as the dedicated Job in
 [`examples/kubernetes/migration-job.yaml`](../examples/kubernetes/migration-job.yaml),
 not in every application replica.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

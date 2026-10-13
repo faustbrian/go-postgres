@@ -1,5 +1,7 @@
 # Transactions and savepoints
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 `RunTransaction` accepts any native pgx `BeginTx` implementation and embeds
 `pgx.TxOptions`, including isolation, access mode, and deferrability.
 
@@ -49,3 +51,6 @@ transaction.
 
 Keep transactions short. Never wait for user input or remote services while
 holding locks. Always pass the operation context to every pgx call.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

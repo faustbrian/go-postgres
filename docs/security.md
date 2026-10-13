@@ -1,5 +1,7 @@
 # Security and threat model
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 Model version: 2.0.0. Reviewed: 2026-10-07. Owner: repository maintainer.
 Scope: the root `github.com/faustbrian/go-postgres/v2` module and its canonical
 and retained telemetry adapters. Published v2.0.0 binds source
@@ -106,3 +108,6 @@ Private reports follow [the security policy](../SECURITY.md); critical or high
 findings cannot be accepted into a passing release verdict. A medium finding
 needs its own evidence-backed, time-bounded disposition; this boundary table
 does not waive a confirmed vulnerability.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

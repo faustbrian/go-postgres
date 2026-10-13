@@ -1,5 +1,7 @@
 # Quickstart
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 Install the module and create one application-owned pool:
 
 ```sh
@@ -66,3 +68,6 @@ Read [TLS](tls.md), [pool lifecycle](pool-and-lifecycle.md), and
 compiler-built examples cover [workers](../examples/worker/main.go),
 [sqlc](../examples/sqlc/main.go), and a dedicated
 [migration job](../examples/migrations/README.md).
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.

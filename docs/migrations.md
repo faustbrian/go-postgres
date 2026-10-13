@@ -1,5 +1,7 @@
 # migrations integration
 
+[Documentation index](README.md) · [Repository entry](../README.md)
+
 `postgres` does not run migrations during service startup. Schema changes
 have different locking, permissions, rollout, and failure semantics from
 ordinary application traffic and should be executed as an explicit deployment
@@ -24,3 +26,6 @@ The [Kubernetes migration Job](../examples/kubernetes/migration-job.yaml) runs
 that dedicated command with a secret reference, deadline, and no automatic retry.
 Tune retry policy to the migration tool's advisory-lock and idempotency
 contracts.
+
+Choose the next guide in the [documentation index](README.md)
+or return to the [repository entry](../README.md) for installation and ownership.
