@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "repository": "github.com/faustbrian/go-postgres",
+  "module": ".",
+  "package": "internal/telemetry",
+  "gate": "mutation",
+  "input_digest": "sha256:0b5ba1ee74e7c16ad60384e4387f4c8eccf4ef1c23d5bfdd91dd165af402573b",
+  "verifier_digest": "sha256:390cf4085a0063fe5dcaa29ce942ea4cb8c7876347da90376b65dc8c5c811104",
+  "result": "passed",
+  "report_digest": "sha256:34e9d16aa5315ddf3ea517e57c5de010fc92d1b67ecb115dda10be87e887715f",
+  "environment": {
+    "CGO_ENABLED": "1",
+    "GOARCH": "arm64",
+    "GOOS": "darwin",
+    "GOVERSION": "go1.27.2",
+    "gremlins_binary_sha256": "sha256:520abfa224dd544a3e959985a36611b930d37a69ec77fb3ad14b57caa392d7eb"
+  },
+  "completed_at": "2026-10-15T05:54:21.172742Z"
+}

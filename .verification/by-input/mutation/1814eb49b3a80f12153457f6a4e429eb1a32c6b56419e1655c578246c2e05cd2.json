@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "repository": "github.com/faustbrian/go-postgres",
+  "module": ".",
+  "package": "adapters/otel",
+  "gate": "mutation",
+  "input_digest": "sha256:1814eb49b3a80f12153457f6a4e429eb1a32c6b56419e1655c578246c2e05cd2",
+  "verifier_digest": "sha256:390cf4085a0063fe5dcaa29ce942ea4cb8c7876347da90376b65dc8c5c811104",
+  "result": "passed",
+  "report_digest": "sha256:08e78deab8b2182e62fbf90fb07efc36df4b98c511f0dda9eff1838e627d8b21",
+  "environment": {
+    "CGO_ENABLED": "1",
+    "GOARCH": "arm64",
+    "GOOS": "darwin",
+    "GOVERSION": "go1.27.2",
+    "gremlins_binary_sha256": "sha256:520abfa224dd544a3e959985a36611b930d37a69ec77fb3ad14b57caa392d7eb"
+  },
+  "completed_at": "2026-10-15T05:53:05.501576Z"
+}
