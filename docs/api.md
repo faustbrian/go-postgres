@@ -89,6 +89,11 @@ optional, readiness is opt-in through `Adapter.Readiness`, partial startup
 failure closes only owned resources, and repeated shutdown closes an owned
 resource once.
 
+`Component` and `Readiness` retain their Service v1 types. For
+`github.com/faustbrian/go-service/v2`, use `ComponentV2` and `ReadinessV2`.
+These bind the same adapter and callbacks, not a second resource lifecycle.
+Register only one component per adapter; neither binding supports restart.
+
 The adapter adds no retry policy and does not change PostgreSQL error
 classification. Caller and service contexts remain observable, while the
 resource retains its own ping and shutdown bounds.

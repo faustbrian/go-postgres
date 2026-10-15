@@ -5,6 +5,14 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-15
+
+### Added
+
+- Add `ComponentV2` and `ReadinessV2` to the canonical service adapter for
+  native Service v2 composition. Existing Service v1 bindings remain supported;
+  both bindings share the same pool ownership, readiness and cleanup lifecycle.
+
 ### Changed
 
 - Clarify native pool borrowing and caller-bounded shutdown, transaction commit
