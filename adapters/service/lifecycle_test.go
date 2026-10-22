@@ -7,16 +7,18 @@ import (
 	"sync/atomic"
 	"testing"
 
-	postgresservice "github.com/faustbrian/go-postgres/v2/adapters/service"
+	postgres "github.com/faustbrian/go-postgres/v3"
+	postgresservice "github.com/faustbrian/go-postgres/v3/adapters/service"
 	service "github.com/faustbrian/go-service/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func TestServiceV2PreservesPoolOwnershipAndReadiness(t *testing.T) {
+func TestServicePreservesPoolOwnershipAndReadiness(t *testing.T) {
 	for _, ownership := range []string{"borrowed", "transferred", "constructed"} {
 		t.Run(ownership, func(t *testing.T) {
 			var pings, closes atomic.Int32
 			closeErr := errors.New("close failed")
-			pool := &v2Resource{
+			pool := &lifecycleResource{
 				ping:  func(ctx context.Context) error { pings.Add(1); return ctx.Err() },
 				close: func(context.Context) error { closes.Add(1); return closeErr },
 			}
@@ -37,14 +39,14 @@ func TestServiceV2PreservesPoolOwnershipAndReadiness(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			check := adapter.ReadinessV2()
+			check := adapter.Readiness()
 			if check.Name != "database" {
 				t.Fatalf("readiness name = %q", check.Name)
 			}
 			if err := check.Run(context.Background()); !errors.Is(err, postgresservice.ErrUnavailable) || pings.Load() != 0 {
 				t.Fatalf("inactive readiness = %v, pings = %d", err, pings.Load())
 			}
-			runtime, err := service.New(service.Config{Components: []service.Component{adapter.ComponentV2()}})
+			runtime, err := service.New(service.Config{Components: []service.Component{adapter.Component()}})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -73,7 +75,7 @@ func TestServiceV2PreservesPoolOwnershipAndReadiness(t *testing.T) {
 			var callers sync.WaitGroup
 			for range 8 {
 				callers.Go(func() {
-					err := adapter.ComponentV2().Stop(context.Background())
+					err := adapter.Component().Stop(context.Background())
 					if (owned && !errors.Is(err, closeErr)) || (!owned && err != nil) {
 						t.Errorf("repeated stop = %v", err)
 					}
@@ -95,13 +97,13 @@ func TestServiceV2PreservesPoolOwnershipAndReadiness(t *testing.T) {
 	}
 }
 
-func TestServiceV2StartupFailurePreservesCleanupCauses(t *testing.T) {
+func TestServiceStartupFailurePreservesCleanupCauses(t *testing.T) {
 	pingErr, closeErr := errors.New("ping failed"), errors.New("cleanup failed")
 	closes := 0
 	adapter, err := postgresservice.New(postgresservice.Options{
 		Name: "database", StartupPing: true,
 		Construct: func(context.Context) (postgresservice.Resource, error) {
-			return &v2Resource{
+			return &lifecycleResource{
 				ping:  func(context.Context) error { return pingErr },
 				close: func(context.Context) error { closes++; return closeErr },
 			}, nil
@@ -110,7 +112,7 @@ func TestServiceV2StartupFailurePreservesCleanupCauses(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	runtime, err := service.New(service.Config{Components: []service.Component{adapter.ComponentV2()}})
+	runtime, err := service.New(service.Config{Components: []service.Component{adapter.Component()}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -128,39 +130,80 @@ func TestServiceV2StartupFailurePreservesCleanupCauses(t *testing.T) {
 	}
 }
 
-func TestServiceV1AndV2HooksShareOnePoolLifecycle(t *testing.T) {
-	closes := 0
-	adapter, err := postgresservice.New(postgresservice.Options{
-		Name: "database", TransferOwnership: true,
-		Pool: &v2Resource{ping: func(context.Context) error { return nil }, close: func(context.Context) error { closes++; return nil }},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := adapter.Component().Start(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	if err := adapter.ReadinessV2().Run(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	if err := adapter.ComponentV2().Stop(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	if err := adapter.Component().Stop(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	if closes != 1 {
-		t.Fatalf("shared lifecycle closes = %d", closes)
-	}
-	if err := adapter.Readiness().Run(context.Background()); !errors.Is(err, postgresservice.ErrUnavailable) {
-		t.Fatalf("v1 readiness = %v", err)
-	}
-}
-
-type v2Resource struct {
+type lifecycleResource struct {
 	ping  func(context.Context) error
 	close func(context.Context) error
 }
 
-func (r *v2Resource) Ping(ctx context.Context) error  { return r.ping(ctx) }
-func (r *v2Resource) Close(ctx context.Context) error { return r.close(ctx) }
+func (r *lifecycleResource) Ping(ctx context.Context) error     { return r.ping(ctx) }
+func (r *lifecycleResource) Shutdown(ctx context.Context) error { return r.close(ctx) }
+
+func TestServiceStopPassesServiceContextToOwnedShutdown(t *testing.T) {
+	adapter, err := postgresservice.New(postgresservice.Options{
+		Name: "database", TransferOwnership: true,
+		Pool: &lifecycleResource{
+			ping:  func(context.Context) error { return nil },
+			close: func(ctx context.Context) error { return ctx.Err() },
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	component := adapter.Component()
+	if err := component.Start(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := component.Stop(ctx); !errors.Is(err, context.Canceled) {
+		t.Fatalf("stop error = %v, want the service context cancellation", err)
+	}
+}
+
+func TestServiceOwnsOnlyTransferredNativePools(t *testing.T) {
+	for _, transfer := range []bool{false, true} {
+		pool, err := postgres.Connect(context.Background(), postgres.Config{
+			DSN:           "postgres://localhost/app?sslmode=disable",
+			StartupPolicy: postgres.StartupLazy,
+			ResolveDSN: func(_ context.Context, dsn string) (*postgres.PoolConfig, error) {
+				return pgxpool.ParseConfig(dsn)
+			},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		adapter, err := postgresservice.New(postgresservice.Options{Name: "database", Pool: pool, TransferOwnership: transfer})
+		if err != nil {
+			t.Fatal(err)
+		}
+		runtime, err := service.New(service.Config{Components: []service.Component{adapter.Component()}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := runtime.Start(context.Background()); err != nil {
+			t.Fatal(err)
+		}
+		if err := runtime.Shutdown(context.Background()); err != nil {
+			t.Fatalf("transfer=%t shutdown = %v", transfer, err)
+		}
+		if err := adapter.Component().Stop(context.Background()); err != nil {
+			t.Fatalf("transfer=%t repeated stop = %v", transfer, err)
+		}
+		liveness := pool.Liveness()
+		if transfer {
+			if liveness.Ready || !errors.Is(liveness.Err, postgres.ErrPoolClosed) {
+				t.Fatalf("transferred pool liveness = %+v, want closed", liveness)
+			}
+			if err := pool.Ping(context.Background()); !errors.Is(err, postgres.ErrPoolClosed) {
+				t.Fatalf("transferred pool ping = %v, want ErrPoolClosed", err)
+			}
+			continue
+		}
+		if !liveness.Ready {
+			t.Fatalf("borrowed pool liveness = %+v, want open", liveness)
+		}
+		if err := pool.Shutdown(context.Background()); err != nil {
+			t.Fatal(err)
+		}
+	}
+}

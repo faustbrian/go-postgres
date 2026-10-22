@@ -28,11 +28,11 @@ err := postgres.RunTransaction(ctx, pool.Raw(), postgres.TransactionOptions{},
 Do not add an adapter around every generated method. Keep the generated query
 API and pgx types visible. For telemetry query names, use trusted static names
 from generated methods or caller code and configure the allow-list in
-`telemetry/instrumentation/gopostgres`; never derive metric labels from SQL,
+`github.com/faustbrian/go-telemetry/v3/instrumentation/postgres`; never derive metric labels from SQL,
 arguments, tenant IDs, or unbounded request input.
 
 ```go
-queryCtx := gopostgres.ContextWithOperation(ctx, "accounts.lock")
+queryCtx := telemetrypostgres.ContextWithOperation(ctx, "accounts.lock")
 account, err := queries.LockAccount(queryCtx, accountID)
 ```
 

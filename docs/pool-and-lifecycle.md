@@ -4,7 +4,7 @@
 
 ## Connection strings
 
-`ParseConfig` requires an explicit application resolver; the library does not
+`PrepareConfig` requires an explicit application resolver; the library does not
 parse PostgreSQL strings or acquire ambient defaults. Native-parser hosted
 controls include percent-encoded credentials,
 quoted keyword values, IPv6, Unix sockets, and multi-host fallback lists. The
@@ -31,8 +31,7 @@ request or job context.
 
 Use `Connect(ctx, config)` for resource acquisition. A nil context returns
 `ErrContextRequired`, and an already-canceled context returns its cause before
-configuration callbacks or pool construction. `New` remains a compatibility
-delegate.
+configuration callbacks or pool construction.
 
 `StartupPing` explicitly requests a check of DNS, transport, TLS, authentication,
 server acceptance, session initialization, and one pool acquisition before the

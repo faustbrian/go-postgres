@@ -25,7 +25,7 @@ api:
   baselines:
     - module: .
       mode: apidiff
-      path: api/v2.export
+      path: api/v3.export
 
 operations:
   - module: .

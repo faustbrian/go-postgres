@@ -5,12 +5,11 @@
 | Component | Supported | Verification |
 | --- | --- | --- |
 | Go | 1.27.0 | repository, race, and clean-consumer gates |
-| pgx | 5.11.x for root v2 | pinned module build, tests, API review; published-v1 migration example remains separate |
+| pgx | 5.11.x for root v3 | pinned module build, tests, API review |
 | PostgreSQL | 14, 15, 16, 17, 18 | Testcontainers matrix covering failure semantics and every transaction-mode combination |
-| OpenTelemetry Go | API/metric 1.47.0; SDK 1.45.0 | `adapters/otel` and `otelpostgres` compatibility tests |
+| OpenTelemetry Go | API/metric 1.47.0; SDK 1.45.0 | `adapters/otel` SDK collection tests |
 | Testcontainers Go | 0.44.x | integration and lifecycle tests |
-| Service | v1 `Component`/`Readiness`; v2 `ComponentV2`/`ReadinessV2` | native lifecycle, ownership, readiness and cleanup composition tests |
-| telemetry `gopostgres` | aligned pgx 5.10.x / OTel 1.44.x | independent query-tracer package test |
+| Service | v2 `Component`/`Readiness` | native lifecycle, ownership, readiness and cleanup composition tests |
 
 The PostgreSQL range follows the upstream pgx policy at the time of the first
 release. Changing the minimum or maximum supported major requires a changelog
@@ -22,10 +21,7 @@ interfaces, then running `make check` and every PostgreSQL major job. The
 module exposes native pgx types, so upstream additions are available directly;
 upstream removals or behavioral changes may still require a major release here.
 pgx 5.11 adds `Rows.TypeMap() *pgtype.Map`; callers implementing the native Rows
-interface must implement that method. Root v2 adopts this upstream contract.
-The migration example also selects pgx 5.11.0 while retaining the separately
-published `go-postgres` v1.1.0 dependency; it does not exercise root v2 through
-a workspace replacement.
+interface must implement that method. The root module adopts this upstream contract.
 The current pgx hook audit covers `BeforeConnect`, `AfterConnect`,
 `PrepareConn`, and `AfterRelease`; other hooks retain native pgx ownership.
 

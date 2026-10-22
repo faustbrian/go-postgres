@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	postgres "github.com/faustbrian/go-postgres/v2"
+	postgres "github.com/faustbrian/go-postgres/v3"
 	metricapi "go.opentelemetry.io/otel/metric"
 	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/sdk/metric"
@@ -61,12 +61,12 @@ func TestObserverRecordsBoundedLifecycleMetrics(t *testing.T) {
 				}
 			case "db.client.operation.count":
 				sum, ok := instrument.Data.(metricdata.Sum[int64])
-				if !ok || len(sum.DataPoints) != 1 || sum.DataPoints[0].Value != 1 {
+				if !ok || instrument.Unit != "{operation}" || len(sum.DataPoints) != 1 || sum.DataPoints[0].Value != 1 {
 					t.Fatalf("operation count = %v, want one typed point of value 1", instrument)
 				}
 			case "db.client.connection.count":
 				gauge, ok := instrument.Data.(metricdata.Gauge[int64])
-				if !ok || len(gauge.DataPoints) != len(wantGauges) {
+				if !ok || instrument.Unit != "{connection}" || len(gauge.DataPoints) != len(wantGauges) {
 					t.Fatalf("connection gauge shape = %v", instrument)
 				}
 				for _, point := range gauge.DataPoints {
@@ -169,7 +169,7 @@ func TestNewUsesCanonicalInstrumentationScope(t *testing.T) {
 	if _, err := New(Config{MeterProvider: provider}); err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
-	if provider.scope != "github.com/faustbrian/go-postgres/adapters/otel" {
+	if provider.scope != "github.com/faustbrian/go-postgres/v3/adapters/otel" {
 		t.Fatalf("instrumentation scope = %q, want canonical package path", provider.scope)
 	}
 }

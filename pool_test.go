@@ -13,27 +13,27 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func TestNewFailFastDoesNotLeakCredentials(t *testing.T) {
+func TestConnectFailFastDoesNotLeakCredentials(t *testing.T) {
 	t.Parallel()
 
 	const password = "startup-secret-password"
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	_, err := New(ctx, Config{ResolveDSN: resolveHostedDSN, StartupPolicy: StartupPing,
+	_, err := Connect(ctx, Config{ResolveDSN: resolveHostedDSN, StartupPolicy: StartupPing,
 		DSN:            "postgres://app:" + password + "@127.0.0.1:1/app?sslmode=disable",
 		ConnectTimeout: 50 * time.Millisecond,
 		PingTimeout:    100 * time.Millisecond,
 	})
 	if err == nil {
-		t.Fatal("New() error = nil")
+		t.Fatal("Connect() error = nil")
 	}
 	if strings.Contains(err.Error(), password) {
-		t.Fatalf("New() error leaked password: %v", err)
+		t.Fatalf("Connect() error leaked password: %v", err)
 	}
 }
 
-func TestNewFailsBoundedlyAgainstWrongProtocolServer(t *testing.T) {
+func TestConnectFailsBoundedlyAgainstWrongProtocolServer(t *testing.T) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("Listen() error = %v", err)
@@ -54,7 +54,7 @@ func TestNewFailsBoundedlyAgainstWrongProtocolServer(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	started := time.Now()
-	_, err = New(ctx, Config{ResolveDSN: resolveHostedDSN, StartupPolicy: StartupPing,
+	_, err = Connect(ctx, Config{ResolveDSN: resolveHostedDSN, StartupPolicy: StartupPing,
 		DSN: fmt.Sprintf(
 			"postgres://app:wrong-server-secret@%s/app?sslmode=disable",
 			listener.Addr(),
@@ -63,10 +63,10 @@ func TestNewFailsBoundedlyAgainstWrongProtocolServer(t *testing.T) {
 		PingTimeout:    250 * time.Millisecond,
 	})
 	if err == nil {
-		t.Fatal("New() error = nil")
+		t.Fatal("Connect() error = nil")
 	}
 	if strings.Contains(err.Error(), "wrong-server-secret") {
-		t.Fatalf("New() error leaked password: %v", err)
+		t.Fatalf("Connect() error leaked password: %v", err)
 	}
 	if elapsed := time.Since(started); elapsed >= 2*time.Second {
 		t.Fatalf("wrong-server startup took %s", elapsed)
@@ -76,16 +76,16 @@ func TestNewFailsBoundedlyAgainstWrongProtocolServer(t *testing.T) {
 	<-done
 }
 
-func TestNewLazyExposesNativePool(t *testing.T) {
+func TestConnectLazyExposesNativePool(t *testing.T) {
 	t.Parallel()
 
-	pool, err := New(context.Background(), Config{ResolveDSN: resolveHostedDSN,
+	pool, err := Connect(context.Background(), Config{ResolveDSN: resolveHostedDSN,
 		DSN:           "postgres://localhost/app?sslmode=disable",
 		MaxConns:      7,
 		StartupPolicy: StartupLazy,
 	})
 	if err != nil {
-		t.Fatalf("New() error = %v", err)
+		t.Fatalf("Connect() error = %v", err)
 	}
 
 	if pool.Raw() == nil {
@@ -104,8 +104,8 @@ func TestNewLazyExposesNativePool(t *testing.T) {
 			pool.shutdownTimeout,
 		)
 	}
-	if err := pool.Close(context.Background()); err != nil {
-		t.Fatalf("Close() error = %v", err)
+	if err := pool.Shutdown(context.Background()); err != nil {
+		t.Fatalf("Shutdown() error = %v", err)
 	}
 }
 
@@ -197,14 +197,14 @@ func TestPoolCloseIsBoundedAndRunsUnderlyingCloseOnce(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	err := pool.Close(ctx)
+	err := pool.Shutdown(ctx)
 	if !errors.Is(err, ErrShutdownTimeout) {
-		t.Fatalf("Close() error = %v, want ErrShutdownTimeout", err)
+		t.Fatalf("Shutdown() error = %v, want ErrShutdownTimeout", err)
 	}
 	close(release)
 
-	if err := pool.Close(context.Background()); err != nil {
-		t.Fatalf("second Close() error = %v", err)
+	if err := pool.Shutdown(context.Background()); err != nil {
+		t.Fatalf("second Shutdown() error = %v", err)
 	}
 	if got := closes.Load(); got != 1 {
 		t.Fatalf("underlying close calls = %d, want 1", got)
@@ -252,17 +252,17 @@ func TestPoolLivenessDoesNotRequireDatabaseConnectivity(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	_ = pool.Close(ctx)
+	_ = pool.Shutdown(ctx)
 	if health := pool.Liveness(); health.Ready || !errors.Is(health.Err, ErrPoolClosed) {
 		t.Fatalf("Liveness() after close = %#v", health)
 	}
 	close(release)
 }
 
-func TestNewRejectsInvalidHookPolicyWithoutCredentials(t *testing.T) {
+func TestConnectRejectsInvalidHookPolicyWithoutCredentials(t *testing.T) {
 	t.Parallel()
 
-	_, err := New(context.Background(), Config{ResolveDSN: resolveHostedDSN,
+	_, err := Connect(context.Background(), Config{ResolveDSN: resolveHostedDSN,
 		DSN:           "postgres://app:secret@localhost/app?sslmode=disable",
 		StartupPolicy: StartupLazy,
 		Configure: func(_ context.Context, config *PoolConfig) error {
@@ -272,10 +272,10 @@ func TestNewRejectsInvalidHookPolicyWithoutCredentials(t *testing.T) {
 		},
 	})
 	if err == nil {
-		t.Fatal("New() error = nil")
+		t.Fatal("Connect() error = nil")
 	}
 	if strings.Contains(err.Error(), "secret") {
-		t.Fatalf("New() leaked credentials: %v", err)
+		t.Fatalf("Connect() leaked credentials: %v", err)
 	}
 	var configErr *ConfigError
 	if !errors.As(err, &configErr) || configErr.Field != "max_conns" {
@@ -286,13 +286,13 @@ func TestNewRejectsInvalidHookPolicyWithoutCredentials(t *testing.T) {
 	}
 }
 
-func TestNewReturnsConfigurationFailure(t *testing.T) {
+func TestConnectReturnsConfigurationFailure(t *testing.T) {
 	t.Parallel()
 
-	_, err := New(context.Background(), Config{ResolveDSN: resolveHostedDSN, StartupPolicy: StartupPing})
+	_, err := Connect(context.Background(), Config{ResolveDSN: resolveHostedDSN, StartupPolicy: StartupPing})
 	var configErr *ConfigError
 	if !errors.As(err, &configErr) {
-		t.Fatalf("New() error = %v, want ConfigError", err)
+		t.Fatalf("Connect() error = %v, want ConfigError", err)
 	}
 }
 
@@ -321,8 +321,8 @@ func TestConnectRejectsNilAndCanceledContextsBeforeConfiguration(t *testing.T) {
 	if got := configureCalls.Load(); got != 0 {
 		t.Fatalf("Configure calls = %d, want 0", got)
 	}
-	if _, err := New(nilContext, input); !errors.Is(err, ErrContextRequired) {
-		t.Fatalf("New(nil) error = %v, want ErrContextRequired", err)
+	if _, err := Connect(nilContext, input); !errors.Is(err, ErrContextRequired) {
+		t.Fatalf("Connect(nil) error = %v, want ErrContextRequired", err)
 	}
 }
 
@@ -363,9 +363,6 @@ func TestPoolShutdownRejectsNilWithoutClosingAdmission(t *testing.T) {
 	if err := pool.Shutdown(nilContext); !errors.Is(err, ErrContextRequired) {
 		t.Fatalf("Shutdown(nil) error = %v, want ErrContextRequired", err)
 	}
-	if err := pool.Close(nilContext); !errors.Is(err, ErrContextRequired) {
-		t.Fatalf("Close(nil) error = %v, want ErrContextRequired", err)
-	}
 	if pool.closed.Load() || closes.Load() != 0 {
 		t.Fatalf("nil shutdown changed state: closed=%t closes=%d", pool.closed.Load(), closes.Load())
 	}
@@ -397,8 +394,8 @@ func TestPoolShutdownUsesOneCleanupAndIndependentCallerBounds(t *testing.T) {
 	if err := <-done; err != nil {
 		t.Fatalf("concurrent Shutdown() error = %v", err)
 	}
-	if err := pool.Close(context.Background()); err != nil {
-		t.Fatalf("repeated Close() error = %v", err)
+	if err := pool.Shutdown(context.Background()); err != nil {
+		t.Fatalf("repeated Shutdown() error = %v", err)
 	}
 	if got := closes.Load(); got != 1 {
 		t.Fatalf("underlying close calls = %d, want 1", got)

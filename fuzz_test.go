@@ -98,7 +98,7 @@ func FuzzOptions(f *testing.F) {
 
 		child := &stubTx{}
 		parent := &stubTx{beginTx: child}
-		err = RunSavepointWithOptions(
+		err = RunSavepoint(
 			context.Background(),
 			parent,
 			SavepointOptions{CleanupTimeout: time.Duration(cleanupNanoseconds)},
@@ -106,7 +106,7 @@ func FuzzOptions(f *testing.F) {
 		)
 		if !errors.Is(err, callbackErr) || parent.begins != 1 || child.commits+child.rollbacks != 1 {
 			t.Fatalf(
-				"RunSavepointWithOptions() = error %v begins %d commit %d rollback %d",
+				"RunSavepoint() = error %v begins %d commit %d rollback %d",
 				err,
 				parent.begins,
 				child.commits,

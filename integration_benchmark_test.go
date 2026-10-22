@@ -6,19 +6,19 @@ import (
 	"context"
 	"testing"
 
-	postgres "github.com/faustbrian/go-postgres/v2"
+	postgres "github.com/faustbrian/go-postgres/v3"
 	"github.com/jackc/pgx/v5"
 )
 
 // These benchmarks require the tagged real-database fixture. They measure
 // actual acquisition/transaction work, unlike the untagged stub microbenchmarks.
 func BenchmarkPostgreSQLPoolAcquire(b *testing.B) {
-	pool, err := postgres.New(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 		DSN:      integrationDatabase.DSN(),
 		MaxConns: 4,
 	})
 	if err != nil {
-		b.Fatalf("New() error = %v", err)
+		b.Fatalf("Connect() error = %v", err)
 	}
 	defer closeBenchmarkPool(b, pool)
 	ctx := context.Background()
@@ -33,12 +33,12 @@ func BenchmarkPostgreSQLPoolAcquire(b *testing.B) {
 }
 
 func BenchmarkPostgreSQLTransaction(b *testing.B) {
-	pool, err := postgres.New(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 		DSN:      integrationDatabase.DSN(),
 		MaxConns: 4,
 	})
 	if err != nil {
-		b.Fatalf("New() error = %v", err)
+		b.Fatalf("Connect() error = %v", err)
 	}
 	defer closeBenchmarkPool(b, pool)
 	ctx := context.Background()
@@ -61,7 +61,7 @@ type testingTB interface {
 
 func closeBenchmarkPool(tb testingTB, pool *postgres.Pool) {
 	tb.Helper()
-	if err := pool.Close(context.Background()); err != nil {
-		tb.Errorf("Close() error = %v", err)
+	if err := pool.Shutdown(context.Background()); err != nil {
+		tb.Errorf("Shutdown() error = %v", err)
 	}
 }

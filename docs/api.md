@@ -14,21 +14,19 @@ stability and behavior of each public surface.
   are preserved safely; panics propagate and must not represent expected hook
   rejection.
 - `PrepareConfig(ctx, input)` admits DSN and native shapes around explicit
-  application resolution and context-aware Configure. `ParseConfig` delegates
-  with a finite cooperative deadline; collaborator panics propagate.
+  application resolution and context-aware Configure; collaborator panics
+  propagate.
 - `ConfigError` identifies a field. `Unwrap` exposes only safe hook causes; DSN
   parser causes are deliberately withheld because upstream text may change.
 - `PoolConfig` is an alias, not a wrapper, for `pgxpool.Config`.
 
 ## Pool and health
 
-- `Connect` returns `*Pool`; lazy startup is the default. `New` delegates to it
-  for compatibility.
+- `Connect` returns `*Pool`; lazy startup is the default.
 - `Raw` returns the exact native `*pgxpool.Pool`.
 - `Acquire`, `Ping`, and `Shutdown` honor the earlier caller or configured
   deadline. `Shutdown` closes admission once, lets callers wait independently,
-  and may return while shared native shutdown continues. `Close` delegates to
-  `Shutdown` for compatibility.
+  and may return while shared native shutdown continues.
 - `Readiness` contacts PostgreSQL. `Liveness` only reports whether shutdown has
   begun. `Stats` copies native pgxpool counters and gauges.
 
@@ -42,7 +40,7 @@ stability and behavior of each public surface.
   cleanup context, joins callback and rollback failures, and re-panics the
   original panic value.
 - `RunSavepoint` uses pgx pseudo-nested transactions, which issue explicit
-  savepoint SQL. `RunSavepointWithOptions` adds cleanup and observation options.
+  savepoint SQL. `SavepointOptions` selects cleanup timeout and observation.
 
 ## Errors
 
@@ -71,8 +69,7 @@ stability and behavior of each public surface.
   `HostPort` supports stable-endpoint
   stop/restart tests.
 - `Database.Shutdown` starts one caller-independent bounded termination and
-  returns its shared result to concurrent and repeated callers. `Start` and
-  `Close` delegate to `Open` and `Shutdown` for compatibility.
+  returns its shared result to concurrent and repeated callers.
 - `RunIsolated` executes a test callback once in a real pgx transaction that
   always rolls back with bounded cleanup. Callback and rollback errors remain
   inspectable, panic values are preserved, and `testing.T.FailNow` cannot skip
@@ -83,23 +80,20 @@ stability and behavior of each public surface.
 ## Service lifecycle adapter
 
 `adapters/service.New` adapts either a constructor-created or existing pool to a
-`service.Component`. Constructor results are adapter-owned. Existing resources
+Service v2 `service.Component`. Constructor results are adapter-owned. Existing resources
 remain shared unless ownership is explicitly transferred. Startup ping is
 optional, readiness is opt-in through `Adapter.Readiness`, partial startup
 failure closes only owned resources, and repeated shutdown closes an owned
 resource once.
 
-`Component` and `Readiness` retain their Service v1 types. For
-`github.com/faustbrian/go-service/v2`, use `ComponentV2` and `ReadinessV2`.
-These bind the same adapter and callbacks, not a second resource lifecycle.
-Register only one component per adapter; neither binding supports restart.
+`Component` and `Readiness` use `github.com/faustbrian/go-service/v2` types.
+Register only one component per adapter; it does not support restart. A
+`Resource` is any value with `Ping` and `Shutdown`, which `*postgres.Pool`
+satisfies.
 
 The adapter adds no retry policy and does not change PostgreSQL error
 classification. Caller and service contexts remain observable, while the
 resource retains its own ping and shutdown bounds.
-
-The `postgresservice` and `otelpostgres` paths remain deprecated compatibility
-facades for `adapters/service` and `adapters/otel`.
 
 Choose the next guide in the [documentation index](README.md)
 or return to the [repository entry](../README.md) for installation and ownership.

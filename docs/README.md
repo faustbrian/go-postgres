@@ -36,7 +36,7 @@
 - [Contributing](../CONTRIBUTING.md)
 - [Release history](../CHANGELOG.md)
 - [Compatibility policy](../COMPATIBILITY.md)
-- [Deprecation policy](../DEPRECATION.md)
+- [API replacement policy](../DEPRECATION.md)
 - [Support and GitHub Discussions](../SUPPORT.md)
 - [Private security reporting](../SECURITY.md)
 - [License](../LICENSE)
@@ -64,7 +64,6 @@
 - [Release process](releasing.md) — `docs/releasing.md`
 - [Repository standards](repository-standards.md) — `docs/repository-standards.md`
 - [Security and threat model](security.md) — `docs/security.md`
-- [Source documentation audit](source-documentation-audit.md) — `docs/source-documentation-audit.md`
 - [sqlc integration](sqlc.md) — `docs/sqlc.md`
 - [Testing with Testcontainers](testing.md) — `docs/testing.md`
 - [TLS](tls.md) — `docs/tls.md`

@@ -27,7 +27,7 @@ func parseHostedConfig(input Config) (*PoolConfig, error) {
 	if input.MinConns > 0 || input.MinIdleConns > 0 {
 		input.StartupPolicy = StartupPing
 	}
-	return ParseConfig(input)
+	return PrepareConfig(context.Background(), input)
 }
 
 func TestParseConfigAppliesFiniteProductionDefaults(t *testing.T) {

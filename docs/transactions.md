@@ -42,7 +42,7 @@ effects.
 
 `RunSavepoint` calls `pgx.Tx.Begin`, which creates a pseudo-nested transaction
 using `SAVEPOINT`, `RELEASE SAVEPOINT`, and `ROLLBACK TO SAVEPOINT`.
-`RunSavepointWithOptions` adds bounded observation without changing those
+`SavepointOptions` adds bounded cleanup and observation without changing those
 semantics. A savepoint can recover part of a transaction, but it does not
 create independent commit durability and cannot undo external effects.
 Real PostgreSQL evidence nests two levels, rolls back the inner level, releases

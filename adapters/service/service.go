@@ -1,4 +1,4 @@
-// Package postgresservice adapts PostgreSQL pools to the service lifecycle.
+// Package postgresservice adapts PostgreSQL pools to the Service v2 lifecycle.
 // Constructor results are owned by the adapter. Existing pools remain shared
 // unless ownership is explicitly transferred. The adapter performs no retries,
 // closes active owned pools once per ordered service lifecycle, and never closes
@@ -14,7 +14,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/faustbrian/go-service"
+	service "github.com/faustbrian/go-service/v2"
 )
 
 var (
@@ -28,9 +28,9 @@ var (
 type Resource interface {
 	// Ping checks connectivity using the service-supplied operation context.
 	Ping(context.Context) error
-	// Close releases owned resources; implementations must honor their context
-	// cooperatively.
-	Close(context.Context) error
+	// Shutdown releases owned resources; implementations must honor their
+	// context cooperatively.
+	Shutdown(context.Context) error
 }
 
 // Constructor acquires a pool whose ownership transfers after a successful
@@ -134,7 +134,7 @@ func New(options Options) (*Adapter, error) {
 
 // Component returns the callbacks for one ordered startup/shutdown cycle.
 // Construct and optional Ping run synchronously; Stop marks the adapter inactive
-// and attempts owned Close once, retaining any close error for later Stop calls.
+// and attempts owned Shutdown once, retaining any close error for later Stop calls.
 func (adapter *Adapter) Component() service.Component {
 	return service.Component{Name: adapter.name, Start: adapter.start, Stop: adapter.stop}
 }
@@ -179,7 +179,7 @@ func (adapter *Adapter) start(ctx context.Context) error {
 		if err := resource.Ping(ctx); err != nil {
 			var cleanup error
 			if adapter.owned {
-				cleanup = resource.Close(ctx)
+				cleanup = resource.Shutdown(ctx)
 			}
 			return &StartupError{Validation: err, Cleanup: cleanup}
 		}
@@ -200,7 +200,7 @@ func (adapter *Adapter) stop(ctx context.Context) error {
 		adapter.active = false
 		adapter.mu.Unlock()
 		if active && adapter.owned {
-			adapter.stopErr = resource.Close(ctx)
+			adapter.stopErr = resource.Shutdown(ctx)
 		}
 	})
 	return adapter.stopErr

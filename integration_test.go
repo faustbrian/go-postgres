@@ -19,8 +19,8 @@ import (
 	"testing"
 	"time"
 
-	postgres "github.com/faustbrian/go-postgres/v2"
-	"github.com/faustbrian/go-postgres/v2/postgrestest"
+	postgres "github.com/faustbrian/go-postgres/v3"
+	"github.com/faustbrian/go-postgres/v3/postgrestest"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -72,7 +72,7 @@ func TestPoolLifecycleAgainstPostgreSQL(t *testing.T) {
 		ShutdownTimeout: 50 * time.Millisecond,
 	})
 	if err != nil {
-		t.Fatalf("New() error = %v", err)
+		t.Fatalf("Connect() error = %v", err)
 	}
 
 	conn, err := pool.Acquire(context.Background())
@@ -105,16 +105,16 @@ func TestPoolLifecycleAgainstPostgreSQL(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	if err := pool.Shutdown(ctx); !errors.Is(err, postgres.ErrShutdownTimeout) {
-		t.Fatalf("Close(canceled) error = %v, want shutdown timeout", err)
+		t.Fatalf("Shutdown(canceled) error = %v, want shutdown timeout", err)
 	}
 	conn.Release()
 	if err := pool.Shutdown(context.Background()); err != nil {
-		t.Fatalf("Close() error = %v", err)
+		t.Fatalf("Shutdown() error = %v", err)
 	}
 }
 
 func TestSessionInitializationAgainstPostgreSQL(t *testing.T) {
-	pool, err := postgres.New(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 		DSN: integrationDatabase.DSN(),
 		SessionInit: func(ctx context.Context, conn *pgx.Conn) error {
 			_, err := conn.Exec(ctx, "SET application_name = 'postgres-integration'")
@@ -123,7 +123,7 @@ func TestSessionInitializationAgainstPostgreSQL(t *testing.T) {
 		},
 	})
 	if err != nil {
-		t.Fatalf("New() error = %v", err)
+		t.Fatalf("Connect() error = %v", err)
 	}
 	defer closePool(t, pool)
 
@@ -136,14 +136,14 @@ func TestSessionInitializationAgainstPostgreSQL(t *testing.T) {
 	}
 
 	sentinel := errors.New("session initialization rejected")
-	_, err = postgres.New(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	_, err = postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 		DSN: integrationDatabase.DSN(),
 		SessionInit: func(context.Context, *pgx.Conn) error {
 			return sentinel
 		},
 	})
 	if !errors.Is(err, sentinel) {
-		t.Fatalf("New() error = %v, want session sentinel", err)
+		t.Fatalf("Connect() error = %v, want session sentinel", err)
 	}
 }
 
@@ -183,7 +183,7 @@ func TestNativePoolHookContractsAgainstPostgreSQL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := postgres.New(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+			_, err := postgres.Connect(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 				DSN: integrationDatabase.DSN(),
 				Configure: func(_ context.Context, config *postgres.PoolConfig) error {
 					tt.configure(config)
@@ -192,14 +192,14 @@ func TestNativePoolHookContractsAgainstPostgreSQL(t *testing.T) {
 				},
 			})
 			if !errors.Is(err, sentinel) {
-				t.Fatalf("New() error = %v, want hook sentinel", err)
+				t.Fatalf("Connect() error = %v, want hook sentinel", err)
 			}
 		})
 	}
 
 	var prepareCalls atomic.Int32
 	var preparedPIDs []uint32
-	preparedPool, err := postgres.New(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	preparedPool, err := postgres.Connect(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 		DSN:      integrationDatabase.DSN(),
 		MaxConns: 1,
 		Configure: func(_ context.Context, config *postgres.PoolConfig) error {
@@ -213,7 +213,7 @@ func TestNativePoolHookContractsAgainstPostgreSQL(t *testing.T) {
 		},
 	})
 	if err != nil {
-		t.Fatalf("New() after PrepareConn rejection error = %v", err)
+		t.Fatalf("Connect() after PrepareConn rejection error = %v", err)
 	}
 	if prepareCalls.Load() < 2 || len(preparedPIDs) < 2 || preparedPIDs[0] == preparedPIDs[1] {
 		t.Fatalf("PrepareConn calls and PIDs = (%d, %v), want destroyed replacement", prepareCalls.Load(), preparedPIDs)
@@ -222,7 +222,7 @@ func TestNativePoolHookContractsAgainstPostgreSQL(t *testing.T) {
 
 	released := make(chan struct{}, 4)
 	var connections atomic.Int32
-	pool, err := postgres.New(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 		DSN:      integrationDatabase.DSN(),
 		MaxConns: 1,
 		Configure: func(_ context.Context, config *postgres.PoolConfig) error {
@@ -241,7 +241,7 @@ func TestNativePoolHookContractsAgainstPostgreSQL(t *testing.T) {
 		},
 	})
 	if err != nil {
-		t.Fatalf("New() error = %v", err)
+		t.Fatalf("Connect() error = %v", err)
 	}
 	defer closePool(t, pool)
 	waitForHook(t, released)
@@ -298,7 +298,7 @@ func TestNativePoolHookPanicHelper(t *testing.T) {
 		t.Skip("subprocess helper")
 	}
 
-	pool, err := postgres.New(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 		DSN: integrationHookDSN,
 		Configure: func(_ context.Context, config *postgres.PoolConfig) error {
 			panicHook := func() { panic("native hook panic: " + hook) }
@@ -335,7 +335,7 @@ func TestNativePoolHookPanicHelper(t *testing.T) {
 		},
 	})
 	if err != nil {
-		t.Fatalf("New() error = %v", err)
+		t.Fatalf("Connect() error = %v", err)
 	}
 	defer pool.Raw().Close()
 	if hook == "after-release" {
@@ -359,7 +359,7 @@ func TestStartupAuthenticationAndTLSFailuresAreSecretSafeAgainstPostgreSQL(t *te
 	}
 	const badPassword = "authentication-secret-that-must-not-leak"
 	dsn.User = url.UserPassword(dsn.User.Username(), badPassword)
-	_, err = postgres.New(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing, DSN: dsn.String()})
+	_, err = postgres.Connect(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing, DSN: dsn.String()})
 	var pgErr *pgconn.PgError
 	if !errors.As(err, &pgErr) || pgErr.Code != "28P01" {
 		t.Fatalf("authentication error = %v, want SQLSTATE 28P01", err)
@@ -368,7 +368,7 @@ func TestStartupAuthenticationAndTLSFailuresAreSecretSafeAgainstPostgreSQL(t *te
 		t.Fatalf("authentication error leaked password: %v", err)
 	}
 
-	_, err = postgres.New(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	_, err = postgres.Connect(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 		DSN: integrationDatabase.DSN(),
 		TLS: postgres.TLSConfig{
 			Mode: postgres.TLSRequire,
@@ -485,13 +485,13 @@ func TestCommitPanicsDoNotStrandPoolConnectionsAgainstPostgreSQL(t *testing.T) {
 			prefix: "release savepoint",
 			run: func(ctx context.Context, pool *postgres.Pool) error {
 				return postgres.RunTransaction(ctx, pool.Raw(), postgres.TransactionOptions{}, func(ctx context.Context, tx pgx.Tx) error {
-					return postgres.RunSavepoint(ctx, tx, 0, func(context.Context, pgx.Tx) error { return nil })
+					return postgres.RunSavepoint(ctx, tx, postgres.SavepointOptions{}, func(context.Context, pgx.Tx) error { return nil })
 				})
 			},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			pool, err := postgres.New(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+			pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 				DSN:      integrationDatabase.DSN(),
 				MaxConns: 1,
 				Configure: func(_ context.Context, config *postgres.PoolConfig) error {
@@ -501,7 +501,7 @@ func TestCommitPanicsDoNotStrandPoolConnectionsAgainstPostgreSQL(t *testing.T) {
 				},
 			})
 			if err != nil {
-				t.Fatalf("New() error = %v", err)
+				t.Fatalf("Connect() error = %v", err)
 			}
 			defer closePool(t, pool)
 
@@ -643,7 +643,7 @@ func TestTransactionCleanupAndSavepointsAgainstPostgreSQL(t *testing.T) {
 		if _, err := tx.Exec(ctx, "INSERT INTO transaction_evidence (id) VALUES (5)"); err != nil {
 			return err
 		}
-		nestedErr := postgres.RunSavepoint(ctx, tx, 0, func(ctx context.Context, nested pgx.Tx) error {
+		nestedErr := postgres.RunSavepoint(ctx, tx, postgres.SavepointOptions{}, func(ctx context.Context, nested pgx.Tx) error {
 			if _, err := nested.Exec(ctx, "INSERT INTO transaction_evidence (id) VALUES (6)"); err != nil {
 				return err
 			}
@@ -653,11 +653,11 @@ func TestTransactionCleanupAndSavepointsAgainstPostgreSQL(t *testing.T) {
 		if !errors.Is(nestedErr, sentinel) {
 			return fmt.Errorf("savepoint error = %w", nestedErr)
 		}
-		if err := postgres.RunSavepoint(ctx, tx, 0, func(ctx context.Context, outer pgx.Tx) error {
+		if err := postgres.RunSavepoint(ctx, tx, postgres.SavepointOptions{}, func(ctx context.Context, outer pgx.Tx) error {
 			if _, err := outer.Exec(ctx, "INSERT INTO transaction_evidence (id) VALUES (8)"); err != nil {
 				return err
 			}
-			innerErr := postgres.RunSavepoint(ctx, outer, 0, func(ctx context.Context, inner pgx.Tx) error {
+			innerErr := postgres.RunSavepoint(ctx, outer, postgres.SavepointOptions{}, func(ctx context.Context, inner pgx.Tx) error {
 				if _, err := inner.Exec(ctx, "INSERT INTO transaction_evidence (id) VALUES (9)"); err != nil {
 					return err
 				}
@@ -956,7 +956,7 @@ func TestSavepointFinalizationFailuresAgainstPostgreSQL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("begin release-failure parent: %v", err)
 	}
-	releaseErr := postgres.RunSavepoint(ctx, parent, 0, func(ctx context.Context, nested pgx.Tx) error {
+	releaseErr := postgres.RunSavepoint(ctx, parent, postgres.SavepointOptions{}, func(ctx context.Context, nested pgx.Tx) error {
 		_, err := nested.Exec(ctx, "RELEASE SAVEPOINT sp_1")
 
 		return err
@@ -971,7 +971,7 @@ func TestSavepointFinalizationFailuresAgainstPostgreSQL(t *testing.T) {
 		t.Fatalf("begin rollback-failure parent: %v", err)
 	}
 	callbackErr := errors.New("nested callback failed")
-	rollbackErr := postgres.RunSavepoint(ctx, parent, 0, func(ctx context.Context, nested pgx.Tx) error {
+	rollbackErr := postgres.RunSavepoint(ctx, parent, postgres.SavepointOptions{}, func(ctx context.Context, nested pgx.Tx) error {
 		if _, err := nested.Exec(ctx, "RELEASE SAVEPOINT sp_1"); err != nil {
 			return err
 		}
@@ -997,16 +997,16 @@ func TestPoolRecoversAfterPostgreSQLRestart(t *testing.T) {
 		t.Fatalf("start restart database: %v", err)
 	}
 	defer func() {
-		if err := database.Close(context.Background()); err != nil {
+		if err := database.Shutdown(context.Background()); err != nil {
 			t.Errorf("close restart database: %v", err)
 		}
 	}()
-	pool, err := postgres.New(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 		DSN:         database.DSN(),
 		PingTimeout: 250 * time.Millisecond,
 	})
 	if err != nil {
-		t.Fatalf("New() error = %v", err)
+		t.Fatalf("Connect() error = %v", err)
 	}
 	defer closePool(t, pool)
 
@@ -1044,7 +1044,7 @@ func startRestartDatabase(ctx context.Context, image string) (*postgrestest.Data
 		if err := listener.Close(); err != nil {
 			return nil, fmt.Errorf("release restart port: %w", err)
 		}
-		database, err := postgrestest.Start(ctx, postgrestest.Config{Image: image, HostPort: hostPort})
+		database, err := postgrestest.Open(ctx, postgrestest.Config{Image: image, HostPort: hostPort})
 		if err == nil {
 			return database, nil
 		}
@@ -1154,12 +1154,12 @@ func TestTransactionIsolatedTestHelperAgainstPostgreSQL(t *testing.T) {
 func integrationPool(t *testing.T, maxConns int32) *postgres.Pool {
 	t.Helper()
 
-	pool, err := postgres.New(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
 		DSN:      integrationDatabase.DSN(),
 		MaxConns: maxConns,
 	})
 	if err != nil {
-		t.Fatalf("New() error = %v", err)
+		t.Fatalf("Connect() error = %v", err)
 	}
 	t.Cleanup(func() { closePool(t, pool) })
 
@@ -1171,7 +1171,7 @@ func closePool(t *testing.T, pool *postgres.Pool) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if err := pool.Close(ctx); err != nil {
-		t.Errorf("Close() error = %v", err)
+	if err := pool.Shutdown(ctx); err != nil {
+		t.Errorf("Shutdown() error = %v", err)
 	}
 }

@@ -3,7 +3,7 @@ package telemetry_test
 import (
 	"testing"
 
-	"github.com/faustbrian/go-postgres/v2/internal/telemetry"
+	"github.com/faustbrian/go-postgres/v3/internal/telemetry"
 )
 
 func TestRecognizedTelemetryCategories(t *testing.T) {

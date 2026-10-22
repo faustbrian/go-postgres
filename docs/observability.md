@@ -45,10 +45,11 @@ records:
   and `max`
 
 For query spans, configure
-`telemetry/instrumentation/gopostgres.Tracer` through `Config.Configure`:
+`github.com/faustbrian/go-telemetry/v3/instrumentation/postgres` through
+`Config.Configure`:
 
 ```go
-tracer, _ := gopostgres.New(gopostgres.Config{
+tracer, _ := telemetrypostgres.New(telemetrypostgres.Config{
     TracerProvider: runtime.TracerProvider(),
     MeterProvider: runtime.MeterProvider(),
     Operations: []string{"users.by_id", "jobs.claim"},
@@ -59,17 +60,17 @@ config.Configure = func(ctx context.Context, native *pgxpool.Config) error {
     return nil
 }
 
-queryCtx := gopostgres.ContextWithOperation(ctx, "users.by_id")
+queryCtx := telemetrypostgres.ContextWithOperation(ctx, "users.by_id")
 user, err := queries.UserByID(queryCtx, userID)
 ```
 
 The adapter uses an allow-list and collapses unknown names. It records no SQL,
 arguments, or raw database error text. Keep operation sets finite and static.
-The independently version-aligned `gopostgres` package test is part of the
-compatibility audit; it remains optional and is not pulled into this module's
+The tracer is versioned with go-telemetry and is not pulled into this module's
 dependency graph.
 
-The legacy `otelpostgres` path remains a deprecated compatibility facade.
+`adapters/otel` reports under the instrumentation scope
+`github.com/faustbrian/go-postgres/v3/adapters/otel`.
 
 Choose the next guide in the [documentation index](README.md)
 or return to the [repository entry](../README.md) for installation and ownership.

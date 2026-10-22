@@ -252,7 +252,7 @@ func TestConfigAdmissionFinalHookAndLazy(t *testing.T) {
 	}
 	input := admittedInput()
 	input.ConfigResolutionTimeout = time.Second
-	if _, err := ParseConfig(input); err != nil {
+	if _, err := PrepareConfig(context.Background(), input); err != nil {
 		t.Fatal("synchronous preparation refused valid input")
 	}
 	if StartupLazy != 0 {

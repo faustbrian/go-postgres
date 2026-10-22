@@ -144,13 +144,6 @@ func (e *ConfigError) Unwrap() error {
 	return e.Cause
 }
 
-// ParseConfig delegates to PrepareConfig with a finite cooperative deadline.
-// ResolveDSN is required and owns native parsing and its ambient acquisitions.
-// A deadline cannot preempt an uncooperative application callback.
-func ParseConfig(input Config) (*PoolConfig, error) {
-	return PrepareConfig(context.Background(), input)
-}
-
 // PrepareConfig admits the DSN before calling the required application resolver,
 // validates native shapes before typed overrides, and revalidates after Configure.
 // The resolver transfers a fresh parser-created configuration; TLS data, native

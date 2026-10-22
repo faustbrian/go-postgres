@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	postgresservice "github.com/faustbrian/go-postgres/v2/adapters/service"
+	postgresservice "github.com/faustbrian/go-postgres/v3/adapters/service"
 )
 
 type resource struct {
@@ -21,7 +21,7 @@ func (pool *resource) Ping(context.Context) error {
 	return pool.pingErr
 }
 
-func (pool *resource) Close(context.Context) error {
+func (pool *resource) Shutdown(context.Context) error {
 	pool.closes++
 
 	return pool.closeErr
@@ -54,7 +54,7 @@ func TestConstructedPoolIsValidatedExposedAndClosed(t *testing.T) {
 		t.Fatalf("Stop() error = %v", err)
 	}
 	if pool.closes != 1 {
-		t.Fatalf("Close() calls = %d, want 1", pool.closes)
+		t.Fatalf("Shutdown() calls = %d, want 1", pool.closes)
 	}
 }
 
@@ -103,7 +103,7 @@ func TestTransferredPoolClosesOnlyOnce(t *testing.T) {
 		t.Fatalf("second Stop() error = %v", err)
 	}
 	if pool.closes != 1 {
-		t.Fatalf("Close() calls = %d, want 1", pool.closes)
+		t.Fatalf("Shutdown() calls = %d, want 1", pool.closes)
 	}
 }
 
@@ -161,7 +161,7 @@ func TestStartupPingFailureClosesOwnedPoolAndPreservesFailures(t *testing.T) {
 		t.Fatal("Pool() reported a failed startup pool")
 	}
 	if pool.closes != 1 {
-		t.Fatalf("Close() calls = %d, want 1", pool.closes)
+		t.Fatalf("Shutdown() calls = %d, want 1", pool.closes)
 	}
 }
 
@@ -181,7 +181,7 @@ func TestSharedPoolIsNotClosedAfterStartupPingFailure(t *testing.T) {
 		t.Fatalf("Start() error = %v, want ping failure", err)
 	}
 	if pool.closes != 0 {
-		t.Fatalf("Close() calls = %d, want 0", pool.closes)
+		t.Fatalf("Shutdown() calls = %d, want 0", pool.closes)
 	}
 }
 
@@ -299,6 +299,6 @@ func TestShutdownFailureIsStableAcrossRepeatedCalls(t *testing.T) {
 		t.Fatalf("second Stop() error = %v, want close failure", err)
 	}
 	if pool.closes != 1 {
-		t.Fatalf("Close() calls = %d, want 1", pool.closes)
+		t.Fatalf("Shutdown() calls = %d, want 1", pool.closes)
 	}
 }

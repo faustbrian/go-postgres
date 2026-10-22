@@ -5,7 +5,7 @@
 [![Coverage](https://img.shields.io/badge/coverage-risk_based_evidence-blue)](CONTRIBUTING.md#verification)
 [![Mutation](https://img.shields.io/badge/mutation-optional_local%2Fselected_scheduled-blue)](CONTRIBUTING.md#verification)
 [![Documentation](https://img.shields.io/badge/docs-checked_in_CI-blue)](docs/)
-[![Published v2 Reference](https://pkg.go.dev/badge/github.com/faustbrian/go-postgres/v2.svg)](https://pkg.go.dev/github.com/faustbrian/go-postgres/v2)
+[![Published v3 Reference](https://pkg.go.dev/badge/github.com/faustbrian/go-postgres/v3.svg)](https://pkg.go.dev/github.com/faustbrian/go-postgres/v3)
 [![Release](https://img.shields.io/github/v/release/faustbrian/go-postgres?sort=semver)](https://github.com/faustbrian/go-postgres/releases)
 [![Go](https://img.shields.io/badge/go-1.27.0-00ADD8?logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -19,14 +19,13 @@ without hiding native pgx types.
 It is not a driver, ORM, query builder, migration engine, repository layer, or
 multi-database abstraction.
 
-The published [v2.0.0 release](https://github.com/faustbrian/go-postgres/releases/tag/v2.0.0)
-uses the `/v2` module path. Existing published v1 consumers remain unchanged. See the
-[migration guide](docs/migration.md#v1-to-v2-safe-configuration).
+Version 3 uses the `/v3` module path and removes superseded v2 entry points and
+adapter packages. See the [migration guide](docs/migration.md#v2-to-v3-clean-replacement).
 
 ## Requirements
 
 - Go 1.27.0 or newer
-- pgx 5.11.x (root v2); the retained published-v1 example pins its own baseline
+- pgx 5.11.x
 - PostgreSQL 14, 15, 16, 17, or 18
 - Docker-compatible container runtime only for `postgrestest` and integration
   tests
@@ -34,7 +33,7 @@ uses the `/v2` module path. Existing published v1 consumers remain unchanged. Se
 ## Installation
 
 ```sh
-go get github.com/faustbrian/go-postgres/v2@v2
+go get github.com/faustbrian/go-postgres/v3@v3
 ```
 
 ## Quick start
@@ -115,13 +114,14 @@ the server when `InsecureSkipVerify` is enabled.
   transaction helpers for real PostgreSQL
 
 Query tracing is provided by
-[`telemetry/instrumentation/gopostgres`](https://pkg.go.dev/github.com/faustbrian/go-telemetry/instrumentation/gopostgres)
+[`go-telemetry/v3/instrumentation/postgres`](https://pkg.go.dev/github.com/faustbrian/go-telemetry/v3/instrumentation/postgres)
 through the native `pgx.ConnConfig.Tracer` hook. It records allow-listed query
 names and never SQL or arguments.
 
 ## Service lifecycle
 
-`adapters/service.New` accepts either an existing pool or a constructor. A
+`adapters/service.New` binds `github.com/faustbrian/go-service/v2` and accepts
+either an existing pool or a constructor. A
 constructor transfers ownership after successful startup. Existing pools remain
 shared unless `TransferOwnership` is explicit. `StartupPing` is opt-in, and
 callers opt into runtime readiness by adding `adapter.Readiness()` to the
@@ -131,8 +131,8 @@ The adapter performs no retries. It closes an owned pool once, never closes a
 shared pool, and uses the service lifecycle context together with the pool's
 configured ping and shutdown bounds.
 
-The released `postgresservice` and `otelpostgres` import paths remain
-compatibility facades. New code should use the target-oriented adapter paths.
+Version 3 removed the `postgresservice` and `otelpostgres` packages and the
+other superseded entry points; see the [migration guide](docs/migration.md).
 
 ## Documentation
 

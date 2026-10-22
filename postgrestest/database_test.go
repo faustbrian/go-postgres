@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	gopostgres "github.com/faustbrian/go-postgres/v2"
+	gopostgres "github.com/faustbrian/go-postgres/v3"
 	"github.com/testcontainers/testcontainers-go"
 )
 
@@ -89,8 +89,8 @@ func TestOpenRejectsNilAndCanceledContextsBeforeStarting(t *testing.T) {
 	if starts.Load() != 0 {
 		t.Fatalf("starter calls = %d, want 0", starts.Load())
 	}
-	if _, err := Start(nilContext, Config{}); !errors.Is(err, gopostgres.ErrContextRequired) {
-		t.Fatalf("Start(nil) error = %v, want ErrContextRequired", err)
+	if _, err := Open(nilContext, Config{}); !errors.Is(err, gopostgres.ErrContextRequired) {
+		t.Fatalf("Open(nil) error = %v, want ErrContextRequired", err)
 	}
 }
 
@@ -115,10 +115,10 @@ func TestDatabaseShutdownUsesOneTerminationAndIndependentCallerBounds(t *testing
 	}
 	<-started
 	done := make(chan error, 1)
-	go func() { done <- database.Close(context.Background()) }()
+	go func() { done <- database.Shutdown(context.Background()) }()
 	close(release)
 	if err := <-done; err != nil {
-		t.Fatalf("Close() error = %v", err)
+		t.Fatalf("Shutdown() error = %v", err)
 	}
 	if err := database.Shutdown(context.Background()); err != nil {
 		t.Fatalf("repeated Shutdown() error = %v", err)
@@ -139,9 +139,6 @@ func TestDatabaseShutdownRejectsNilWithoutTermination(t *testing.T) {
 	var nilContext context.Context
 	if err := database.Shutdown(nilContext); !errors.Is(err, gopostgres.ErrContextRequired) {
 		t.Fatalf("Shutdown(nil) error = %v, want ErrContextRequired", err)
-	}
-	if err := database.Close(nilContext); !errors.Is(err, gopostgres.ErrContextRequired) {
-		t.Fatalf("Close(nil) error = %v, want ErrContextRequired", err)
 	}
 	if container.terminations != 0 {
 		t.Fatalf("termination calls = %d, want 0", container.terminations)
@@ -233,11 +230,11 @@ func TestStartDatabaseRunsSetupAndSharesFailedShutdown(t *testing.T) {
 	if database.DSN() != container.dsn || database.Container() != nil {
 		t.Fatalf("database = %#v", database)
 	}
-	firstErr := database.Close(context.Background())
-	secondErr := database.Close(context.Background())
-	thirdErr := database.Close(context.Background())
+	firstErr := database.Shutdown(context.Background())
+	secondErr := database.Shutdown(context.Background())
+	thirdErr := database.Shutdown(context.Background())
 	if !errors.Is(firstErr, closeErr) || !errors.Is(secondErr, closeErr) || !errors.Is(thirdErr, closeErr) {
-		t.Fatalf("Close() errors = (%v, %v, %v), want shared failure", firstErr, secondErr, thirdErr)
+		t.Fatalf("Shutdown() errors = (%v, %v, %v), want shared failure", firstErr, secondErr, thirdErr)
 	}
 	if container.terminations != 1 {
 		t.Fatalf("termination calls = %d, want 1", container.terminations)

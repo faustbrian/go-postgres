@@ -59,12 +59,12 @@ func BenchmarkPoolCreation(b *testing.B) {
 	}
 
 	for b.Loop() {
-		pool, err := New(ctx, config)
+		pool, err := Connect(ctx, config)
 		if err != nil {
-			b.Fatalf("New() error = %v", err)
+			b.Fatalf("Connect() error = %v", err)
 		}
-		if err := pool.Close(ctx); err != nil {
-			b.Fatalf("Close() error = %v", err)
+		if err := pool.Shutdown(ctx); err != nil {
+			b.Fatalf("Shutdown() error = %v", err)
 		}
 	}
 }

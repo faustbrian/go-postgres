@@ -5,7 +5,7 @@
 Install the module and create one application-owned pool:
 
 ```sh
-go get github.com/faustbrian/go-postgres/v2@v2 # after public v2 publication
+go get github.com/faustbrian/go-postgres/v3@v3
 ```
 
 For a complete compiler-built program, use the
@@ -67,7 +67,8 @@ Read [TLS](tls.md), [pool lifecycle](pool-and-lifecycle.md), and
 [transactions](transactions.md) before production deployment. Additional
 compiler-built examples cover [workers](../examples/worker/main.go),
 [sqlc](../examples/sqlc/main.go), and a dedicated
-[migration job](../examples/migrations/README.md).
+[migration job](../examples/migrations/README.md). The migration job still uses
+the published v1 API until it adopts v3 after publication.
 
 Choose the next guide in the [documentation index](README.md)
 or return to the [repository entry](../README.md) for installation and ownership.

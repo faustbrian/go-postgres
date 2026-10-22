@@ -2,11 +2,12 @@
 
 [Documentation index](README.md) · [Repository entry](../README.md)
 
-The root's current major is `github.com/faustbrian/go-postgres/v2`, tagged `v2.x.y`
-from main without a version-specific source directory. The v1 API archive is
-historical; the v2 archive characterizes the new nominal boundary. Publish the
-root before updating independently released consumers to actual public v2.
-`examples/migrations` stays pinned to released root v1.1.0 until that adoption.
+The root's current major is `github.com/faustbrian/go-postgres/v3`, tagged `v3.x.y`
+from main without a version-specific source directory. Earlier API baselines
+remain in Git history. Publish the root before updating independently released
+consumers to the public v3 module. `examples/migrations` is a separate module
+that still consumes published v1.1.0 and go-migrations v2; it moves to v3 and
+go-migrations v4 together once both are published.
 
 1. Confirm the intended SemVer and update `CHANGELOG.md` with a dated version.
 2. Review public API, pgx release notes, supported Go/PostgreSQL matrix,

@@ -2,12 +2,39 @@
 
 [Documentation index](README.md) · [Repository entry](../README.md)
 
+## v2 to v3 clean replacement
+
+Version 3 keeps one owner for each mechanism and removes the superseded entry
+points instead of retaining aliases or forwarding packages:
+
+| Removed in v3 | Replacement |
+| --- | --- |
+| `New(ctx, config)` | `Connect(ctx, config)` |
+| `Pool.Close(ctx)` | `Pool.Shutdown(ctx)` |
+| `ParseConfig(config)` | `PrepareConfig(ctx, config)` with the caller's context |
+| `RunSavepoint(ctx, tx, cleanupTimeout, fn)` | `RunSavepoint(ctx, tx, SavepointOptions{CleanupTimeout: d}, fn)` |
+| `RunSavepointWithOptions` | `RunSavepoint` |
+| `postgrestest.Start`, `Database.Close` | `postgrestest.Open`, `Database.Shutdown` |
+| `postgresservice` package | `adapters/service` |
+| `otelpostgres` package | `adapters/otel` |
+| Service v1 `Component`/`Readiness`, `ComponentV2`/`ReadinessV2` | Service v2 `Component`/`Readiness` |
+
+Update imports to `github.com/faustbrian/go-postgres/v3` and move service
+composition to `github.com/faustbrian/go-service/v2` in the same change.
+`adapters/service.Resource` now requires `Ping` and `Shutdown`; `*Pool`
+satisfies it, and custom resources rename their `Close` method.
+
+The OpenTelemetry instrumentation scope becomes
+`github.com/faustbrian/go-postgres/v3/adapters/otel`. Metric names, units and
+bounded attributes are unchanged; update dashboards or selectors that filter
+on the old `github.com/faustbrian/go-postgres/adapters/otel` or
+`github.com/faustbrian/go-postgres/otelpostgres` scopes when the consumer
+adopts v3. Roll back by reverting the consumer revision as a whole.
+
 ## v1 to v2 safe configuration
 
-Published v2.0.0 uses `github.com/faustbrian/go-postgres/v2` on main, not a new
-source directory. Its actual public module passed replacement-free consumer
-verification. Downstream adoption must still verify each affected application.
-Canonical and retained adapter names remain, with their existing metric scopes.
+Published v2.0.0 used `github.com/faustbrian/go-postgres/v2`. Downstream
+adoption must still verify each affected application.
 
 Every configuration must supply `ResolveDSN(ctx, dsn)`, returning a fresh,
 exclusively transferred, valid pgx parser-created `*PoolConfig`. There is no
@@ -26,7 +53,6 @@ func resolveDSN(ctx context.Context, dsn string) (*postgres.PoolConfig, error) {
 ```
 
 `PrepareConfig(ctx, input)` is the single preparation owner used by `Connect`.
-`ParseConfig(input)` delegates with the finite default preparation deadline.
 `ConfigResolutionTimeout` defaults to five seconds; caller deadlines win.
 `Configure` now takes the same preparation context before the native config.
 Callbacks must cooperate; deadlines cannot preempt arbitrary application code.
@@ -65,11 +91,7 @@ TLS defensive copying is retained, not a certificate-size admission policy.
 Review these owners if untrusted data or blocking work is introduced; the
 credential-shape policy does not certify arbitrary native collaborators.
 
-Queue Control Plane and Service DSN-based Connect callers require explicit
-resolution and the paired `/v2` nominal import migration. Audit/postgrestest and
-other published v1 consumers remain supported by their existing release.
-`examples/migrations` intentionally continues consuming published v1.1.0 and
-SDK1.45; its SDK interoperability test does not certify v2 behavior.
+DSN-based Connect callers require explicit resolution.
 
 ## From direct pgxpool wiring
 
@@ -95,14 +117,6 @@ identical contracts.
 Roll out behind normal service canaries. Compare connection counts, acquisition
 wait, error categories, transaction latency, and query results. Do not run two
 large pools per replica longer than needed during migration.
-
-## From pre-1.1 Golib APIs
-
-`New` and `Pool.Close` remain source-compatible delegates. Prefer `Connect` and
-`Pool.Shutdown` in new code. Replace `postgrestest.Start` and `Database.Close`
-with `postgrestest.Open` and `Database.Shutdown`. New integrations should import
-`adapters/otel` and `adapters/service`; the `otelpostgres` and
-`postgresservice` paths remain deprecated compatibility facades.
 
 Choose the next guide in the [documentation index](README.md)
 or return to the [repository entry](../README.md) for installation and ownership.

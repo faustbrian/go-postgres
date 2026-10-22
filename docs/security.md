@@ -3,9 +3,10 @@
 [Documentation index](README.md) · [Repository entry](../README.md)
 
 Model version: 2.0.0. Reviewed: 2026-10-07. Owner: repository maintainer.
-Scope: the root `github.com/faustbrian/go-postgres/v2` module and its canonical
-and retained telemetry adapters. Published v2.0.0 binds source
-`331fcb61a05c11241a9df36d6f57d875e74d93e0`. This source-bound model does not
+Scope: the v2.0.0 root module and its service and telemetry adapters, which
+bind source `331fcb61a05c11241a9df36d6f57d875e74d93e0`. Version 3 removes
+superseded entry points and binds the service adapter to Service v2; this model
+has not been re-reviewed for v3. This source-bound model does not
 claim verification of any application deployment.
 
 ## Assets

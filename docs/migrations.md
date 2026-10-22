@@ -7,7 +7,8 @@ have different locking, permissions, rollout, and failure semantics from
 ordinary application traffic and should be executed as an explicit deployment
 step or Kubernetes Job.
 
-Use the executable [`migrations` example](../examples/migrations/) with its
+Use the executable [`migrations` example](../examples/migrations/), which still
+targets the published v1 API until it adopts v3 after publication, with its
 `database/sql` PostgreSQL adapter and the same secret source as the service.
 It constructs the owned `postgres` pool, exposes it through pgx's standard
 library bridge, and applies embedded migrations from a dedicated process.

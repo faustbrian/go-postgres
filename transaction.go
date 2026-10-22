@@ -107,27 +107,14 @@ func RunTransaction(
 	return err
 }
 
-// RunSavepoint executes fn in pgx's explicit pseudo-nested transaction. pgx
-// implements this with SAVEPOINT, RELEASE SAVEPOINT, and ROLLBACK TO SAVEPOINT.
-// See RunSavepointWithOptions for context, borrowing and failure-window rules.
-func RunSavepoint(
-	ctx context.Context,
-	parent pgx.Tx,
-	cleanupTimeout time.Duration,
-	fn func(context.Context, pgx.Tx) error,
-) error {
-	return RunSavepointWithOptions(ctx, parent, SavepointOptions{
-		CleanupTimeout: cleanupTimeout,
-	}, fn)
-}
-
-// RunSavepointWithOptions executes fn in an observed pgx pseudo-nested
-// transaction with bounded rollback cleanup. The callback borrows the child
+// RunSavepoint executes fn in an observed pgx pseudo-nested transaction with
+// bounded rollback cleanup. pgx implements this with SAVEPOINT, RELEASE
+// SAVEPOINT, and ROLLBACK TO SAVEPOINT. The callback borrows the child
 // transaction; it must not finalize or retain it. The parent stays caller-owned
 // and must still be finalized independently. Context, retry and failure-window
 // rules are the same as RunTransaction; releasing a savepoint is not a durable
 // commit of its parent.
-func RunSavepointWithOptions(
+func RunSavepoint(
 	ctx context.Context,
 	parent pgx.Tx,
 	options SavepointOptions,

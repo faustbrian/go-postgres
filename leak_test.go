@@ -16,9 +16,9 @@ func TestBoundedCloseDoesNotLeakGoroutines(t *testing.T) {
 	pool := newPool(nil, backend, time.Second, time.Second, time.Second)
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	_ = pool.Close(ctx)
+	_ = pool.Shutdown(ctx)
 	close(release)
-	if err := pool.Close(context.Background()); err != nil {
-		t.Fatalf("Close() error = %v", err)
+	if err := pool.Shutdown(context.Background()); err != nil {
+		t.Fatalf("Shutdown() error = %v", err)
 	}
 }

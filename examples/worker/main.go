@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	postgres "github.com/faustbrian/go-postgres/v2"
+	postgres "github.com/faustbrian/go-postgres/v3"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

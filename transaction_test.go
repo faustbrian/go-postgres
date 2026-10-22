@@ -191,7 +191,7 @@ func TestRunSavepointRollsBackAndPreservesCommitPanic(t *testing.T) {
 	_ = RunSavepoint(
 		context.Background(),
 		parent,
-		0,
+		SavepointOptions{},
 		func(context.Context, pgx.Tx) error { return nil },
 	)
 }
@@ -261,7 +261,7 @@ func TestRunSavepointUsesNativeNestedTransaction(t *testing.T) {
 	child := &stubTx{}
 	parent := &stubTx{beginTx: child}
 
-	err := RunSavepoint(context.Background(), parent, 0, func(context.Context, pgx.Tx) error {
+	err := RunSavepoint(context.Background(), parent, SavepointOptions{}, func(context.Context, pgx.Tx) error {
 		return nil
 	})
 	if err != nil {
@@ -282,7 +282,7 @@ func TestRunSavepointRollsBackCallbackFailure(t *testing.T) {
 	child := &stubTx{}
 	parent := &stubTx{beginTx: child}
 
-	err := RunSavepoint(context.Background(), parent, 0, func(context.Context, pgx.Tx) error {
+	err := RunSavepoint(context.Background(), parent, SavepointOptions{}, func(context.Context, pgx.Tx) error {
 		return sentinel
 	})
 	if !errors.Is(err, sentinel) {
@@ -293,13 +293,13 @@ func TestRunSavepointRollsBackCallbackFailure(t *testing.T) {
 	}
 }
 
-func TestRunSavepointWithOptionsReportsObservation(t *testing.T) {
+func TestRunSavepointReportsObservation(t *testing.T) {
 	t.Parallel()
 
 	child := &stubTx{}
 	parent := &stubTx{beginTx: child}
 	var observation Observation
-	err := RunSavepointWithOptions(
+	err := RunSavepoint(
 		context.Background(),
 		parent,
 		SavepointOptions{Observer: ObserverFunc(func(_ context.Context, value Observation) {
@@ -308,14 +308,14 @@ func TestRunSavepointWithOptionsReportsObservation(t *testing.T) {
 		func(context.Context, pgx.Tx) error { return nil },
 	)
 	if err != nil {
-		t.Fatalf("RunSavepointWithOptions() error = %v", err)
+		t.Fatalf("RunSavepoint() error = %v", err)
 	}
 	if observation.Operation != OperationSavepoint || observation.Outcome != OutcomeSuccess {
 		t.Fatalf("observation = %#v", observation)
 	}
 }
 
-func TestRunSavepointWithOptionsReportsPanicAndRepanics(t *testing.T) {
+func TestRunSavepointReportsPanicAndRepanics(t *testing.T) {
 	t.Parallel()
 
 	child := &stubTx{}
@@ -331,7 +331,7 @@ func TestRunSavepointWithOptionsReportsPanicAndRepanics(t *testing.T) {
 		}
 	}()
 
-	_ = RunSavepointWithOptions(
+	_ = RunSavepoint(
 		context.Background(),
 		parent,
 		SavepointOptions{Observer: ObserverFunc(func(_ context.Context, value Observation) {
@@ -349,7 +349,7 @@ func TestTransactionRunnersRejectNilCallback(t *testing.T) {
 		t.Fatalf("RunTransaction() error = %v, want ErrNilTransactionCallback", err)
 	}
 
-	err = RunSavepoint(context.Background(), &stubTx{}, 0, nil)
+	err = RunSavepoint(context.Background(), &stubTx{}, SavepointOptions{}, nil)
 	if !errors.Is(err, ErrNilTransactionCallback) {
 		t.Fatalf("RunSavepoint() error = %v, want ErrNilTransactionCallback", err)
 	}
@@ -419,7 +419,7 @@ func TestRunSavepointRollsBackAndReportsGoexit(t *testing.T) {
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		_ = RunSavepointWithOptions(
+		_ = RunSavepoint(
 			context.Background(),
 			parent,
 			SavepointOptions{Observer: ObserverFunc(func(_ context.Context, value Observation) {

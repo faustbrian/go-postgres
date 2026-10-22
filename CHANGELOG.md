@@ -5,6 +5,23 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+### Removed
+
+- Remove the `postgresservice` and `otelpostgres` packages, the Service v1
+  adapter binding with `ComponentV2`/`ReadinessV2`, `New`, `Pool.Close`,
+  `ParseConfig`, `postgrestest.Start` and `Database.Close`. Each had a single
+  canonical replacement; version 3 keeps only that owner.
+
+### Changed
+
+- Move the module to `github.com/faustbrian/go-postgres/v3`.
+- Bind `adapters/service` directly to `github.com/faustbrian/go-service/v2`.
+  `Resource` now requires `Ping` and `Shutdown`, which `*Pool` satisfies.
+- Merge the savepoint entry points: `RunSavepoint` takes `SavepointOptions`.
+- Report OpenTelemetry metrics under the
+  `github.com/faustbrian/go-postgres/v3/adapters/otel` instrumentation scope.
+  Metric names, units and bounded attributes are unchanged.
+
 ## [2.1.0] - 2026-10-15
 
 ### Added
@@ -257,6 +274,6 @@ The following initial scope is included in `v1.0.1`.
 - exact production coverage, race, leak, fuzz, benchmark, safety, lint,
   vulnerability, documentation, compatibility, and release automation
 
-[Unreleased]: https://github.com/faustbrian/go-postgres/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/faustbrian/go-postgres/compare/v2.1.0...HEAD
 [1.1.0]: https://github.com/faustbrian/go-postgres/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/faustbrian/go-postgres/releases/tag/v1.0.1

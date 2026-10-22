@@ -105,13 +105,6 @@ type Health struct {
 	Stats Stats
 }
 
-// New constructs a native pgxpool.
-//
-// Deprecated: use Connect to make resource acquisition explicit.
-func New(ctx context.Context, input Config) (*Pool, error) {
-	return Connect(ctx, input)
-}
-
 // Connect constructs a native pgxpool without a startup connection by default.
 // StartupPing explicitly requests a bounded connectivity check. A nil
 // or already-canceled context is rejected before configuration or I/O. The
@@ -315,13 +308,6 @@ func snapshotStats(stats *pgxpool.Stat) Stats {
 		NewConnsCount:        stats.NewConnsCount(),
 		TotalConns:           stats.TotalConns(),
 	}
-}
-
-// Close delegates to Shutdown.
-//
-// Deprecated: use Shutdown for complete bounded owned shutdown.
-func (p *Pool) Close(ctx context.Context) error {
-	return p.Shutdown(ctx)
 }
 
 // Shutdown closes admission and starts native pool shutdown exactly once. Each

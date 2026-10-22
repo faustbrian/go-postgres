@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	gopostgres "github.com/faustbrian/go-postgres/v2"
+	gopostgres "github.com/faustbrian/go-postgres/v3"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/network"
 	"github.com/testcontainers/testcontainers-go"
@@ -65,13 +65,6 @@ type Database struct {
 	shutdownOnce   sync.Once
 	shutdownDone   chan struct{}
 	shutdownErr    error
-}
-
-// Start delegates to Open.
-//
-// Deprecated: use Open to make resource acquisition explicit.
-func Start(ctx context.Context, config Config) (*Database, error) {
-	return Open(ctx, config)
 }
 
 // Open creates a PostgreSQL container, waits for readiness, obtains a DSN,
@@ -211,14 +204,14 @@ func setupDatabase(
 }
 
 func closeAfterSetupError(ctx context.Context, database *Database) error {
-	return database.Close(ctx)
+	return database.Shutdown(ctx)
 }
 
 func closeAfterTerminalSetup(ctx context.Context, database *Database) {
 	defer func() {
 		_ = recover()
 	}()
-	_ = database.Close(ctx)
+	_ = database.Shutdown(ctx)
 }
 
 // DSN returns the complete pgx-compatible connection string. Treat it as a
@@ -232,13 +225,6 @@ func (d *Database) DSN() string {
 // lifecycle; coordinate it explicitly and retain responsibility for Shutdown.
 func (d *Database) Container() *testcontainerspostgres.PostgresContainer {
 	return d.native
-}
-
-// Close delegates to Shutdown.
-//
-// Deprecated: use Shutdown for complete bounded owned shutdown.
-func (d *Database) Close(ctx context.Context) error {
-	return d.Shutdown(ctx)
 }
 
 // Shutdown starts one caller-independent, bounded container termination and

@@ -1,20 +1,21 @@
 package postgres_test
 
 import (
+	"context"
 	"errors"
 	"os"
 	"testing"
 
-	postgres "github.com/faustbrian/go-postgres/v2"
+	postgres "github.com/faustbrian/go-postgres/v3"
 )
 
-func TestParseConfigRequiresExplicitResolverHosted(t *testing.T) {
+func TestPrepareConfigRequiresExplicitResolverHosted(t *testing.T) {
 	if os.Getenv("GITHUB_ACTIONS") != "true" {
 		t.Skip("native configuration admission regression runs only in hosted CI")
 	}
 
-	// ParseConfig must refuse before native parsing can consult ambient sources.
-	config, err := postgres.ParseConfig(postgres.Config{
+	// PrepareConfig must refuse before native parsing can consult ambient sources.
+	config, err := postgres.PrepareConfig(context.Background(), postgres.Config{
 		DSN: "host=database.example port=5432 user=example database=example sslmode=disable",
 	})
 	if config != nil {
