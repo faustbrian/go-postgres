@@ -18,7 +18,7 @@ Versioning and keeps an Unreleased section until a release is tagged.
   `github.com/faustbrian/go-postgres/v2/otelpostgres` import paths.
 - Remove the Service v1 `Component`/`Readiness` binding and the
   `ComponentV2`/`ReadinessV2` methods from `adapters/service`; its
-  `Component` and `Readiness` now return Service v2 types.
+  `Component` and `Readiness` now return Service v3 types.
 - Remove `New`, `Pool.Close`, `ParseConfig`, `RunSavepointWithOptions`,
   `postgrestest.Start` and `Database.Close`. Each had a single canonical
   replacement; version 3 keeps only that owner.

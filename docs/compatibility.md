@@ -9,7 +9,7 @@
 | PostgreSQL | 14, 15, 16, 17, 18 | Testcontainers matrix covering failure semantics and every transaction-mode combination |
 | OpenTelemetry Go | API/metric 1.47.0; SDK 1.45.0 | `adapters/otel` SDK collection tests |
 | Testcontainers Go | 0.44.x | integration and lifecycle tests |
-| Service | v2 `Component`/`Readiness` | native lifecycle, ownership, readiness and cleanup composition tests |
+| Service | v3 `Component`/`Readiness` | native lifecycle, ownership, readiness and cleanup composition tests |
 
 The PostgreSQL range follows the upstream pgx policy at the time of the first
 release. Changing the minimum or maximum supported major requires a changelog

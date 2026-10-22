@@ -16,7 +16,7 @@ Internal packages and non-releasable fixtures are intentionally excluded.
 | [`github.com/faustbrian/go-postgres/v3`](../doc.go) | Use for finite pgx pool configuration, bounded lifecycle, transaction cleanup, SQLSTATE classification, health, and safe observations. |
 | [`github.com/faustbrian/go-postgres/v3/postgrestest`](../postgrestest/database.go) | Use in tests for a real PostgreSQL container and always-rollback transaction isolation. |
 | [`github.com/faustbrian/go-postgres/v3/adapters/otel`](../adapters/otel/observer.go) | Use to adapt PostgreSQL observations to a caller-owned OpenTelemetry meter provider. |
-| [`github.com/faustbrian/go-postgres/v3/adapters/service`](../adapters/service/service.go) | Use to adapt a PostgreSQL pool into an explicit go-service v2 lifecycle component. |
+| [`github.com/faustbrian/go-postgres/v3/adapters/service`](../adapters/service/service.go) | Use to adapt a PostgreSQL pool into an explicit go-service v3 lifecycle component. |
 
 Choose the next guide in the [documentation index](README.md)
 or return to the [repository entry](../README.md) for installation and ownership.
