@@ -5,6 +5,11 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+### Security
+
+- Build with Go 1.27.3 to address GO-2026-6809 in `crypto/x509`.
+  Consumers should use Go 1.27.3 or newer.
+
 ### Removed
 
 - Remove the `postgresservice` and `otelpostgres` packages, the Service v1
