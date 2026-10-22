@@ -12,10 +12,14 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ### Removed
 
-- Remove the `postgresservice` and `otelpostgres` packages, the Service v1
-  adapter binding with `ComponentV2`/`ReadinessV2`, `New`, `Pool.Close`,
-  `ParseConfig`, `postgrestest.Start` and `Database.Close`. Each had a single
-  canonical replacement; version 3 keeps only that owner.
+- Remove the `github.com/faustbrian/go-postgres/v2/postgresservice` and
+  `github.com/faustbrian/go-postgres/v2/otelpostgres` import paths.
+- Remove the Service v1 `Component`/`Readiness` binding and the
+  `ComponentV2`/`ReadinessV2` methods from `adapters/service`; its
+  `Component` and `Readiness` now return Service v2 types.
+- Remove `New`, `Pool.Close`, `ParseConfig`, `RunSavepointWithOptions`,
+  `postgrestest.Start` and `Database.Close`. Each had a single canonical
+  replacement; version 3 keeps only that owner.
 
 ### Changed
 
@@ -280,5 +284,8 @@ The following initial scope is included in `v1.0.1`.
   vulnerability, documentation, compatibility, and release automation
 
 [Unreleased]: https://github.com/faustbrian/go-postgres/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/faustbrian/go-postgres/compare/v2.0.1...v2.1.0
+[2.0.1]: https://github.com/faustbrian/go-postgres/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/faustbrian/go-postgres/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/faustbrian/go-postgres/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/faustbrian/go-postgres/releases/tag/v1.0.1

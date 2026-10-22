@@ -24,7 +24,8 @@ adapter packages. See the [migration guide](docs/migration.md#v2-to-v3-clean-rep
 
 ## Requirements
 
-- Go 1.27.0 or newer
+- Go 1.27.0 or newer; build with Go 1.27.3 or newer, which fixes
+  GO-2026-6809 in `crypto/x509`
 - pgx 5.11.x
 - PostgreSQL 14, 15, 16, 17, or 18
 - Docker-compatible container runtime only for `postgrestest` and integration

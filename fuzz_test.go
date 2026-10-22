@@ -17,7 +17,7 @@ import (
 
 // Parser fuzzing opts into the hosted native resolver; admission remains distinct
 // from arbitrary callback resource use. Seed cases are not live PostgreSQL proof.
-func FuzzParseConfig(f *testing.F) {
+func FuzzPrepareConfig(f *testing.F) {
 	f.Add("postgres://app:secret@localhost/app?sslmode=disable")
 	f.Add("host=/var/run/postgresql user=app dbname=app")
 	f.Add("postgres://app:p%40ss@[::1]:5432/app?sslmode=require")

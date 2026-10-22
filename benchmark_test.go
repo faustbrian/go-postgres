@@ -11,7 +11,7 @@ import (
 
 // These microbenchmarks isolate wrapper overhead with native parsing or stubs;
 // they are not evidence of database throughput, locking or latency.
-func BenchmarkParseConfig(b *testing.B) {
+func BenchmarkPrepareConfig(b *testing.B) {
 	for b.Loop() {
 		config, err := parseHostedConfig(Config{
 			DSN:      "postgres://app:secret@localhost/app?sslmode=disable",

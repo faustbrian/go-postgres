@@ -49,7 +49,7 @@ operations:
     steps:
       - type: go-test
         packages: [.]
-        fuzz: '^FuzzParseConfig$'
+        fuzz: '^FuzzPrepareConfig$'
         budget: 10000x
         timeout: 20m
       - type: go-test

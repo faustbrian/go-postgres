@@ -9,8 +9,8 @@ ordinary observer panics. Delivery remains synchronous: blocking callbacks can
 extend call duration, and goroutine termination is not isolated. Keep observers
 prompt and safe for concurrent calls.
 
-Package-produced observations, `NewSlogObserver`, and both OpenTelemetry
-variants admit only the five built-in operations, four outcomes, and declared
+Package-produced observations, `NewSlogObserver`, and `adapters/otel` admit
+only the five built-in operations, four outcomes, and declared
 `ErrorKind` values. Unknown categories become `unknown`. Empty error kind and
 SQLSTATE remain empty. Telemetry preserves only these exact SQLSTATE values:
 `23505`, `23503`, `23514`, `23P01`, `40001`, `40P01`, `57014`, `55P03`,

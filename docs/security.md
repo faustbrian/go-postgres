@@ -2,12 +2,14 @@
 
 [Documentation index](README.md) · [Repository entry](../README.md)
 
-Model version: 2.0.0. Reviewed: 2026-10-07. Owner: repository maintainer.
-Scope: the v2.0.0 root module and its service and telemetry adapters, which
-bind source `331fcb61a05c11241a9df36d6f57d875e74d93e0`. Version 3 removes
-superseded entry points and binds the service adapter to Service v2; this model
-has not been re-reviewed for v3. This source-bound model does not
-claim verification of any application deployment.
+Model version: 3.0.0. Reviewed: 2026-10-22. Owner: repository maintainer.
+Scope: the v3 root module and its `adapters/service` and `adapters/otel`
+packages. The v3 review found no new asset, trust boundary or redaction path:
+the removed packages and entry points were forwarders to the retained owners,
+dropping the Service v1 dependency narrows the dependency graph, the
+OpenTelemetry change renames only the instrumentation scope, and release builds
+move to Go 1.27.3 for GO-2026-6809. This source-bound model does not claim
+verification of any application deployment.
 
 ## Assets
 

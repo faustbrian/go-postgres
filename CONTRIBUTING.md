@@ -54,7 +54,7 @@ configuration boundary changes, using a disposable cache for each session:
   export GOCACHE
   trap 'rm -rf "${GOCACHE}"' EXIT
   GOWORK=off go test ./...
-  GOWORK=off go test . -run '^$' -fuzz '^FuzzParseConfig$' -fuzztime=2s -timeout=2m
+  GOWORK=off go test . -run '^$' -fuzz '^FuzzPrepareConfig$' -fuzztime=2s -timeout=2m
 )
 ```
 

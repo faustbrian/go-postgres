@@ -30,7 +30,7 @@ func parseHostedConfig(input Config) (*PoolConfig, error) {
 	return PrepareConfig(context.Background(), input)
 }
 
-func TestParseConfigAppliesFiniteProductionDefaults(t *testing.T) {
+func TestPrepareConfigAppliesFiniteProductionDefaults(t *testing.T) {
 	t.Parallel()
 
 	config, err := parseHostedConfig(Config{
@@ -63,7 +63,7 @@ func TestParseConfigAppliesFiniteProductionDefaults(t *testing.T) {
 	}
 }
 
-func TestParseConfigAcceptsRepresentativePostgreSQLDSNForms(t *testing.T) {
+func TestPrepareConfigAcceptsRepresentativePostgreSQLDSNForms(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -131,7 +131,7 @@ func TestParseConfigAcceptsRepresentativePostgreSQLDSNForms(t *testing.T) {
 	}
 }
 
-func TestParseConfigHonorsOverridesAndHook(t *testing.T) {
+func TestPrepareConfigHonorsOverridesAndHook(t *testing.T) {
 	t.Parallel()
 
 	hookCalled := false
@@ -171,7 +171,7 @@ func TestParseConfigHonorsOverridesAndHook(t *testing.T) {
 	}
 }
 
-func TestParseConfigRejectsInvalidValuesWithoutLeakingDSN(t *testing.T) {
+func TestPrepareConfigRejectsInvalidValuesWithoutLeakingDSN(t *testing.T) {
 	t.Parallel()
 
 	const password = "do-not-print-this-password"
@@ -208,7 +208,7 @@ func TestParseConfigRejectsInvalidValuesWithoutLeakingDSN(t *testing.T) {
 	}
 }
 
-func TestParseConfigRejectsInconsistentPoolSizes(t *testing.T) {
+func TestPrepareConfigRejectsInconsistentPoolSizes(t *testing.T) {
 	t.Parallel()
 
 	_, err := parseHostedConfig(Config{
@@ -221,7 +221,7 @@ func TestParseConfigRejectsInconsistentPoolSizes(t *testing.T) {
 	}
 }
 
-func TestParseConfigAcceptsPoolSizesAtMaximum(t *testing.T) {
+func TestPrepareConfigAcceptsPoolSizesAtMaximum(t *testing.T) {
 	t.Parallel()
 
 	config, err := parseHostedConfig(Config{
@@ -243,7 +243,7 @@ func TestParseConfigAcceptsPoolSizesAtMaximum(t *testing.T) {
 	}
 }
 
-func TestParseConfigComposesNativeAndSessionInitializationHooks(t *testing.T) {
+func TestPrepareConfigComposesNativeAndSessionInitializationHooks(t *testing.T) {
 	t.Parallel()
 
 	var calls []string
@@ -276,7 +276,7 @@ func TestParseConfigComposesNativeAndSessionInitializationHooks(t *testing.T) {
 	}
 }
 
-func TestParseConfigPreservesSessionInitializationFailure(t *testing.T) {
+func TestPrepareConfigPreservesSessionInitializationFailure(t *testing.T) {
 	t.Parallel()
 
 	sentinel := errors.New("session setup failed")
@@ -296,7 +296,7 @@ func TestParseConfigPreservesSessionInitializationFailure(t *testing.T) {
 	}
 }
 
-func TestParseConfigRejectsUnknownStartupPolicy(t *testing.T) {
+func TestPrepareConfigRejectsUnknownStartupPolicy(t *testing.T) {
 	t.Parallel()
 
 	_, err := parseHostedConfig(Config{
@@ -308,7 +308,7 @@ func TestParseConfigRejectsUnknownStartupPolicy(t *testing.T) {
 	}
 }
 
-func TestParseConfigAppliesTypedTLSOverride(t *testing.T) {
+func TestPrepareConfigAppliesTypedTLSOverride(t *testing.T) {
 	t.Parallel()
 
 	tlsConfig := &tls.Config{ServerName: "db.internal", MinVersion: tls.VersionTLS13}
@@ -334,7 +334,7 @@ func TestParseConfigAppliesTypedTLSOverride(t *testing.T) {
 	}
 }
 
-func TestParseConfigCopiesMutableTLSInputs(t *testing.T) {
+func TestPrepareConfigCopiesMutableTLSInputs(t *testing.T) {
 	t.Parallel()
 
 	roots := x509.NewCertPool()
@@ -370,7 +370,7 @@ func TestParseConfigCopiesMutableTLSInputs(t *testing.T) {
 	}
 }
 
-func TestParseConfigCanExplicitlyDisableTLS(t *testing.T) {
+func TestPrepareConfigCanExplicitlyDisableTLS(t *testing.T) {
 	t.Parallel()
 
 	config, err := parseHostedConfig(Config{
@@ -391,7 +391,7 @@ func TestParseConfigCanExplicitlyDisableTLS(t *testing.T) {
 	}
 }
 
-func TestParseConfigRejectsRequiredTLSWithoutConfiguration(t *testing.T) {
+func TestPrepareConfigRejectsRequiredTLSWithoutConfiguration(t *testing.T) {
 	t.Parallel()
 
 	_, err := parseHostedConfig(Config{
@@ -403,7 +403,7 @@ func TestParseConfigRejectsRequiredTLSWithoutConfiguration(t *testing.T) {
 	}
 }
 
-func TestParseConfigCoversValidationAndSafeCauses(t *testing.T) {
+func TestPrepareConfigCoversValidationAndSafeCauses(t *testing.T) {
 	t.Parallel()
 
 	sentinel := errors.New("configuration rejected")
@@ -438,7 +438,7 @@ func TestParseConfigCoversValidationAndSafeCauses(t *testing.T) {
 	}
 }
 
-func TestParseConfigPreservesDSNTLSAndConfiguresFallbackHosts(t *testing.T) {
+func TestPrepareConfigPreservesDSNTLSAndConfiguresFallbackHosts(t *testing.T) {
 	t.Parallel()
 
 	fromDSN, err := parseHostedConfig(Config{
@@ -468,7 +468,7 @@ func TestParseConfigPreservesDSNTLSAndConfiguresFallbackHosts(t *testing.T) {
 	}
 }
 
-func TestParseConfigDisablesTLSForFallbackHosts(t *testing.T) {
+func TestPrepareConfigDisablesTLSForFallbackHosts(t *testing.T) {
 	t.Parallel()
 
 	config, err := parseHostedConfig(Config{

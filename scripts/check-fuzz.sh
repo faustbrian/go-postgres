@@ -3,7 +3,7 @@ set -euo pipefail
 
 fuzz_time="${1:-${FUZZ_TIME:-2s}}"
 targets=(
-  ".:FuzzParseConfig"
+  ".:FuzzPrepareConfig"
   ".:FuzzSQLStateClassification"
   ".:FuzzConfigurationBounds"
 	".:FuzzOptions"
