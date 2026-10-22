@@ -5,6 +5,8 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-10-22
+
 ### Security
 
 - Build with Go 1.27.3 to address GO-2026-6809 in `crypto/x509`.
@@ -283,7 +285,8 @@ The following initial scope is included in `v1.0.1`.
 - exact production coverage, race, leak, fuzz, benchmark, safety, lint,
   vulnerability, documentation, compatibility, and release automation
 
-[Unreleased]: https://github.com/faustbrian/go-postgres/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/faustbrian/go-postgres/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/faustbrian/go-postgres/compare/v2.1.0...v3.0.0
 [2.1.0]: https://github.com/faustbrian/go-postgres/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/faustbrian/go-postgres/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/faustbrian/go-postgres/compare/v1.1.0...v2.0.0
