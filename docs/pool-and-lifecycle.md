@@ -94,7 +94,7 @@ inherits pgxpool scheduling and does not promise waiter ordering or fairness.
 must wait for borrowed connections, but each caller stops waiting at its own or
 the configured deadline and returns `ErrShutdownTimeout`. Native shutdown
 continues in one background goroutine, and later callers observe the same
-terminal result. `Close` delegates to `Shutdown`. Stop accepting work, cancel
+terminal result. Stop accepting work, cancel
 workers, wait for handlers, then shut down the pool. Returning borrowed
 connections is mandatory.
 
