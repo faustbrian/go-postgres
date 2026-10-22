@@ -115,7 +115,7 @@ the server when `InsecureSkipVerify` is enabled.
   transaction helpers for real PostgreSQL
 
 Query tracing is provided by
-[`go-telemetry/v3/instrumentation/postgres`](https://pkg.go.dev/github.com/faustbrian/go-telemetry/v3/instrumentation/postgres)
+[`go-telemetry/v4/instrumentation/postgres`](https://pkg.go.dev/github.com/faustbrian/go-telemetry/v4/instrumentation/postgres)
 through the native `pgx.ConnConfig.Tracer` hook. It records allow-listed query
 names and never SQL or arguments.
 

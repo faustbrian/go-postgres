@@ -45,7 +45,7 @@ records:
   and `max`
 
 For query spans, configure
-`github.com/faustbrian/go-telemetry/v3/instrumentation/postgres` through
+`github.com/faustbrian/go-telemetry/v4/instrumentation/postgres` through
 `Config.Configure`:
 
 ```go
