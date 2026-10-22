@@ -17,10 +17,10 @@ points instead of retaining aliases or forwarding packages:
 | `postgrestest.Start`, `Database.Close` | `postgrestest.Open`, `Database.Shutdown` |
 | `postgresservice` package | `adapters/service` |
 | `otelpostgres` package | `adapters/otel` |
-| Service v1 `Component`/`Readiness`, `ComponentV2`/`ReadinessV2` | Service v2 `Component`/`Readiness` |
+| Service v1 `Component`/`Readiness`, `ComponentV2`/`ReadinessV2` | Service v3 `Component`/`Readiness` |
 
 Update imports to `github.com/faustbrian/go-postgres/v3` and move service
-composition to `github.com/faustbrian/go-service/v2` in the same change.
+composition to `github.com/faustbrian/go-service/v3` in the same change.
 `adapters/service.Resource` now requires `Ping` and `Shutdown`; `*Pool`
 satisfies it, and custom resources rename their `Close` method.
 

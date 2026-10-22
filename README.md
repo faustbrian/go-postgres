@@ -121,7 +121,7 @@ names and never SQL or arguments.
 
 ## Service lifecycle
 
-`adapters/service.New` binds `github.com/faustbrian/go-service/v2` and accepts
+`adapters/service.New` binds `github.com/faustbrian/go-service/v3` and accepts
 either an existing pool or a constructor. A
 constructor transfers ownership after successful startup. Existing pools remain
 shared unless `TransferOwnership` is explicit. `StartupPing` is opt-in, and

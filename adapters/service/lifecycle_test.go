@@ -9,7 +9,7 @@ import (
 
 	postgres "github.com/faustbrian/go-postgres/v3"
 	postgresservice "github.com/faustbrian/go-postgres/v3/adapters/service"
-	service "github.com/faustbrian/go-service/v2"
+	service "github.com/faustbrian/go-service/v3"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

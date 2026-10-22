@@ -3,7 +3,7 @@ module github.com/faustbrian/go-postgres/v3
 go 1.27.0
 
 require (
-	github.com/faustbrian/go-service/v2 v2.0.0
+	github.com/faustbrian/go-service/v3 v3.0.0
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/moby/moby/api v1.56.1
 	github.com/testcontainers/testcontainers-go v0.44.0
@@ -29,7 +29,7 @@ require (
 	github.com/docker/go-connections v0.7.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/ebitengine/purego v0.10.1 // indirect
-	github.com/faustbrian/go-cli v1.1.1 // indirect
+	github.com/faustbrian/go-cli/v2 v2.0.0 // indirect
 	github.com/faustbrian/go-correlation v1.1.2 // indirect
 	github.com/faustbrian/go-identifier/v2 v2.0.0 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect

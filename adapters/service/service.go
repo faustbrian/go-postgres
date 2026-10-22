@@ -1,4 +1,4 @@
-// Package postgresservice adapts PostgreSQL pools to the Service v2 lifecycle.
+// Package postgresservice adapts PostgreSQL pools to the Service v3 lifecycle.
 // Constructor results are owned by the adapter. Existing pools remain shared
 // unless ownership is explicitly transferred. The adapter performs no retries,
 // closes active owned pools once per ordered service lifecycle, and never closes
@@ -14,7 +14,7 @@ import (
 	"strings"
 	"sync"
 
-	service "github.com/faustbrian/go-service/v2"
+	service "github.com/faustbrian/go-service/v3"
 )
 
 var (

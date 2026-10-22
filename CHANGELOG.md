@@ -26,7 +26,7 @@ Versioning and keeps an Unreleased section until a release is tagged.
 ### Changed
 
 - Move the module to `github.com/faustbrian/go-postgres/v3`.
-- Bind `adapters/service` directly to `github.com/faustbrian/go-service/v2`.
+- Bind `adapters/service` directly to `github.com/faustbrian/go-service/v3`.
   `Resource` now requires `Ping` and `Shutdown`, which `*Pool` satisfies.
 - Merge the savepoint entry points: `RunSavepoint` takes `SavepointOptions`.
 - Report OpenTelemetry metrics under the

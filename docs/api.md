@@ -80,13 +80,13 @@ stability and behavior of each public surface.
 ## Service lifecycle adapter
 
 `adapters/service.New` adapts either a constructor-created or existing pool to a
-Service v2 `service.Component`. Constructor results are adapter-owned. Existing resources
+Service v3 `service.Component`. Constructor results are adapter-owned. Existing resources
 remain shared unless ownership is explicitly transferred. Startup ping is
 optional, readiness is opt-in through `Adapter.Readiness`, partial startup
 failure closes only owned resources, and repeated shutdown closes an owned
 resource once.
 
-`Component` and `Readiness` use `github.com/faustbrian/go-service/v2` types.
+`Component` and `Readiness` use `github.com/faustbrian/go-service/v3` types.
 Register only one component per adapter; it does not support restart. A
 `Resource` is any value with `Ping` and `Shutdown`, which `*postgres.Pool`
 satisfies.
