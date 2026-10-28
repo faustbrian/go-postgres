@@ -5,6 +5,8 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-10-28
+
 ### Added
 
 - Let `Config.Limits.MaximumProtocolMessageBodyBytes` be raised above its
@@ -300,7 +302,8 @@ The following initial scope is included in `v1.0.1`.
 - exact production coverage, race, leak, fuzz, benchmark, safety, lint,
   vulnerability, documentation, compatibility, and release automation
 
-[Unreleased]: https://github.com/faustbrian/go-postgres/compare/v3.1.0...HEAD
+[Unreleased]: https://github.com/faustbrian/go-postgres/compare/v3.2.0...HEAD
+[3.2.0]: https://github.com/faustbrian/go-postgres/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/faustbrian/go-postgres/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/faustbrian/go-postgres/compare/v2.1.0...v3.0.0
 [2.1.0]: https://github.com/faustbrian/go-postgres/compare/v2.0.1...v2.1.0

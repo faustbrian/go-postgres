@@ -1,12 +1,19 @@
 package postgres
 
 import (
+	"bytes"
 	"context"
+	"encoding/binary"
+	"errors"
+	"io"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgproto3"
 )
 
-// Explicit ceilings have the same inclusive meaning as defaulted ceilings.
+// Explicit ceilings are inclusive: the ceiling is admitted and one above it is
+// refused. Every ceiling equals its default except the message-body budget.
 func TestConfigAdmissionExplicitLimitCeilings(t *testing.T) {
 	for _, test := range []struct {
 		name    string
@@ -50,6 +57,65 @@ func TestConfigAdmissionProtocolMessageBudgetDefaultAndRaise(t *testing.T) {
 	input.Limits.MaximumDSNBytes = DefaultMaximumDSNBytes + 1
 	result, err := PrepareConfig(context.Background(), input)
 	requireConfigField(t, result, err, "limits")
+}
+
+// A raised budget bounds resolver and Configure native values by that budget,
+// not by the default or the ceiling.
+func TestConfigAdmissionRaisedProtocolMessageBudgetBoundsNativeValues(t *testing.T) {
+	const budget = 16 << 20
+	for _, test := range []struct {
+		name  string
+		value int
+		field string
+	}{
+		{"between default and budget", DefaultMaximumProtocolMessageBodyBytes + 1, ""},
+		{"at budget", budget, ""},
+		{"over budget", budget + 1, "native_config"},
+	} {
+		t.Run("resolver "+test.name, func(t *testing.T) {
+			input := admittedInput()
+			input.Limits.MaximumProtocolMessageBodyBytes = budget
+			input.ResolveDSN = func(context.Context, string) (*PoolConfig, error) {
+				native := admittedNative()
+				native.ConnConfig.MaxProtocolMessageBodyLen = test.value
+				return native, nil
+			}
+			result, err := PrepareConfig(context.Background(), input)
+			if test.field != "" {
+				requireConfigField(t, result, err, test.field)
+			} else if err != nil || result.ConnConfig.MaxProtocolMessageBodyLen != test.value {
+				t.Fatal("resolver message allowance within the raised budget refused")
+			}
+		})
+		t.Run("configure "+test.name, func(t *testing.T) {
+			input := admittedInput()
+			input.Limits.MaximumProtocolMessageBodyBytes = budget
+			input.Configure = func(_ context.Context, native *PoolConfig) error {
+				native.ConnConfig.MaxProtocolMessageBodyLen = test.value
+				return nil
+			}
+			result, err := PrepareConfig(context.Background(), input)
+			if test.field != "" {
+				requireConfigField(t, result, err, test.field)
+			} else if err != nil || result.ConnConfig.MaxProtocolMessageBodyLen != test.value {
+				t.Fatal("configured message allowance within the raised budget refused")
+			}
+		})
+	}
+}
+
+// The ceiling must stay equal to pgx's own limit, which is unexported: a body
+// one byte above the ceiling is the first one pgx's default frontend refuses.
+func TestProtocolMessageBodyCeilingMatchesPgx(t *testing.T) {
+	header := make([]byte, 5)
+	header[0] = 'D'
+	binary.BigEndian.PutUint32(header[1:], uint32(MaximumProtocolMessageBodyCeiling+1+4))
+	frontend := pgproto3.NewFrontend(bytes.NewReader(header), io.Discard)
+	_, err := frontend.Receive()
+	var exceeded *pgproto3.ExceededMaxBodyLenErr
+	if !errors.As(err, &exceeded) || exceeded.MaxExpectedBodyLen != MaximumProtocolMessageBodyCeiling {
+		t.Fatalf("pgx native limit diverged from MaximumProtocolMessageBodyCeiling: %v", err)
+	}
 }
 
 func TestConfigAdmissionPoolMaximumCeiling(t *testing.T) {

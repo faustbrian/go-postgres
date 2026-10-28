@@ -58,7 +58,7 @@ Callbacks must cooperate; deadlines cannot preempt arbitrary application code.
 Resolver errors have fixed private messages without upstream causes; trusted
 Configure causes and native transaction/error identities remain inspectable.
 
-`Config.Limits` zero fields select ceilings: 8 KiB DSN, 16 fallbacks, 128 runtime
+`Config.Limits` zero fields select defaults: 8 KiB DSN, 16 fallbacks, 128 runtime
 parameters, 64 KiB aggregate native strings, and 1024 entries for each native
 statement/description cache, plus 8 MiB per native protocol-message body.
 Positive values only reduce these ceilings, except the message-body budget,
@@ -78,7 +78,9 @@ opaque allocations remain bounded, trusted application-owned collaborators.
 Connection/preparation/ping/acquisition/shutdown timeouts are positive and at
 most one hour; zero typed fields select defaults. Pool lifetime/idle/health
 durations are positive and at most 30 days; jitter is nonnegative and no larger
-than lifetime. Final native invariants cannot be bypassed by Configure.
+than lifetime. Final native invariants cannot be bypassed by Configure itself,
+but a `BeforeConnect` hook it installs receives a per-connection copy after
+admission and is trusted not to relax them.
 
 `StartupLazy` is now zero/default. Both final minimum connection counts must
 be zero under lazy startup, including after Configure; select `StartupPing`

@@ -16,9 +16,10 @@ const (
 	// DefaultMaximumProtocolMessageBodyBytes bounds each native wire-message body.
 	DefaultMaximumProtocolMessageBodyBytes = 8 << 20
 	// MaximumProtocolMessageBodyCeiling is the largest wire-message body an
-	// application may opt into. It equals PostgreSQL's PG_LARGE_MESSAGE_LIMIT
-	// (src/include/libpq/libpq.h), which pgx also enforces as maxMessageBodyLen
-	// (pgproto3/pgproto3.go); no larger message can be valid.
+	// application may opt into. It equals pgx's native maxMessageBodyLen
+	// (pgproto3/pgproto3.go), which follows PostgreSQL's PQ_LARGE_MESSAGE_LIMIT
+	// (src/include/libpq/libpq.h); server-sent messages are bounded by the
+	// same MaxAllocSize - 1 through enlargeStringInfo.
 	MaximumProtocolMessageBodyCeiling = 0x3fffffff - 1
 	// MaximumPoolConnections is the finite pool-size ceiling.
 	MaximumPoolConnections = 1024
