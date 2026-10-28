@@ -61,7 +61,9 @@ Configure causes and native transaction/error identities remain inspectable.
 `Config.Limits` zero fields select ceilings: 8 KiB DSN, 16 fallbacks, 128 runtime
 parameters, 64 KiB aggregate native strings, and 1024 entries for each native
 statement/description cache, plus 8 MiB per native protocol-message body.
-Positive values only reduce these ceilings;
+Positive values only reduce these ceilings, except the message-body budget,
+which may be raised up to `MaximumProtocolMessageBodyCeiling` when an
+application reads rows larger than 8 MiB;
 negative values are invalid. Aggregate bytes count each occurrence of all
 native scalar strings (including original connection string), fallback hosts,
 and runtime parameter keys/values. Counts precede iteration and byte subtraction

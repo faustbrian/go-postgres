@@ -95,7 +95,9 @@ available.
 | startup policy | lazy, zero minimum connections |
 
 Zero values select these finite defaults. Admission budgets allow positive
-reductions, and native policies are revalidated after Configure. TLS remains an
+reductions; the 8 MiB message-body budget may also be raised, up to
+`MaximumProtocolMessageBodyCeiling`, for applications that read larger rows.
+Native policies are revalidated after Configure. TLS remains an
 explicit deployment decision: use a DSN with `sslmode=verify-full` or provide a
 verified `tls.Config` with `TLSRequire`; never assume encryption authenticates
 the server when `InsecureSkipVerify` is enabled.

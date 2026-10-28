@@ -23,6 +23,7 @@ import (
 	"github.com/faustbrian/go-postgres/v3/postgrestest"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgproto3"
 )
 
 var integrationDatabase *postgrestest.Database
@@ -54,6 +55,34 @@ func TestMain(m *testing.M) {
 		code = 1
 	}
 	os.Exit(code)
+}
+
+func TestProtocolMessageBudgetAgainstPostgreSQL(t *testing.T) {
+	const rowBytes = 9 << 20
+	read := func(limit int) (int, error) {
+		pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing,
+			DSN: integrationDatabase.DSN(), MaxConns: 1,
+			Limits: postgres.ConfigLimits{MaximumProtocolMessageBodyBytes: limit},
+		})
+		if err != nil {
+			t.Fatalf("Connect() error = %v", err)
+		}
+		defer func() {
+			if err := pool.Shutdown(context.Background()); err != nil {
+				t.Errorf("Shutdown() error = %v", err)
+			}
+		}()
+		var value string
+		err = pool.Raw().QueryRow(context.Background(), `SELECT repeat('x', $1)`, rowBytes).Scan(&value)
+		return len(value), err
+	}
+	var exceeded *pgproto3.ExceededMaxBodyLenErr
+	if _, err := read(0); !errors.As(err, &exceeded) {
+		t.Fatalf("default budget read a %d-byte row: %v", rowBytes, err)
+	}
+	if size, err := read(16 << 20); err != nil || size != rowBytes {
+		t.Fatalf("raised budget read = (%d, %v), want %d bytes", size, err, rowBytes)
+	}
 }
 
 func TestPoolLifecycleAgainstPostgreSQL(t *testing.T) {

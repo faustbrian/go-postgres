@@ -15,6 +15,11 @@ const (
 	DefaultMaximumCacheEntries = 1024
 	// DefaultMaximumProtocolMessageBodyBytes bounds each native wire-message body.
 	DefaultMaximumProtocolMessageBodyBytes = 8 << 20
+	// MaximumProtocolMessageBodyCeiling is the largest wire-message body an
+	// application may opt into. It equals PostgreSQL's PG_LARGE_MESSAGE_LIMIT
+	// (src/include/libpq/libpq.h), which pgx also enforces as maxMessageBodyLen
+	// (pgproto3/pgproto3.go); no larger message can be valid.
+	MaximumProtocolMessageBodyCeiling = 0x3fffffff - 1
 	// MaximumPoolConnections is the finite pool-size ceiling.
 	MaximumPoolConnections = 1024
 	// MaximumConfigTimeout bounds preparation and connection/operation timeouts.
@@ -24,8 +29,11 @@ const (
 )
 
 // ConfigLimits controls package-owned admission. Zero selects finite defaults;
-// positive values may only reduce the defaults. The application must bound
-// opaque TLS data and resource use by trusted callbacks separately.
+// positive values may only reduce the defaults, except
+// MaximumProtocolMessageBodyBytes, which may also be raised up to
+// MaximumProtocolMessageBodyCeiling for applications that read rows larger
+// than the default. The application must bound opaque TLS data and resource
+// use by trusted callbacks separately.
 type ConfigLimits struct {
 	// MaximumDSNBytes admits the input before application resolution.
 	MaximumDSNBytes int
@@ -41,29 +49,32 @@ type ConfigLimits struct {
 	MaximumStatementCacheEntries int
 	// MaximumDescriptionCacheEntries bounds the native description cache.
 	MaximumDescriptionCacheEntries int
-	// MaximumProtocolMessageBodyBytes bounds each native wire-message body.
+	// MaximumProtocolMessageBodyBytes bounds each native wire-message body, and
+	// therefore the largest row a query can return. Raising it lets one
+	// connection buffer that many bytes, so size the pool accordingly.
 	MaximumProtocolMessageBodyBytes int
 }
 
 func (limits ConfigLimits) admitted() (ConfigLimits, error) {
 	fields := []struct {
-		value   *int
-		ceiling int
+		value        *int
+		defaultValue int
+		ceiling      int
 	}{
-		{&limits.MaximumDSNBytes, DefaultMaximumDSNBytes},
-		{&limits.MaximumFallbacks, DefaultMaximumFallbacks},
-		{&limits.MaximumRuntimeParams, DefaultMaximumRuntimeParams},
-		{&limits.MaximumNativeStringBytes, DefaultMaximumNativeStringBytes},
-		{&limits.MaximumStatementCacheEntries, DefaultMaximumCacheEntries},
-		{&limits.MaximumDescriptionCacheEntries, DefaultMaximumCacheEntries},
-		{&limits.MaximumProtocolMessageBodyBytes, DefaultMaximumProtocolMessageBodyBytes},
+		{&limits.MaximumDSNBytes, DefaultMaximumDSNBytes, DefaultMaximumDSNBytes},
+		{&limits.MaximumFallbacks, DefaultMaximumFallbacks, DefaultMaximumFallbacks},
+		{&limits.MaximumRuntimeParams, DefaultMaximumRuntimeParams, DefaultMaximumRuntimeParams},
+		{&limits.MaximumNativeStringBytes, DefaultMaximumNativeStringBytes, DefaultMaximumNativeStringBytes},
+		{&limits.MaximumStatementCacheEntries, DefaultMaximumCacheEntries, DefaultMaximumCacheEntries},
+		{&limits.MaximumDescriptionCacheEntries, DefaultMaximumCacheEntries, DefaultMaximumCacheEntries},
+		{&limits.MaximumProtocolMessageBodyBytes, DefaultMaximumProtocolMessageBodyBytes, MaximumProtocolMessageBodyCeiling},
 	}
 	for _, field := range fields {
 		if *field.value < 0 || *field.value > field.ceiling {
-			return ConfigLimits{}, configError("limits", "must be zero or a positive reduction")
+			return ConfigLimits{}, configError("limits", "must be zero or within its ceiling")
 		}
 		if *field.value == 0 {
-			*field.value = field.ceiling
+			*field.value = field.defaultValue
 		}
 	}
 	return limits, nil

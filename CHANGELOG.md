@@ -5,6 +5,13 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+### Added
+
+- Let `Config.Limits.MaximumProtocolMessageBodyBytes` be raised above its
+  8 MiB default, up to `MaximumProtocolMessageBodyCeiling` (PostgreSQL's
+  largest valid message). Applications that read rows larger than 8 MiB opt
+  in explicitly; every other admission budget still only accepts reductions.
+
 ## [3.1.0] - 2026-10-28
 
 ### Added

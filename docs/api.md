@@ -18,6 +18,9 @@ stability and behavior of each public surface.
   propagate.
 - `ResolveNativeDSN` is an explicit opt-in resolver that uses pgx's native
   parser and its ambient environment and files. Nothing is resolved by default.
+- `Config.Limits` budgets accept only reductions, except
+  `MaximumProtocolMessageBodyBytes`, which may be raised up to
+  `MaximumProtocolMessageBodyCeiling` for pools that read rows over 8 MiB.
 - `ConfigError` identifies a field. `Unwrap` exposes only safe hook causes; DSN
   parser causes are deliberately withheld because upstream text may change.
 - `PoolConfig` is an alias, not a wrapper, for `pgxpool.Config`.

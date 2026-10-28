@@ -19,7 +19,7 @@ func TestConfigAdmissionExplicitLimitCeilings(t *testing.T) {
 		{"strings", DefaultMaximumNativeStringBytes, func(l *ConfigLimits, n int) { l.MaximumNativeStringBytes = n }},
 		{"statement_cache", DefaultMaximumCacheEntries, func(l *ConfigLimits, n int) { l.MaximumStatementCacheEntries = n }},
 		{"description_cache", DefaultMaximumCacheEntries, func(l *ConfigLimits, n int) { l.MaximumDescriptionCacheEntries = n }},
-		{"message", DefaultMaximumProtocolMessageBodyBytes, func(l *ConfigLimits, n int) { l.MaximumProtocolMessageBodyBytes = n }},
+		{"message", MaximumProtocolMessageBodyCeiling, func(l *ConfigLimits, n int) { l.MaximumProtocolMessageBodyBytes = n }},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			input := admittedInput()
@@ -32,6 +32,24 @@ func TestConfigAdmissionExplicitLimitCeilings(t *testing.T) {
 			requireConfigField(t, result, err, "limits")
 		})
 	}
+}
+
+// Only the message-body budget may exceed its default, and only on request.
+func TestConfigAdmissionProtocolMessageBudgetDefaultAndRaise(t *testing.T) {
+	input := admittedInput()
+	native, err := PrepareConfig(context.Background(), input)
+	if err != nil || native.ConnConfig.MaxProtocolMessageBodyLen != DefaultMaximumProtocolMessageBodyBytes {
+		t.Fatal("zero message budget did not select the default")
+	}
+	input.Limits.MaximumProtocolMessageBodyBytes = DefaultMaximumProtocolMessageBodyBytes + 1
+	native, err = PrepareConfig(context.Background(), input)
+	if err != nil || native.ConnConfig.MaxProtocolMessageBodyLen != DefaultMaximumProtocolMessageBodyBytes+1 {
+		t.Fatal("raised message budget was not applied to the native configuration")
+	}
+	input = admittedInput()
+	input.Limits.MaximumDSNBytes = DefaultMaximumDSNBytes + 1
+	result, err := PrepareConfig(context.Background(), input)
+	requireConfigField(t, result, err, "limits")
 }
 
 func TestConfigAdmissionPoolMaximumCeiling(t *testing.T) {

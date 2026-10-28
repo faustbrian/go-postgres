@@ -2,7 +2,7 @@
 
 [Documentation index](README.md) · [Repository entry](../README.md)
 
-Model version: 3.1.0. Reviewed: 2026-10-28. Owner: repository maintainer.
+Model version: 3.2.0. Reviewed: 2026-10-28. Owner: repository maintainer.
 Scope: the v3 root module and its `adapters/service` and `adapters/otel`
 packages. The v3 review found no new asset, trust boundary or redaction path:
 the removed packages and entry points were forwarders to the retained owners,
@@ -10,7 +10,9 @@ dropping the Service v1 dependency narrows the dependency graph, the
 OpenTelemetry change renames only the instrumentation scope, and release builds
 move to Go 1.27.3 for GO-2026-6809. The 3.1.0 review adds one opt-in
 acquisition path, `ResolveNativeDSN`, whose ownership is recorded in the
-boundary table below. This source-bound model does not claim verification of
+boundary table below. The 3.2.0 review lets an application raise the per-message
+body budget above its 8 MiB default, up to PostgreSQL's own message limit; the
+default and every other admission budget are unchanged. This source-bound model does not claim verification of
 any application deployment.
 
 ## Assets
@@ -105,6 +107,7 @@ owners must satisfy the constraints below before adoption.
 | Boundary | Owner | Rationale | Required mitigation | Review condition |
 | --- | --- | --- | --- | --- |
 | `ResolveNativeDSN` | maintainer owns its code (context check, then pgx parsing); application owns selecting it and the PG* environment, `$HOME` and files it reads | pgx reads the passfile, service file and TLS files without size limits or cancellation | select it only where ambient acquisition is intended; constrain or empty the PG* environment and home-directory files the process can read | pgx parser defaults or the application's runtime environment change |
+| Raised `MaximumProtocolMessageBodyBytes` | application operations owner | each connection may buffer one message of the configured size, so a raised budget multiplies worst-case memory by the pool size | raise it only for pools that read rows above 8 MiB, to just above the largest admitted row, and budget memory for the pool size | row-size admission limits, pool size or memory limits change |
 | `ResolveDSN`, `Configure`, hooks and tracers | application integration owner | trusted callbacks may allocate, block or panic outside library control | finite acquisition and allocation budgets, cooperative context handling, reviewed TLS and tracer policy; do not treat timeout as preemption | collaborator, configured native shape or trust domain changes |
 | Native errors, `ErrorInfo`, `SQLState`, server `Detail` and `Hint` | application observability owner | authorized classification retains diagnostic data that can be sensitive | allow-list safe fields and redact before logging, tracing or exporting | logging/exporter policy or native diagnostic handling changes |
 | PostgreSQL hosts, credentials, TLS and roles | application security owner | explicit connection configuration cannot replace deployment access controls | approved destinations, certificate validation, least privilege and credential rotation | destination, resolver, TLS, role or secret-acquisition policy changes |
