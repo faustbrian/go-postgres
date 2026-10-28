@@ -8,8 +8,10 @@ packages. The v3 review found no new asset, trust boundary or redaction path:
 the removed packages and entry points were forwarders to the retained owners,
 dropping the Service v1 dependency narrows the dependency graph, the
 OpenTelemetry change renames only the instrumentation scope, and release builds
-move to Go 1.27.3 for GO-2026-6809. This source-bound model does not claim
-verification of any application deployment.
+move to Go 1.27.3 for GO-2026-6809. The 3.1.0 review adds one opt-in
+acquisition path, `ResolveNativeDSN`, whose ownership is recorded in the
+boundary table below. This source-bound model does not claim verification of
+any application deployment.
 
 ## Assets
 
