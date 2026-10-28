@@ -4,8 +4,9 @@
 
 ## Connection strings
 
-`PrepareConfig` requires an explicit application resolver; the library does not
-parse PostgreSQL strings or acquire ambient defaults. Native-parser hosted
+`PrepareConfig` requires an explicit application resolver; nothing is resolved
+by default. The library parses PostgreSQL strings and acquires ambient defaults
+only when the application selects `ResolveNativeDSN`. Native-parser hosted
 controls include percent-encoded credentials,
 quoted keyword values, IPv6, Unix sockets, and multi-host fallback lists. The
 package never returns the input DSN in its own validation errors. Treat the

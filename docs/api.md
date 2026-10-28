@@ -16,6 +16,8 @@ stability and behavior of each public surface.
 - `PrepareConfig(ctx, input)` admits DSN and native shapes around explicit
   application resolution and context-aware Configure; collaborator panics
   propagate.
+- `ResolveNativeDSN` is an explicit opt-in resolver that uses pgx's native
+  parser and its ambient environment and files. Nothing is resolved by default.
 - `ConfigError` identifies a field. `Unwrap` exposes only safe hook causes; DSN
   parser causes are deliberately withheld because upstream text may change.
 - `PoolConfig` is an alias, not a wrapper, for `pgxpool.Config`.

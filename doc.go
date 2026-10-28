@@ -2,7 +2,8 @@
 // transaction cleanup, error classification and bounded observations without
 // hiding native pgx types. It is not a driver, ORM, migration engine or retry loop.
 //
-// PrepareConfig requires an application ResolveDSN collaborator and transfers
+// PrepareConfig requires an application ResolveDSN collaborator, such as the
+// explicit opt-in ResolveNativeDSN, and transfers
 // its fresh native configuration through typed defaults and admission checks.
 // Connect owns the resulting pool; StartupLazy does not prove connectivity.
 // Release every acquired connection and arrange Shutdown after users finish.

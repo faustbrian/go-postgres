@@ -70,6 +70,7 @@ type Config struct {
 	// ResolveDSN is required. It owns any environment, filesystem or other
 	// acquisition used to resolve the admitted DSN, must cooperate with ctx,
 	// and transfers a fresh parser-created native configuration exclusively.
+	// ResolveNativeDSN is the explicit opt-in for pgx native parsing.
 	ResolveDSN func(context.Context, string) (*PoolConfig, error)
 
 	// ConfigResolutionTimeout bounds cooperative preparation; zero uses 5s.

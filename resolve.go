@@ -7,11 +7,15 @@ import (
 )
 
 // ResolveNativeDSN is an explicit opt-in Config.ResolveDSN that parses the
-// admitted DSN with pgx's native parser. The parser consults the process
-// environment (PG* variables), passfile, service file and TLS files named by
-// the DSN or that environment, so selecting it is the application's choice of
-// ambient credential acquisition. It returns the context cause when ctx is
-// already done and does not interrupt a parse that has started.
+// admitted DSN with pgx's native parser, so selecting it is the application's
+// choice of ambient credential acquisition. The parser consults PG* environment
+// variables and reads the passfile, service file and TLS certificate, key and
+// root files, both those named by the DSN or environment and pgx's
+// home-directory defaults (~/.pgpass, ~/.pg_service.conf, ~/.postgresql/*). It
+// may also look up the OS user account. A nil ctx returns ErrContextRequired and
+// a done ctx returns its cause before parsing; parsing takes no context, so its
+// file reads can block past ctx's deadline. Errors returned directly come from
+// pgx and may carry the connection string; PrepareConfig withholds them.
 func ResolveNativeDSN(ctx context.Context, dsn string) (*PoolConfig, error) {
 	if ctx == nil {
 		return nil, ErrContextRequired
