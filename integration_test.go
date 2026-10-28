@@ -23,15 +23,7 @@ import (
 	"github.com/faustbrian/go-postgres/v3/postgrestest"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-func resolveIntegrationDSN(ctx context.Context, dsn string) (*postgres.PoolConfig, error) {
-	if ctx.Err() != nil {
-		return nil, context.Cause(ctx)
-	}
-	return pgxpool.ParseConfig(dsn)
-}
 
 var integrationDatabase *postgrestest.Database
 var integrationHookDSN string
@@ -65,7 +57,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestPoolLifecycleAgainstPostgreSQL(t *testing.T) {
-	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing,
 		DSN:             integrationDatabase.DSN(),
 		MaxConns:        1,
 		AcquireTimeout:  50 * time.Millisecond,
@@ -114,7 +106,7 @@ func TestPoolLifecycleAgainstPostgreSQL(t *testing.T) {
 }
 
 func TestSessionInitializationAgainstPostgreSQL(t *testing.T) {
-	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing,
 		DSN: integrationDatabase.DSN(),
 		SessionInit: func(ctx context.Context, conn *pgx.Conn) error {
 			_, err := conn.Exec(ctx, "SET application_name = 'postgres-integration'")
@@ -136,7 +128,7 @@ func TestSessionInitializationAgainstPostgreSQL(t *testing.T) {
 	}
 
 	sentinel := errors.New("session initialization rejected")
-	_, err = postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	_, err = postgres.Connect(context.Background(), postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing,
 		DSN: integrationDatabase.DSN(),
 		SessionInit: func(context.Context, *pgx.Conn) error {
 			return sentinel
@@ -183,7 +175,7 @@ func TestNativePoolHookContractsAgainstPostgreSQL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := postgres.Connect(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+			_, err := postgres.Connect(ctx, postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing,
 				DSN: integrationDatabase.DSN(),
 				Configure: func(_ context.Context, config *postgres.PoolConfig) error {
 					tt.configure(config)
@@ -199,7 +191,7 @@ func TestNativePoolHookContractsAgainstPostgreSQL(t *testing.T) {
 
 	var prepareCalls atomic.Int32
 	var preparedPIDs []uint32
-	preparedPool, err := postgres.Connect(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	preparedPool, err := postgres.Connect(ctx, postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing,
 		DSN:      integrationDatabase.DSN(),
 		MaxConns: 1,
 		Configure: func(_ context.Context, config *postgres.PoolConfig) error {
@@ -222,7 +214,7 @@ func TestNativePoolHookContractsAgainstPostgreSQL(t *testing.T) {
 
 	released := make(chan struct{}, 4)
 	var connections atomic.Int32
-	pool, err := postgres.Connect(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(ctx, postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing,
 		DSN:      integrationDatabase.DSN(),
 		MaxConns: 1,
 		Configure: func(_ context.Context, config *postgres.PoolConfig) error {
@@ -298,7 +290,7 @@ func TestNativePoolHookPanicHelper(t *testing.T) {
 		t.Skip("subprocess helper")
 	}
 
-	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing,
 		DSN: integrationHookDSN,
 		Configure: func(_ context.Context, config *postgres.PoolConfig) error {
 			panicHook := func() { panic("native hook panic: " + hook) }
@@ -359,7 +351,7 @@ func TestStartupAuthenticationAndTLSFailuresAreSecretSafeAgainstPostgreSQL(t *te
 	}
 	const badPassword = "authentication-secret-that-must-not-leak"
 	dsn.User = url.UserPassword(dsn.User.Username(), badPassword)
-	_, err = postgres.Connect(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing, DSN: dsn.String()})
+	_, err = postgres.Connect(ctx, postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing, DSN: dsn.String()})
 	var pgErr *pgconn.PgError
 	if !errors.As(err, &pgErr) || pgErr.Code != "28P01" {
 		t.Fatalf("authentication error = %v, want SQLSTATE 28P01", err)
@@ -368,7 +360,7 @@ func TestStartupAuthenticationAndTLSFailuresAreSecretSafeAgainstPostgreSQL(t *te
 		t.Fatalf("authentication error leaked password: %v", err)
 	}
 
-	_, err = postgres.Connect(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	_, err = postgres.Connect(ctx, postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing,
 		DSN: integrationDatabase.DSN(),
 		TLS: postgres.TLSConfig{
 			Mode: postgres.TLSRequire,
@@ -491,7 +483,7 @@ func TestCommitPanicsDoNotStrandPoolConnectionsAgainstPostgreSQL(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+			pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing,
 				DSN:      integrationDatabase.DSN(),
 				MaxConns: 1,
 				Configure: func(_ context.Context, config *postgres.PoolConfig) error {
@@ -1001,7 +993,7 @@ func TestPoolRecoversAfterPostgreSQLRestart(t *testing.T) {
 			t.Errorf("close restart database: %v", err)
 		}
 	}()
-	pool, err := postgres.Connect(ctx, postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(ctx, postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing,
 		DSN:         database.DSN(),
 		PingTimeout: 250 * time.Millisecond,
 	})
@@ -1154,7 +1146,7 @@ func TestTransactionIsolatedTestHelperAgainstPostgreSQL(t *testing.T) {
 func integrationPool(t *testing.T, maxConns int32) *postgres.Pool {
 	t.Helper()
 
-	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing,
 		DSN:      integrationDatabase.DSN(),
 		MaxConns: maxConns,
 	})

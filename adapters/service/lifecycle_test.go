@@ -10,7 +10,6 @@ import (
 	postgres "github.com/faustbrian/go-postgres/v3"
 	postgresservice "github.com/faustbrian/go-postgres/v3/adapters/service"
 	service "github.com/faustbrian/go-service/v3"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func TestServicePreservesPoolOwnershipAndReadiness(t *testing.T) {
@@ -165,9 +164,7 @@ func TestServiceOwnsOnlyTransferredNativePools(t *testing.T) {
 		pool, err := postgres.Connect(context.Background(), postgres.Config{
 			DSN:           "postgres://localhost/app?sslmode=disable",
 			StartupPolicy: postgres.StartupLazy,
-			ResolveDSN: func(_ context.Context, dsn string) (*postgres.PoolConfig, error) {
-				return pgxpool.ParseConfig(dsn)
-			},
+			ResolveDSN:    postgres.ResolveNativeDSN,
 		})
 		if err != nil {
 			t.Fatal(err)

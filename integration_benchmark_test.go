@@ -13,7 +13,7 @@ import (
 // These benchmarks require the tagged real-database fixture. They measure
 // actual acquisition/transaction work, unlike the untagged stub microbenchmarks.
 func BenchmarkPostgreSQLPoolAcquire(b *testing.B) {
-	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing,
 		DSN:      integrationDatabase.DSN(),
 		MaxConns: 4,
 	})
@@ -33,7 +33,7 @@ func BenchmarkPostgreSQLPoolAcquire(b *testing.B) {
 }
 
 func BenchmarkPostgreSQLTransaction(b *testing.B) {
-	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: resolveIntegrationDSN, StartupPolicy: postgres.StartupPing,
+	pool, err := postgres.Connect(context.Background(), postgres.Config{ResolveDSN: postgres.ResolveNativeDSN, StartupPolicy: postgres.StartupPing,
 		DSN:      integrationDatabase.DSN(),
 		MaxConns: 4,
 	})

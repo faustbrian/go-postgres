@@ -20,7 +20,7 @@ func TestConnectFailFastDoesNotLeakCredentials(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	_, err := Connect(ctx, Config{ResolveDSN: resolveHostedDSN, StartupPolicy: StartupPing,
+	_, err := Connect(ctx, Config{ResolveDSN: ResolveNativeDSN, StartupPolicy: StartupPing,
 		DSN:            "postgres://app:" + password + "@127.0.0.1:1/app?sslmode=disable",
 		ConnectTimeout: 50 * time.Millisecond,
 		PingTimeout:    100 * time.Millisecond,
@@ -54,7 +54,7 @@ func TestConnectFailsBoundedlyAgainstWrongProtocolServer(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	started := time.Now()
-	_, err = Connect(ctx, Config{ResolveDSN: resolveHostedDSN, StartupPolicy: StartupPing,
+	_, err = Connect(ctx, Config{ResolveDSN: ResolveNativeDSN, StartupPolicy: StartupPing,
 		DSN: fmt.Sprintf(
 			"postgres://app:wrong-server-secret@%s/app?sslmode=disable",
 			listener.Addr(),
@@ -79,7 +79,7 @@ func TestConnectFailsBoundedlyAgainstWrongProtocolServer(t *testing.T) {
 func TestConnectLazyExposesNativePool(t *testing.T) {
 	t.Parallel()
 
-	pool, err := Connect(context.Background(), Config{ResolveDSN: resolveHostedDSN,
+	pool, err := Connect(context.Background(), Config{ResolveDSN: ResolveNativeDSN,
 		DSN:           "postgres://localhost/app?sslmode=disable",
 		MaxConns:      7,
 		StartupPolicy: StartupLazy,
@@ -262,7 +262,7 @@ func TestPoolLivenessDoesNotRequireDatabaseConnectivity(t *testing.T) {
 func TestConnectRejectsInvalidHookPolicyWithoutCredentials(t *testing.T) {
 	t.Parallel()
 
-	_, err := Connect(context.Background(), Config{ResolveDSN: resolveHostedDSN,
+	_, err := Connect(context.Background(), Config{ResolveDSN: ResolveNativeDSN,
 		DSN:           "postgres://app:secret@localhost/app?sslmode=disable",
 		StartupPolicy: StartupLazy,
 		Configure: func(_ context.Context, config *PoolConfig) error {
@@ -289,7 +289,7 @@ func TestConnectRejectsInvalidHookPolicyWithoutCredentials(t *testing.T) {
 func TestConnectReturnsConfigurationFailure(t *testing.T) {
 	t.Parallel()
 
-	_, err := Connect(context.Background(), Config{ResolveDSN: resolveHostedDSN, StartupPolicy: StartupPing})
+	_, err := Connect(context.Background(), Config{ResolveDSN: ResolveNativeDSN, StartupPolicy: StartupPing})
 	var configErr *ConfigError
 	if !errors.As(err, &configErr) {
 		t.Fatalf("Connect() error = %v, want ConfigError", err)
@@ -300,7 +300,7 @@ func TestConnectRejectsNilAndCanceledContextsBeforeConfiguration(t *testing.T) {
 	t.Parallel()
 
 	var configureCalls atomic.Int32
-	input := Config{ResolveDSN: resolveHostedDSN, StartupPolicy: StartupPing,
+	input := Config{ResolveDSN: ResolveNativeDSN, StartupPolicy: StartupPing,
 		DSN: "postgres://localhost/app?sslmode=disable",
 		Configure: func(_ context.Context, _ *PoolConfig) error {
 			configureCalls.Add(1)
@@ -336,7 +336,7 @@ func TestConnectConstructsOnceAndRollsBackFailedReadiness(t *testing.T) {
 		ping:  func(context.Context) error { return pingErr },
 		close: func() { closes.Add(1) },
 	}
-	_, err := connect(context.Background(), Config{ResolveDSN: resolveHostedDSN, StartupPolicy: StartupPing,
+	_, err := connect(context.Background(), Config{ResolveDSN: ResolveNativeDSN, StartupPolicy: StartupPing,
 		DSN: "postgres://localhost/app?sslmode=disable",
 	}, func(context.Context, *pgxpool.Config) (*pgxpool.Pool, poolBackend, error) {
 		constructs.Add(1)

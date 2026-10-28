@@ -53,7 +53,7 @@ The core construction and transaction flow is:
 ```go
 ctx := context.Background()
 pool, err := postgres.Connect(ctx, postgres.Config{
-	ResolveDSN:       resolveDSN, // explicit application policy; see migration guide
+	ResolveDSN:       postgres.ResolveNativeDSN, // explicit ambient pgx parsing; see the migration guide
 	StartupPolicy:    postgres.StartupPing, // opt into startup connectivity
     DSN:             os.Getenv("DATABASE_URL"),
     MaxConns:        20,

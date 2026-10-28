@@ -53,7 +53,7 @@ func BenchmarkPoolAcquireOverhead(b *testing.B) {
 func BenchmarkPoolCreation(b *testing.B) {
 	ctx := context.Background()
 	config := Config{
-		ResolveDSN:    resolveHostedDSN,
+		ResolveDSN:    ResolveNativeDSN,
 		DSN:           "postgres://localhost/app?sslmode=disable",
 		StartupPolicy: StartupLazy,
 	}

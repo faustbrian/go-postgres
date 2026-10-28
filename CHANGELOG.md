@@ -5,6 +5,14 @@ Versioning and keeps an Unreleased section until a release is tagged.
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-10-28
+
+### Added
+
+- Add `ResolveNativeDSN`, an explicit opt-in `Config.ResolveDSN` that parses
+  the DSN with pgx's native parser and its ambient environment and files.
+  Applications that chose native parsing can drop their own copies.
+
 ## [3.0.0] - 2026-10-22
 
 ### Security
@@ -285,7 +293,8 @@ The following initial scope is included in `v1.0.1`.
 - exact production coverage, race, leak, fuzz, benchmark, safety, lint,
   vulnerability, documentation, compatibility, and release automation
 
-[Unreleased]: https://github.com/faustbrian/go-postgres/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/faustbrian/go-postgres/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/faustbrian/go-postgres/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/faustbrian/go-postgres/compare/v2.1.0...v3.0.0
 [2.1.0]: https://github.com/faustbrian/go-postgres/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/faustbrian/go-postgres/compare/v2.0.0...v2.0.1

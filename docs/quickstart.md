@@ -21,7 +21,7 @@ The package-level construction flow is:
 
 ```go
 pool, err := postgres.Connect(ctx, postgres.Config{
-	ResolveDSN:       resolveDSN, // application resolver from the migration guide
+	ResolveDSN:       postgres.ResolveNativeDSN, // explicit ambient pgx parsing; see the migration guide
 	StartupPolicy:    postgres.StartupPing,
     DSN:             os.Getenv("DATABASE_URL"),
     MaxConns:        20,

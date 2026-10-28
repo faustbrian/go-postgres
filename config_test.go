@@ -10,20 +10,10 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Native parsing controls are hosted-only during agent verification. This is
-// an explicit application resolver, not a package default.
-func resolveHostedDSN(ctx context.Context, dsn string) (*PoolConfig, error) {
-	if ctx.Err() != nil {
-		return nil, context.Cause(ctx)
-	}
-	return pgxpool.ParseConfig(dsn)
-}
-
 func parseHostedConfig(input Config) (*PoolConfig, error) {
-	input.ResolveDSN = resolveHostedDSN
+	input.ResolveDSN = ResolveNativeDSN
 	if input.MinConns > 0 || input.MinIdleConns > 0 {
 		input.StartupPolicy = StartupPing
 	}

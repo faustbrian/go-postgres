@@ -37,19 +37,18 @@ Published v2.0.0 used `github.com/faustbrian/go-postgres/v2`. Downstream
 adoption must still verify each affected application.
 
 Every configuration must supply `ResolveDSN(ctx, dsn)`, returning a fresh,
-exclusively transferred, valid pgx parser-created `*PoolConfig`. There is no
-built-in parser or resolver. Applications explicitly own any parser environment,
+exclusively transferred, valid pgx parser-created `*PoolConfig`. Nothing is
+resolved by default. Applications explicitly own any parser environment,
 passfile/service/TLS filesystem access, resolution allocations, and cooperation
-with cancellation. An application that deliberately opts into native pgx
-resolution can use:
+with cancellation. Since v3.1.0 an application that deliberately opts into
+native pgx resolution, including its ambient environment and files, passes
+`postgres.ResolveNativeDSN`:
 
 ```go
-func resolveDSN(ctx context.Context, dsn string) (*postgres.PoolConfig, error) {
-    if ctx.Err() != nil {
-        return nil, context.Cause(ctx)
-    }
-    return pgxpool.ParseConfig(dsn) // application-owned ambient acquisition
-}
+pool, err := postgres.Connect(ctx, postgres.Config{
+    DSN:        dsn,
+    ResolveDSN: postgres.ResolveNativeDSN, // explicit ambient acquisition
+})
 ```
 
 `PrepareConfig(ctx, input)` is the single preparation owner used by `Connect`.
