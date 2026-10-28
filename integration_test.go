@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"flag"
 	"fmt"
 	"net"
 	"net/url"
@@ -31,6 +32,12 @@ var integrationHookDSN string
 
 func TestMain(m *testing.M) {
 	if integrationHookDSN = os.Getenv("GO_POSTGRES_HOOK_HELPER_DSN"); integrationHookDSN != "" {
+		os.Exit(m.Run())
+	}
+	// Fuzz workers run only fuzz targets, which never use the database;
+	// starting a container per worker exhausts the Docker host.
+	flag.Parse()
+	if worker := flag.Lookup("test.fuzzworker"); worker != nil && worker.Value.String() == "true" {
 		os.Exit(m.Run())
 	}
 

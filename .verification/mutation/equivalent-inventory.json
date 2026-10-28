@@ -4,7 +4,7 @@
     {
       "module_directory": ".",
       "package_directory": ".",
-      "source_digest": "534fbf2729f0bd24dcc2f930138192c715fbb3c6278e249df95c1c4bbd5eda97",
+      "source_digest": "e0f022fc062f1832a1d6bf58214074121a9e216e89b8eecd3217001d49d4809b",
       "gremlins_version": "v0.6.0",
       "gremlins_verifier_sha256": "390cf4085a0063fe5dcaa29ce942ea4cb8c7876347da90376b65dc8c5c811104",
       "mutations": [
@@ -14,7 +14,7 @@
           "line": 203,
           "column": 23,
           "contract_domain": "Public PrepareConfig over Config inputs; identical timeout admission, resolver deadline, cancellation and returned configuration",
-          "reason": "Current-source independent review scope: /root/library_release_review, 2026-10-15; expires 2026-11-06 or any bound source/verifier, default timeout or preparation ordering change. This rebinds the existing single coordinate after the 3.1.0 ParseConfig removal and 3.2.0 message-budget change shifted its location; the guard, valueOrDefault and the negative-timeout refusal are unchanged, and the public contract domain is not broadened. Gremlins changes resolutionTimeout<=0 to resolutionTimeout<0. Before this guard, invalidNegativeField refuses every negative ConfigResolutionTimeout. valueOrDefault maps zero to the positive DefaultConfigResolutionTimeout (5 seconds), and leaves positive values unchanged. Therefore resolutionTimeout is strictly positive for every public invocation reaching the guard; equality zero is unreachable. The upper bound, context deadline, resolver acquisition, cancellation observations and diagnostics are identical. Preserve the defensive production guard. Historical native37597684416 remains FAILED with this coordinate LIVED; this record does not alter native counters or accept any other survivor. Current native mutation execution must account for the reviewed coordinate separately."
+          "reason": "Current-source independent review scope: /root/library_release_review, 2026-10-15; expires 2026-11-06 or any bound source/verifier, default timeout or preparation ordering change. Rebound by the 3.2.0 independent review (2026-10-28) after the 3.0.0 ParseConfig removal moved the guard to line 203 and the 3.2.0 config_limits.go change altered the package digest; the guard, valueOrDefault and the negative-timeout refusal in config.go are unchanged, and the public contract domain is not broadened. Gremlins changes resolutionTimeout<=0 to resolutionTimeout<0. Before this guard, invalidNegativeField refuses every negative ConfigResolutionTimeout. valueOrDefault maps zero to the positive DefaultConfigResolutionTimeout (5 seconds), and leaves positive values unchanged. Therefore resolutionTimeout is strictly positive for every public invocation reaching the guard; equality zero is unreachable. The upper bound, context deadline, resolver acquisition, cancellation observations and diagnostics are identical. Preserve the defensive production guard. Historical native37597684416 remains FAILED with this coordinate LIVED; this record does not alter native counters or accept any other survivor. Current native mutation execution must account for the reviewed coordinate separately."
         }
       ]
     }

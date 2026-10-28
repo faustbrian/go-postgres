@@ -51,8 +51,9 @@ type ConfigLimits struct {
 	// MaximumDescriptionCacheEntries bounds the native description cache.
 	MaximumDescriptionCacheEntries int
 	// MaximumProtocolMessageBodyBytes bounds each native wire-message body, and
-	// therefore the largest row a query can return. Raising it lets one
-	// connection buffer that many bytes, so size the pool accordingly.
+	// therefore the largest row a query can return. A connection may hold up to
+	// twice this size while reading one message, plus the decoded copy, so size
+	// memory for the pool accordingly.
 	MaximumProtocolMessageBodyBytes int
 }
 

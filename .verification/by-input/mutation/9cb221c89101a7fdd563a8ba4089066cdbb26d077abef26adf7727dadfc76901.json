@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "repository": "github.com/faustbrian/go-postgres",
+  "module": ".",
+  "package": "adapters/service",
+  "gate": "mutation",
+  "input_digest": "sha256:9cb221c89101a7fdd563a8ba4089066cdbb26d077abef26adf7727dadfc76901",
+  "verifier_digest": "sha256:390cf4085a0063fe5dcaa29ce942ea4cb8c7876347da90376b65dc8c5c811104",
+  "result": "passed",
+  "report_digest": "sha256:1a5e037ec93f63068cefc0b67ef4b33cd1e857ec5c1621e5bb16d51c3e36345e",
+  "environment": {
+    "CGO_ENABLED": "1",
+    "GOARCH": "arm64",
+    "GOOS": "darwin",
+    "GOVERSION": "go1.27.3",
+    "gremlins_binary_sha256": "sha256:c3f3e63111ff64eba20c19da482838218cf0c1d95375e4e071fa011fbf7452d9"
+  },
+  "completed_at": "2026-10-28T18:13:14.7058Z"
+}
