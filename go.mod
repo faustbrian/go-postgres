@@ -3,7 +3,7 @@ module github.com/faustbrian/go-postgres/v3
 go 1.27.0
 
 require (
-	github.com/faustbrian/go-service/v3 v3.0.0
+	github.com/faustbrian/go-service/v3 v3.4.0
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/moby/moby/api v1.56.1
 	github.com/testcontainers/testcontainers-go v0.44.0
