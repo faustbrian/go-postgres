@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "repository": "github.com/faustbrian/go-postgres",
-  "go_version": "1.27.3",
+  "go_version": "1.27.4",
   "modules": [
     {
       "directory": ".",
@@ -198,7 +198,7 @@
           "release": "not-started"
         }
       },
-      "version": "3.2.0",
+      "version": "3.2.1",
       "tag_prefix": "v",
       "owned_dependencies": [
         "github.com/faustbrian/go-cli/v2",

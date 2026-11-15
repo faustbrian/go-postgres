@@ -42,7 +42,7 @@ windows lack deterministic public synchronization. Full/release selection
 retains mutation and applicable aggregate checks; ordinary checks retain the
 complete security scanner contract.
 
-Use Go 1.27.3 for verification; the module/API minimum remains Go 1.27.0.
+Use Go 1.27.4 for verification; the module/API minimum remains Go 1.27.0.
 An isolated checkout needs no sibling repositories or coordination goal files.
 Begin with deterministic tests and one active target when its hostile
 configuration boundary changes, using a disposable cache for each session:
